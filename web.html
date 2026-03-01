@@ -12,6 +12,8 @@
 --yel:#ffb800;--yg:rgba(255,184,0,.15);
 --grn:#00e878;--gg:rgba(0,232,120,.15);--ga:#00e87833;
 --blu:#00a0ff;--bg2:rgba(0,160,255,.15);
+--pur:#b44dff;--pg:rgba(180,77,255,.15);
+--org:#ff8c00;--og:rgba(255,140,0,.15);
 --r:10px;--rs:6px
 }
 body{background:var(--bg);color:var(--t1);font-family:'Inter','Segoe UI',system-ui,sans-serif;min-height:100vh;overflow-x:hidden}
@@ -80,13 +82,19 @@ body{background:var(--bg);color:var(--t1);font-family:'Inter','Segoe UI',system-
 .res-display.red{border-color:var(--red)}.res-display.red::before{background:radial-gradient(ellipse at center,var(--rg),transparent 70%);opacity:1}
 .res-display.yellow{border-color:var(--yel)}.res-display.yellow::before{background:radial-gradient(ellipse at center,var(--yg),transparent 70%);opacity:1}
 .res-display.green{border-color:var(--grn)}.res-display.green::before{background:radial-gradient(ellipse at center,var(--gg),transparent 70%);opacity:1}
+.res-display.purple{border-color:var(--pur)}.res-display.purple::before{background:radial-gradient(ellipse at center,var(--pg),transparent 70%);opacity:1}
+.res-display.orange{border-color:var(--org)}.res-display.orange::before{background:radial-gradient(ellipse at center,var(--og),transparent 70%);opacity:1}
 .res-num{font-size:56px;font-weight:900;font-family:'Consolas',monospace;line-height:1;position:relative;z-index:1;transition:color .15s}
 .res-num.red{color:var(--red)}.res-num.yellow{color:var(--yel)}.res-num.green{color:var(--grn)}
+.res-num.purple{color:var(--pur)}.res-num.orange{color:var(--org)}
 .res-num.none{color:var(--t3);font-size:15px;font-weight:500}
 .res-num.loose{color:var(--red);font-size:28px;animation:flash .7s infinite}
+.res-num.middle{color:var(--pur);font-size:32px}
+.res-num.goal{color:var(--org);font-size:36px}
 @keyframes flash{0%,100%{opacity:1}50%{opacity:.4}}
 .res-lbl{font-size:13px;font-weight:700;margin-top:8px;letter-spacing:4px;text-transform:uppercase;position:relative;z-index:1}
 .res-lbl.red{color:var(--red)}.res-lbl.yellow{color:var(--yel)}.res-lbl.green{color:var(--grn)}.res-lbl.loose{color:var(--red);letter-spacing:6px}
+.res-lbl.purple{color:var(--pur)}.res-lbl.orange{color:var(--org)}
 .dbg{display:grid;gap:0;margin-top:14px;background:#06060e;border-radius:var(--rs);overflow:hidden;border:1px solid var(--brd)}
 .dbg-r{display:flex;justify-content:space-between;align-items:center;padding:7px 12px;border-bottom:1px solid #0c0c18;font-size:11px;font-family:'Consolas',monospace}
 .dbg-r:last-child{border-bottom:none}
@@ -97,9 +105,13 @@ body{background:var(--bg);color:var(--t1);font-family:'Inter','Segoe UI',system-
 .state-hero.red{border-color:var(--red)}.state-hero.red::before{background:radial-gradient(ellipse at center,var(--rg),transparent 70%);opacity:1}
 .state-hero.yellow{border-color:var(--yel)}.state-hero.yellow::before{background:radial-gradient(ellipse at center,var(--yg),transparent 70%);opacity:1}
 .state-hero.green{border-color:var(--grn)}.state-hero.green::before{background:radial-gradient(ellipse at center,var(--gg),transparent 70%);opacity:1}
+.state-hero.purple{border-color:var(--pur)}.state-hero.purple::before{background:radial-gradient(ellipse at center,var(--pg),transparent 70%);opacity:1}
+.state-hero.orange{border-color:var(--org)}.state-hero.orange::before{background:radial-gradient(ellipse at center,var(--og),transparent 70%);opacity:1}
 .st-lbl{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:3px;font-weight:600;position:relative;z-index:1}
 .st-big{font-size:44px;font-weight:900;font-family:'Consolas',monospace;margin:10px 0 6px;position:relative;z-index:1}
-.st-big.red{color:var(--red)}.st-big.yellow{color:var(--yel)}.st-big.green{color:var(--grn)}.st-big.off{color:#1a1a30}.st-big.loose{color:var(--red);font-size:28px;animation:flash .7s infinite}
+.st-big.red{color:var(--red)}.st-big.yellow{color:var(--yel)}.st-big.green{color:var(--grn)}.st-big.off{color:#1a1a30}
+.st-big.loose{color:var(--red);font-size:28px;animation:flash .7s infinite}
+.st-big.purple{color:var(--pur)}.st-big.orange{color:var(--org)}
 .st-dist{font-size:18px;font-family:monospace;color:var(--t3);position:relative;z-index:1}
 .thr-bar{display:flex;gap:4px;margin-top:16px;position:relative;z-index:1}
 .thr-i{flex:1;padding:7px;border-radius:4px;text-align:center;font-size:10px;font-weight:700}
@@ -139,9 +151,12 @@ body{background:var(--bg);color:var(--t1);font-family:'Inter','Segoe UI',system-
 .remote-hero.red{border-color:var(--red)}.remote-hero.red::before{background:radial-gradient(ellipse at center,var(--rg),transparent 70%);opacity:1}
 .remote-hero.yellow{border-color:var(--yel)}.remote-hero.yellow::before{background:radial-gradient(ellipse at center,var(--yg),transparent 70%);opacity:1}
 .remote-hero.green{border-color:var(--grn)}.remote-hero.green::before{background:radial-gradient(ellipse at center,var(--gg),transparent 70%);opacity:1}
+.remote-hero.purple{border-color:var(--pur)}.remote-hero.purple::before{background:radial-gradient(ellipse at center,var(--pg),transparent 70%);opacity:1}
+.remote-hero.orange{border-color:var(--org)}.remote-hero.orange::before{background:radial-gradient(ellipse at center,var(--og),transparent 70%);opacity:1}
 .remote-state{font-size:72px;font-weight:900;font-family:'Consolas',monospace;position:relative;z-index:1}
 .remote-state.red{color:var(--red)}.remote-state.yellow{color:var(--yel)}.remote-state.green{color:var(--grn)}.remote-state.off{color:#1a1a30}
 .remote-state.loose{color:var(--red);font-size:36px;animation:flash .7s infinite}
+.remote-state.purple{color:var(--pur);font-size:42px}.remote-state.orange{color:var(--org);font-size:42px}
 .remote-dist{font-size:28px;font-family:monospace;color:var(--t3);margin-top:10px;position:relative;z-index:1}
 .remote-dir{font-size:16px;color:var(--blu);margin-top:8px;position:relative;z-index:1;font-weight:600;letter-spacing:2px}
 .remote-time{font-size:10px;color:var(--t3);margin-top:12px;position:relative;z-index:1}
@@ -210,7 +225,8 @@ Share the room code with your teammate.<br>
 They open <b>this same URL</b> and join as <b>REMOTE</b>.<br><br>
 <div class="ex-box"><span class="na">EnemyPlayer </span><span class="br">(</span><span class="nm">428</span><span class="br">)</span></div><br>
 <span class="r">RED ≤500</span> · <span class="y">YEL 501-600</span> · <b>GRN >600</b><br>
-<b>?</b> detected → <span class="r">BALL LOOSE</span>
+<b>?</b> detected → <span class="r">BALL LOOSE</span><br>
+<b>middle</b> → ⚽ BALL IN MIDDLE · <b>goal</b> → 🥅 GOAL SCORED
 </div>
 </div><div class="overlay hidden" id="remoteSetup">
 <div class="hero-t">ORION</div>
@@ -277,10 +293,13 @@ They open <b>this same URL</b> and join as <b>REMOTE</b>.<br><br>
 <div class="dbg-r"><span class="dbg-k">Region</span><span class="dbg-v" id="dbgReg">—</span></div>
 <div class="dbg-r"><span class="dbg-k">OCR Time</span><span class="dbg-v" id="dbgTime">—</span></div>
 <div class="dbg-r"><span class="dbg-k">Pipeline</span><span class="dbg-v" id="dbgPipe">—</span></div>
+<div class="dbg-r"><span class="dbg-k">Special</span><span class="dbg-v" id="dbgSpecial">—</span></div>
 </div>
 <div class="info-c">
 <span>✓</span> Finds numbers inside ( ) or [ ] brackets<br>
 <span>✓</span> Any <b>?</b> → <b>BALL LOOSE</b><br>
+<span>✓</span> <b>middle</b> → ⚽ BALL IN MIDDLE (once per event)<br>
+<span>✓</span> <b>goal</b> → 🥅 GOAL SCORED (once per event)<br>
 <span>✓</span> Dual-worker pipeline for max speed<br>
 <span>✓</span> Instant sync via WebSocket relay
 </div>
@@ -433,10 +452,12 @@ let vidW=0,vidH=0,lastGoodNum=null,lastGoodTime=0,noDetectCount=0;
 let drawMode='distance',detectedDir='',manualDirOverride='',isBallLoose=false,recentReadings=[];
 const MAX_READINGS=5;
 
-// ═══════════════════════════════════════════
-// CONFIGURABLE THRESHOLDS
-// ═══════════════════════════════════════════
+// Configurable thresholds
 let RED_MAX=500,YEL_MAX=600;
+
+// Special event tracking — only announce ONCE per transition
+let isMiddle=false, isGoal=false;
+let middleAnnounced=false, goalAnnounced=false;
 
 const DIR_KEYWORDS={behind:'behind',back:'behind',rear:'behind',front:'in front',ahead:'in front',forward:'in front',left:'left',right:'right',above:'above',up:'above',top:'above',below:'below',down:'below',bottom:'below',under:'below'};
 
@@ -451,6 +472,7 @@ let ocrFrameCount=0,ocrFpsLastTime=Date.now(),ocrFps=0;
 
 // Remote state
 let rMuted=false,rVoices=[],rCurState='OFF',rRepTimer=null,rLastDir='',rLastDist='';
+let rMiddleAnnounced=false,rGoalAnnounced=false;
 
 // ═══════════════════════════════════════════
 // THRESHOLD SLIDERS
@@ -462,8 +484,6 @@ $('thrRedLabel').textContent='RED ≤'+RED_MAX;
 $('thrYelLabel').textContent='YEL '+(RED_MAX+1)+'-'+YEL_MAX;
 $('thrGrnLabel').textContent='GRN >'+ YEL_MAX;
 $('thrMidLabel').textContent=RED_MAX+' | '+YEL_MAX;
-
-// Visual bar
 const total=Math.max(YEL_MAX+400,1000);
 $('thrSegR').style.flex=RED_MAX;
 $('thrSegY').style.flex=YEL_MAX-RED_MAX;
@@ -473,28 +493,51 @@ $('thrSegG').style.flex=total-YEL_MAX;
 $('redThrR').oninput=e=>{
 let v=+e.target.value;
 if(v>=YEL_MAX){v=YEL_MAX-10;e.target.value=v}
-RED_MAX=v;
-updateThresholdUI();
-// Re-evaluate current number
-if(lastNum!==null&&!isBallLoose){const st=getState(lastNum);applyState(st,lastNum)}
+RED_MAX=v;updateThresholdUI();
+if(lastNum!==null&&!isBallLoose&&!isMiddle&&!isGoal){const st=getState(lastNum);applyState(st,lastNum)}
 };
 
 $('yelThrR').oninput=e=>{
 let v=+e.target.value;
 if(v<=RED_MAX){v=RED_MAX+10;e.target.value=v}
-YEL_MAX=v;
-updateThresholdUI();
-if(lastNum!==null&&!isBallLoose){const st=getState(lastNum);applyState(st,lastNum)}
+YEL_MAX=v;updateThresholdUI();
+if(lastNum!==null&&!isBallLoose&&!isMiddle&&!isGoal){const st=getState(lastNum);applyState(st,lastNum)}
 };
 
 function setThresholds(r,y){
 RED_MAX=r;YEL_MAX=y;
 $('redThrR').value=r;$('yelThrR').value=y;
 updateThresholdUI();
-if(lastNum!==null&&!isBallLoose){const st=getState(lastNum);applyState(st,lastNum)}
+if(lastNum!==null&&!isBallLoose&&!isMiddle&&!isGoal){const st=getState(lastNum);applyState(st,lastNum)}
 }
 
 updateThresholdUI();
+
+// ════════════════════════════════════════════
+// SPECIAL WORD DETECTION
+// ════════════════════════════════════════════
+const MIDDLE_WORDS=['middle','middie','midd1e','m1ddle','rniddle','middl','mlddle'];
+const GOAL_WORDS=['goal','goa1','g0al','goai','qoal'];
+
+function detectMiddle(raw,lines){
+const all=[raw,...lines].map(s=>s.toLowerCase());
+for(const s of all){
+for(const w of MIDDLE_WORDS){
+if(s.includes(w))return true;
+}
+}
+return false;
+}
+
+function detectGoal(raw,lines){
+const all=[raw,...lines].map(s=>s.toLowerCase());
+for(const s of all){
+for(const w of GOAL_WORDS){
+if(s.includes(w))return true;
+}
+}
+return false;
+}
 
 // ════════════════════════════════════════════
 // MQTT WEBSOCKET RELAY
@@ -514,15 +557,11 @@ mqttWs=new WebSocket(url,'mqtt');
 mqttWs.binaryType='arraybuffer';
 }catch(e){
 log('WS create failed: '+e.message,'e');
-scheduleReconnect(onConnect,onMessage);
-return;
+scheduleReconnect(onConnect,onMessage);return;
 }
 mqttWs.onopen=()=>{
-const cid=mqttClientId;
-const cidLen=cid.length;
-const remainLen=10+2+cidLen;
-const pkt=new Uint8Array(2+remainLen);
-let i=0;
+const cid=mqttClientId,cidLen=cid.length,remainLen=10+2+cidLen;
+const pkt=new Uint8Array(2+remainLen);let i=0;
 pkt[i++]=0x10;pkt[i++]=remainLen;
 pkt[i++]=0;pkt[i++]=4;pkt[i++]=77;pkt[i++]=81;pkt[i++]=84;pkt[i++]=84;
 pkt[i++]=4;pkt[i++]=2;pkt[i++]=0;pkt[i++]=60;
@@ -531,87 +570,59 @@ for(let c=0;c<cidLen;c++)pkt[i++]=cid.charCodeAt(c);
 mqttWs.send(pkt.buffer);
 };
 mqttWs.onmessage=(evt)=>{
-const d=new Uint8Array(evt.data);
-if(!d.length)return;
+const d=new Uint8Array(evt.data);if(!d.length)return;
 const type=d[0]>>4;
 if(type===2){
-mqttConnected=true;
-log('MQTT connected!','g');
+mqttConnected=true;log('MQTT connected!','g');
 if(mqttPingInterval)clearInterval(mqttPingInterval);
-mqttPingInterval=setInterval(()=>{
-if(mqttWs&&mqttWs.readyState===1)mqttWs.send(new Uint8Array([0xC0,0x00]).buffer);
-},25000);
+mqttPingInterval=setInterval(()=>{if(mqttWs&&mqttWs.readyState===1)mqttWs.send(new Uint8Array([0xC0,0x00]).buffer)},25000);
 if(onConnect)onConnect();
 }else if(type===3){
-let idx=1;
-let remLen=0,mult=1;
-do{const b=d[idx++];remLen+=(b&127)*mult;mult*=128;if(!(b&128))break;}while(idx<d.length);
-const topicLen=(d[idx]<<8)|d[idx+1];idx+=2;
-idx+=topicLen;
+let idx=1;let remLen=0,mult=1;
+do{const b=d[idx++];remLen+=(b&127)*mult;mult*=128;if(!(b&128))break}while(idx<d.length);
+const topicLen=(d[idx]<<8)|d[idx+1];idx+=2;idx+=topicLen;
 const payload=new TextDecoder().decode(d.slice(idx));
 if(onMessage)onMessage(payload);
 }
 };
-mqttWs.onclose=()=>{
-mqttConnected=false;
-if(mqttPingInterval){clearInterval(mqttPingInterval);mqttPingInterval=null;}
-log('MQTT disconnected','e');
-scheduleReconnect(onConnect,onMessage);
-};
+mqttWs.onclose=()=>{mqttConnected=false;if(mqttPingInterval){clearInterval(mqttPingInterval);mqttPingInterval=null}log('MQTT disconnected','e');scheduleReconnect(onConnect,onMessage)};
 mqttWs.onerror=()=>{log('MQTT error','e')};
 }
 
-function scheduleReconnect(onConnect,onMessage){
-if(mqttReconnectTimer)return;
-mqttReconnectTimer=setTimeout(()=>{mqttReconnectTimer=null;mqttConnect(onConnect,onMessage)},2000);
-}
+function scheduleReconnect(onConnect,onMessage){if(mqttReconnectTimer)return;mqttReconnectTimer=setTimeout(()=>{mqttReconnectTimer=null;mqttConnect(onConnect,onMessage)},2000)}
 
 function mqttSubscribe(topic){
-if(!mqttWs||!mqttConnected)return;
-mqttTopic=topic;
-const topicBytes=new TextEncoder().encode(topic);
-const tLen=topicBytes.length;
-const remainLen=2+2+tLen+1;
-const pkt=new Uint8Array(2+remainLen);
-let i=0;
-pkt[i++]=0x82;pkt[i++]=remainLen;
-pkt[i++]=0;pkt[i++]=1;
+if(!mqttWs||!mqttConnected)return;mqttTopic=topic;
+const topicBytes=new TextEncoder().encode(topic),tLen=topicBytes.length,remainLen=2+2+tLen+1;
+const pkt=new Uint8Array(2+remainLen);let i=0;
+pkt[i++]=0x82;pkt[i++]=remainLen;pkt[i++]=0;pkt[i++]=1;
 pkt[i++]=(tLen>>8)&0xFF;pkt[i++]=tLen&0xFF;
-for(let c=0;c<tLen;c++)pkt[i++]=topicBytes[c];
-pkt[i++]=0;
-mqttWs.send(pkt.buffer);
-log('Subscribed: '+topic,'g');
+for(let c=0;c<tLen;c++)pkt[i++]=topicBytes[c];pkt[i++]=0;
+mqttWs.send(pkt.buffer);log('Subscribed: '+topic,'g');
 }
 
 function mqttPublish(topic,payload){
 if(!mqttWs||!mqttConnected)return;
-const topicBytes=new TextEncoder().encode(topic);
-const payloadBytes=new TextEncoder().encode(payload);
-const tLen=topicBytes.length;
-const pLen=payloadBytes.length;
-const remainLen=2+tLen+pLen;
-const rlBytes=[];
-let rl=remainLen;
+const topicBytes=new TextEncoder().encode(topic),payloadBytes=new TextEncoder().encode(payload);
+const tLen=topicBytes.length,pLen=payloadBytes.length,remainLen=2+tLen+pLen;
+const rlBytes=[];let rl=remainLen;
 do{let b=rl%128;rl=Math.floor(rl/128);if(rl>0)b|=128;rlBytes.push(b)}while(rl>0);
-const pkt=new Uint8Array(1+rlBytes.length+2+tLen+pLen);
-let i=0;
-pkt[i++]=0x30;
-for(const b of rlBytes)pkt[i++]=b;
+const pkt=new Uint8Array(1+rlBytes.length+2+tLen+pLen);let i=0;
+pkt[i++]=0x30;for(const b of rlBytes)pkt[i++]=b;
 pkt[i++]=(tLen>>8)&0xFF;pkt[i++]=tLen&0xFF;
 for(let c=0;c<tLen;c++)pkt[i++]=topicBytes[c];
 for(let c=0;c<pLen;c++)pkt[i++]=payloadBytes[c];
 mqttWs.send(pkt.buffer);
 }
 
-function getMqttTopic(code){return 'orion/room/'+code.toLowerCase()}
+function getMqttTopic(code){return'orion/room/'+code.toLowerCase()}
 
 // ════════════════════════════════════════════
 // BROADCAST
 // ════════════════════════════════════════════
 let lastBroadcastState='',lastBroadcastTime=0;
 function broadcastState(state,dist,dir){
-const now=Date.now();
-const key=state+'|'+dist+'|'+dir;
+const now=Date.now(),key=state+'|'+dist+'|'+dir;
 if(key===lastBroadcastState&&now-lastBroadcastTime<150)return;
 lastBroadcastState=key;lastBroadcastTime=now;
 const payload=JSON.stringify({s:state,d:dist,r:dir,t:now});
@@ -623,10 +634,7 @@ let bc=null;
 function initLocalBroadcast(code){try{bc=new BroadcastChannel('orion-room-'+code)}catch(e){}return bc}
 function localBroadcast(state,dist,dir){if(bc)try{bc.postMessage({s:state,d:dist,r:dir,t:Date.now()})}catch(e){}}
 
-function genRoom(){
-const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-let r='';for(let i=0;i<5;i++)r+=c[Math.floor(Math.random()*c.length)];return r;
-}
+function genRoom(){const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let r='';for(let i=0;i<5;i++)r+=c[Math.floor(Math.random()*c.length)];return r}
 
 // ════════════════════════════════════════════
 // ROLE SELECTION
@@ -634,71 +642,38 @@ let r='';for(let i=0;i<5;i++)r+=c[Math.floor(Math.random()*c.length)];return r;
 function chooseRole(r){
 role=r;$('overlay').classList.add('hidden');
 if(r==='host'){
-roomCode=genRoom();
-$('hostRoomCode').textContent=roomCode;$('hostRoomCodeSmall').textContent=roomCode;
-$('hostSetup').classList.remove('hidden');
-initLocalBroadcast(roomCode);
-$('hostServerStatus').textContent='Connecting to WebSocket relay...';
-$('hostServerStatus').className='server-status warn';
-mqttConnect(()=>{
-$('hostServerStatus').textContent='✓ WebSocket relay connected (~50ms latency)';
-$('hostServerStatus').className='server-status ok';
-mqttSubscribe(getMqttTopic(roomCode));
-},()=>{});
+roomCode=genRoom();$('hostRoomCode').textContent=roomCode;$('hostRoomCodeSmall').textContent=roomCode;
+$('hostSetup').classList.remove('hidden');initLocalBroadcast(roomCode);
+$('hostServerStatus').textContent='Connecting to WebSocket relay...';$('hostServerStatus').className='server-status warn';
+mqttConnect(()=>{$('hostServerStatus').textContent='✓ WebSocket relay connected (~50ms latency)';$('hostServerStatus').className='server-status ok';mqttSubscribe(getMqttTopic(roomCode))},()=>{});
 log('Host mode. Room: '+roomCode,'g');
 }else{
-$('remoteSetup').classList.remove('hidden');
-$('remoteServerStatus').textContent='Ready to join';
-$('remoteServerStatus').className='server-status ok';
-rLoadVoices();
+$('remoteSetup').classList.remove('hidden');$('remoteServerStatus').textContent='Ready to join';$('remoteServerStatus').className='server-status ok';rLoadVoices();
 }
 }
 
 function joinRoom(){
 const code=$('remoteRoomInput').value.trim().toUpperCase();
 if(code.length<3){alert('Enter the room code from the host device');return}
-roomCode=code;
-$('remoteRoomDisplay').textContent=code;
+roomCode=code;$('remoteRoomDisplay').textContent=code;
 $('remoteSetup').classList.add('hidden');$('remoteUI').classList.remove('hidden');
-$('connStatus').textContent='Connecting to room '+code+'...';
-$('connStatus').className='conn-status waiting';
+$('connStatus').textContent='Connecting to room '+code+'...';$('connStatus').className='conn-status waiting';
 mqttConnect(()=>{
 mqttSubscribe(getMqttTopic(code));
-$('connStatus').textContent='✓ Connected - Waiting for host...';
-$('connStatus').className='conn-status waiting';
+$('connStatus').textContent='✓ Connected - Waiting for host...';$('connStatus').className='conn-status waiting';
 $('remotePill').className='pill live';$('remotePillTxt').textContent='CONNECTED';
 },(msg)=>{
 try{
 const data=JSON.parse(msg);
 if(data.s!==undefined){
-if(data.t){
-const lat=Date.now()-data.t;
-const cls=lat<100?'':'slow';const cls2=lat>500?'bad':cls;
-$('latencyDisplay').innerHTML='Latency: <b class="'+cls2+'">'+lat+'ms</b>';
-}
-if(!$('connStatus').classList.contains('connected')){
-$('connStatus').textContent='✓ LIVE — Receiving host data';
-$('connStatus').className='conn-status connected';
-$('remotePill').className='pill live';$('remotePillTxt').textContent='LIVE';
-}
+if(data.t){const lat=Date.now()-data.t;const cls=lat<100?'':'slow';const cls2=lat>500?'bad':cls;$('latencyDisplay').innerHTML='Latency: <b class="'+cls2+'">'+lat+'ms</b>'}
+if(!$('connStatus').classList.contains('connected')){$('connStatus').textContent='✓ LIVE — Receiving host data';$('connStatus').className='conn-status connected';$('remotePill').className='pill live';$('remotePillTxt').textContent='LIVE'}
 handleRemoteState({state:data.s,dist:data.d,dir:data.r});
 }
 }catch(e){}
 });
 const lbc=initLocalBroadcast(code);
-if(lbc){
-lbc.onmessage=e=>{
-const data=e.data;
-if(data.s!==undefined){
-if($('connStatus').className!=='conn-status connected'){
-$('connStatus').textContent='✓ LIVE (local)';
-$('connStatus').className='conn-status connected';
-$('remotePill').className='pill live';$('remotePillTxt').textContent='LIVE';
-}
-handleRemoteState({state:data.s,dist:data.d,dir:data.r});
-}
-};
-}
+if(lbc){lbc.onmessage=e=>{const data=e.data;if(data.s!==undefined){if($('connStatus').className!=='conn-status connected'){$('connStatus').textContent='✓ LIVE (local)';$('connStatus').className='conn-status connected';$('remotePill').className='pill live';$('remotePillTxt').textContent='LIVE'}handleRemoteState({state:data.s,dist:data.d,dir:data.r})}}}
 rLoadVoices();log('Remote joined room: '+code,'g');
 }
 
@@ -710,20 +685,45 @@ const{state,dist,dir}=data;
 const hero=$('remoteHero'),stEl=$('remoteState'),distEl=$('remoteDist'),dirEl=$('remoteDir'),timeEl=$('remoteTime');
 rLastDir=dir||'';rLastDist=dist||'';
 hero.className='remote-hero';
-if(state==='BALL LOOSE'){hero.classList.add('red');stEl.textContent='BALL LOOSE';stEl.className='remote-state loose';distEl.textContent='? — No Lock'}
-else if(state==='RED'){hero.classList.add('red');stEl.textContent='RED';stEl.className='remote-state red';distEl.textContent=dist}
-else if(state==='YELLOW'){hero.classList.add('yellow');stEl.textContent='YELLOW';stEl.className='remote-state yellow';distEl.textContent=dist}
-else if(state==='GREEN'){hero.classList.add('green');stEl.textContent='GREEN';stEl.className='remote-state green';distEl.textContent=dist}
-else{stEl.textContent='WAITING';stEl.className='remote-state off';distEl.textContent='—'}
+if(state==='MIDDLE'){
+hero.classList.add('purple');stEl.textContent='⚽ MIDDLE';stEl.className='remote-state purple';distEl.textContent='Ball in middle';
+}else if(state==='GOAL'){
+hero.classList.add('orange');stEl.textContent='🥅 GOAL';stEl.className='remote-state orange';distEl.textContent='Goal scored!';
+}else if(state==='BALL LOOSE'){
+hero.classList.add('red');stEl.textContent='BALL LOOSE';stEl.className='remote-state loose';distEl.textContent='? — No Lock';
+}else if(state==='RED'){
+hero.classList.add('red');stEl.textContent='RED';stEl.className='remote-state red';distEl.textContent=dist;
+}else if(state==='YELLOW'){
+hero.classList.add('yellow');stEl.textContent='YELLOW';stEl.className='remote-state yellow';distEl.textContent=dist;
+}else if(state==='GREEN'){
+hero.classList.add('green');stEl.textContent='GREEN';stEl.className='remote-state green';distEl.textContent=dist;
+}else{stEl.textContent='WAITING';stEl.className='remote-state off';distEl.textContent='—'}
 dirEl.textContent=dir?('↗ '+dir.toUpperCase()):'';
 timeEl.textContent='Updated: '+new Date().toLocaleTimeString();
-if(state!==rCurState){rCurState=state;const phrase=rGetPhrase(state,dir);if(phrase)rSpeak(phrase,state==='RED'||state==='BALL LOOSE');rStartRep()}
+
+// Voice: only announce MIDDLE and GOAL once per transition
+if(state!==rCurState){
+rCurState=state;
+if(state==='MIDDLE'){
+if(!rMiddleAnnounced){rSpeak('Ball is in the middle',false);rMiddleAnnounced=true}
+rGoalAnnounced=false;
+rStopRep();
+}else if(state==='GOAL'){
+if(!rGoalAnnounced){rSpeak('Goal is scored',true);rGoalAnnounced=true}
+rMiddleAnnounced=false;
+rStopRep();
+}else{
+rMiddleAnnounced=false;rGoalAnnounced=false;
+const phrase=rGetPhrase(state,dir);
+if(phrase)rSpeak(phrase,state==='RED'||state==='BALL LOOSE');
+rStartRep();
+}
+}
 }
 
 function rLoadVoices(){
-const all=speechSynthesis.getVoices();if(!all.length)return;
-rVoices=all;const s=$('rVoiceSel');if(!s)return;
-s.innerHTML='';let best=0;
+const all=speechSynthesis.getVoices();if(!all.length)return;rVoices=all;
+const s=$('rVoiceSel');if(!s)return;s.innerHTML='';let best=0;
 rVoices.forEach((v,i)=>{const o=document.createElement('option');o.value=i;o.textContent=v.name.slice(0,30)+' ('+v.lang+')';s.appendChild(o);if(/Google US|David|Samantha|Daniel/i.test(v.name))best=i});
 s.value=best;
 }
@@ -750,16 +750,12 @@ speechSynthesis.speak(u);
 function rGetPhrase(state,dir){
 if(state==='BALL LOOSE')return'Ball loose';
 if(state==='RED')return dir?'Red '+dir:'Red';
-if(state==='YELLOW')return'Yellow';
-if(state==='GREEN')return'Green';return'';
+if(state==='YELLOW')return'Yellow';if(state==='GREEN')return'Green';return'';
 }
-function rTestVoice(){rSpeak('Red behind. Yellow. Green. Ball loose.',false)}
-function rToggleMute(){
-rMuted=!rMuted;$('rMuteBtn').textContent=rMuted?'🔇 Off':'🔊 On';$('rMuteBtn').classList.toggle('act',!rMuted);
-if(rMuted){speechSynthesis.cancel();rStopRep()}else{rStartRep()}
-}
+function rTestVoice(){rSpeak('Red behind. Yellow. Green. Ball loose. Ball is in the middle. Goal is scored.',false)}
+function rToggleMute(){rMuted=!rMuted;$('rMuteBtn').textContent=rMuted?'🔇 Off':'🔊 On';$('rMuteBtn').classList.toggle('act',!rMuted);if(rMuted){speechSynthesis.cancel();rStopRep()}else{rStartRep()}}
 function rStartRep(){
-rStopRep();if(rMuted||rCurState==='OFF')return;
+rStopRep();if(rMuted||rCurState==='OFF'||rCurState==='MIDDLE'||rCurState==='GOAL')return;
 const ms=+$('rRepR').value*1000;
 rRepTimer=setInterval(()=>{if(rMuted){rStopRep();return}const phrase=rGetPhrase(rCurState,rLastDir);if(phrase)rSpeak(phrase,rCurState==='RED'||rCurState==='BALL LOOSE')},ms);
 }
@@ -808,19 +804,16 @@ u.onstart=()=>{$('voiceLine').textContent='🔊 '+text;$('voiceLine').className=
 u.onend=()=>{$('voiceLine').textContent='✓';$('voiceLine').className='vstatus ok'};
 speechSynthesis.speak(u);
 }
-function testVoice(){speak('Red behind. Yellow. Green. Ball loose.')}
-function toggleMute(){
-muted=!muted;$('muteBtn').textContent=muted?'🔇 Off':'🔊 On';$('muteBtn').classList.toggle('act',!muted);
-if(muted){speechSynthesis.cancel();stopRep()}
-}
+function testVoice(){speak('Red behind. Yellow. Green. Ball loose. Ball is in the middle. Goal is scored.')}
+function toggleMute(){muted=!muted;$('muteBtn').textContent=muted?'🔇 Off':'🔊 On';$('muteBtn').classList.toggle('act',!muted);if(muted){speechSynthesis.cancel();stopRep()}}
 function getPhrase(state){
 if(state==='BALL LOOSE')return'Ball loose';
 if(state==='RED'){const d=getActiveDir();if($('dirChk').checked&&d)return'Red '+d;return'Red'}
 if(state==='YELLOW')return'Yellow';if(state==='GREEN')return'Green';return'';
 }
-function startRep(){stopRep();if(muted||curState==='OFF')return;const ms=+$('repR').value*1000;repTimer=setInterval(()=>{if(!muted&&curState!=='OFF')speak(getPhrase(curState),curState==='RED'||curState==='BALL LOOSE')},ms)}
+function startRep(){stopRep();if(muted||curState==='OFF'||curState==='MIDDLE'||curState==='GOAL')return;const ms=+$('repR').value*1000;repTimer=setInterval(()=>{if(!muted&&curState!=='OFF'&&curState!=='MIDDLE'&&curState!=='GOAL')speak(getPhrase(curState),curState==='RED'||curState==='BALL LOOSE')},ms)}
 function stopRep(){if(repTimer){clearInterval(repTimer);repTimer=null}}
-function restartRep(){if(curState!=='OFF')startRep()}
+function restartRep(){if(curState!=='OFF'&&curState!=='MIDDLE'&&curState!=='GOAL')startRep()}
 
 // ── CAPTURE ──
 $('startBtn').onclick=async()=>{
@@ -841,8 +834,7 @@ running=true;
 $('hostSetup').classList.add('hidden');$('navbar').classList.remove('hidden');
 $('mainUI').classList.remove('hidden');$('logBox').classList.remove('hidden');
 $('navPill').className='pill live';$('pillTxt').textContent='LIVE';
-log(`Capture: ${vidW}×${vidH}`,'g');
-speak('Screen shared.');initOCR();
+log(`Capture: ${vidW}×${vidH}`,'g');speak('Screen shared.');initOCR();
 }catch(e){log('Error: '+e.message,'e')}
 };
 
@@ -868,27 +860,27 @@ const p=getPos(e);
 const x=Math.min(sx,p.x),y=Math.min(sy,p.y),w=Math.abs(p.x-sx),h=Math.abs(p.y-sy);
 if(w<0.005||h<0.003){activeBox.classList.remove('show');if(drawMode==='distance'){distRegion=null;resetDistDisplay()}else{dirRegion=null;detectedDir='';updateDirDisplay()}activeBox=null;return}
 const reg={x,y,w,h};
-if(drawMode==='distance'){distRegion=reg;recentReadings=[];lastGoodNum=null;noDetectCount=0;isBallLoose=false;log(`Dist region: ${Math.round(w*vidW)}×${Math.round(h*vidH)}px`,'g')}
+if(drawMode==='distance'){distRegion=reg;recentReadings=[];lastGoodNum=null;noDetectCount=0;isBallLoose=false;isMiddle=false;isGoal=false;middleAnnounced=false;goalAnnounced=false;log(`Dist region: ${Math.round(w*vidW)}×${Math.round(h*vidH)}px`,'g')}
 else{dirRegion=reg;log(`Dir region: ${Math.round(w*vidW)}×${Math.round(h*vidH)}px`,'g');updateDirDisplay()}
 activeBox.classList.add('show');activeBox=null;
 };
 
 function clearSel(){
 distRegion=null;dirRegion=null;distBox.classList.remove('show');dirBox.classList.remove('show');
-resetDistDisplay();detectedDir='';updateDirDisplay();recentReadings=[];lastGoodNum=null;noDetectCount=0;isBallLoose=false;curState='OFF';stopRep();
+resetDistDisplay();detectedDir='';updateDirDisplay();recentReadings=[];lastGoodNum=null;noDetectCount=0;isBallLoose=false;isMiddle=false;isGoal=false;middleAnnounced=false;goalAnnounced=false;curState='OFF';stopRep();
 }
 function resetDistDisplay(){
 $('resultNum').textContent='Select a region to begin';$('resultNum').className='res-num none';
 $('resultLbl').textContent='';$('resultBox').className='res-display';
 $('stateBox').className='state-hero';$('stateVal').className='st-big off';$('stateVal').textContent='—';$('stateDist').textContent='Waiting...';
-['dbgRaw','dbgLines','dbgBracket','dbgNum','dbgConf','dbgStrat','dbgReg','dbgTime','dbgPipe'].forEach(id=>{$(id).textContent='—';$(id).className='dbg-v'});
+['dbgRaw','dbgLines','dbgBracket','dbgNum','dbgConf','dbgStrat','dbgReg','dbgTime','dbgPipe','dbgSpecial'].forEach(id=>{$(id).textContent='—';$(id).className='dbg-v'});
 }
 function setPreset(name){
 const presets={topLeft:[.01,.01,.25,.06],topCenter:[.30,.01,.40,.06],topRight:[.65,.01,.30,.06],center:[.30,.45,.40,.10],bottom:[.25,.90,.50,.08]};
 const p=presets[name];if(!p)return;
 distRegion={x:p[0],y:p[1],w:p[2],h:p[3]};
 distBox.style.left=(p[0]*100)+'%';distBox.style.top=(p[1]*100)+'%';distBox.style.width=(p[2]*100)+'%';distBox.style.height=(p[3]*100)+'%';
-distBox.classList.add('show');recentReadings=[];lastGoodNum=null;noDetectCount=0;isBallLoose=false;
+distBox.classList.add('show');recentReadings=[];lastGoodNum=null;noDetectCount=0;isBallLoose=false;isMiddle=false;isGoal=false;middleAnnounced=false;goalAnnounced=false;
 }
 
 // ═══════════════════════════════════════════
@@ -899,21 +891,14 @@ const b=$('ocrBadge');b.textContent='LOADING';b.className='badge load';
 try{
 if(typeof Tesseract==='undefined')await new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';s.onload=res;s.onerror=()=>rej(new Error('fail'));document.head.appendChild(s)});
 const workerOpts={tessedit_char_whitelist:'0123456789()[]?ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz _-.|',tessedit_pageseg_mode:'7'};
-
 b.textContent='WORKER 1...';
 const w1=await Tesseract.createWorker('eng',1,{logger:()=>{}});
-await w1.setParameters(workerOpts);
-ocrWorkers[0]=w1;ocrWorkerReady[0]=true;ocrInitCount++;
-
+await w1.setParameters(workerOpts);ocrWorkers[0]=w1;ocrWorkerReady[0]=true;ocrInitCount++;
 b.textContent='WORKER 2...';
 const w2=await Tesseract.createWorker('eng',1,{logger:()=>{}});
-await w2.setParameters(workerOpts);
-ocrWorkers[1]=w2;ocrWorkerReady[1]=true;ocrInitCount++;
-
-ocrReady=true;
-b.textContent='✓ 2x READY';b.className='badge rdy';
-log('Dual OCR workers ready — pipeline mode','g');
-pipelineLoop();
+await w2.setParameters(workerOpts);ocrWorkers[1]=w2;ocrWorkerReady[1]=true;ocrInitCount++;
+ocrReady=true;b.textContent='✓ 2x READY';b.className='badge rdy';
+log('Dual OCR workers ready — pipeline mode','g');pipelineLoop();
 }catch(e){b.textContent='✗ FAIL';b.className='badge fail';log('OCR err: '+e.message,'e')}
 }
 
@@ -924,81 +909,41 @@ let dirOcrTimer=0;
 
 function pipelineLoop(){
 if(!running||!ocrReady){if(running)setTimeout(pipelineLoop,50);return}
-
-if(distRegion){
-const freeIdx=getFirstFreeWorker();
-if(freeIdx!==-1){
-const captureData=captureDistFrame();
-if(captureData)dispatchDistOCR(freeIdx,captureData);
-}
+if(distRegion){const freeIdx=getFirstFreeWorker();if(freeIdx!==-1){const captureData=captureDistFrame();if(captureData)dispatchDistOCR(freeIdx,captureData)}}
+if($('dirChk').checked&&dirRegion){const now=Date.now();if(now-dirOcrTimer>500){const freeIdx=getFirstFreeWorker();if(freeIdx!==-1){dirOcrTimer=now;dispatchDirOCR(freeIdx)}}}
+ocrFrameCount++;const now=Date.now();
+if(now-ocrFpsLastTime>=1000){ocrFps=ocrFrameCount;ocrFrameCount=0;ocrFpsLastTime=now;$('fpsDisplay').innerHTML='OCR: <b>'+ocrFps+' fps</b>';$('dbgPipe').textContent=ocrFps+' fps (dual-worker)';$('dbgPipe').className=ocrFps>=5?'dbg-v ok':ocrFps>=2?'dbg-v warn':'dbg-v bad'}
+if(ocrWorkerBusy[0]&&ocrWorkerBusy[1])setTimeout(pipelineLoop,10);else setTimeout(pipelineLoop,5);
 }
 
-if($('dirChk').checked&&dirRegion){
-const now=Date.now();
-if(now-dirOcrTimer>500){
-const freeIdx=getFirstFreeWorker();
-if(freeIdx!==-1){dirOcrTimer=now;dispatchDirOCR(freeIdx)}
-}
-}
-
-ocrFrameCount++;
-const now=Date.now();
-if(now-ocrFpsLastTime>=1000){
-ocrFps=ocrFrameCount;ocrFrameCount=0;ocrFpsLastTime=now;
-$('fpsDisplay').innerHTML='OCR: <b>'+ocrFps+' fps</b>';
-$('dbgPipe').textContent=ocrFps+' fps (dual-worker)';
-$('dbgPipe').className=ocrFps>=5?'dbg-v ok':ocrFps>=2?'dbg-v warn':'dbg-v bad';
-}
-
-if(ocrWorkerBusy[0]&&ocrWorkerBusy[1])setTimeout(pipelineLoop,10);
-else setTimeout(pipelineLoop,5);
-}
-
-function getFirstFreeWorker(){
-if(!ocrWorkerBusy[0]&&ocrWorkerReady[0])return 0;
-if(!ocrWorkerBusy[1]&&ocrWorkerReady[1])return 1;
-return -1;
-}
+function getFirstFreeWorker(){if(!ocrWorkerBusy[0]&&ocrWorkerReady[0])return 0;if(!ocrWorkerBusy[1]&&ocrWorkerReady[1])return 1;return -1}
 
 function captureDistFrame(){
-if(!distRegion)return null;
-const reg=distRegion;
+if(!distRegion)return null;const reg=distRegion;
 const px=Math.round(reg.x*vidW),py=Math.round(reg.y*vidH);
 const pw=Math.max(1,Math.round(reg.w*vidW)),ph=Math.max(1,Math.round(reg.h*vidH));
 const sc=getScale(pw,ph),sw=pw*sc,sh=ph*sc;
-
-workCvs.width=sw;workCvs.height=sh;
-workCtx.imageSmoothingEnabled=true;workCtx.imageSmoothingQuality='high';
+workCvs.width=sw;workCvs.height=sh;workCtx.imageSmoothingEnabled=true;workCtx.imageSmoothingQuality='high';
 workCtx.drawImage(vid,px,py,pw,ph,0,0,sw,sh);
-
 rawCvs.width=Math.min(pw,400);rawCvs.height=Math.min(ph,100);rawCtx.imageSmoothingEnabled=false;
 rawCtx.drawImage(vid,px,py,pw,ph,0,0,rawCvs.width,rawCvs.height);
-
 const img=workCtx.getImageData(0,0,sw,sh);processImg(img);workCtx.putImageData(img,0,0);
-
 procCvs.width=Math.min(sw,400);procCvs.height=Math.min(sh,100);procCtx.imageSmoothingEnabled=false;
 procCtx.drawImage(workCvs,0,0,procCvs.width,procCvs.height);
-
-$('dbgReg').textContent=pw+'×'+ph+'px → '+sw+'×'+sh;
-$('dbgReg').className=pw>400||ph>200?'dbg-v warn':'dbg-v ok';
-
-const offCvs=document.createElement('canvas');
-offCvs.width=sw;offCvs.height=sh;
-offCvs.getContext('2d').drawImage(workCvs,0,0);
+$('dbgReg').textContent=pw+'×'+ph+'px → '+sw+'×'+sh;$('dbgReg').className=pw>400||ph>200?'dbg-v warn':'dbg-v ok';
+const offCvs=document.createElement('canvas');offCvs.width=sw;offCvs.height=sh;offCvs.getContext('2d').drawImage(workCvs,0,0);
 return{canvas:offCvs,pw,ph,sw,sh};
 }
 
 async function dispatchDistOCR(workerIdx,captureData){
-ocrWorkerBusy[workerIdx]=true;
-const t0=performance.now();
+ocrWorkerBusy[workerIdx]=true;const t0=performance.now();
 try{
 const worker=ocrWorkers[workerIdx];
 const psm=(captureData.pw>300||captureData.ph>150)?'6':'7';
 await worker.setParameters({tessedit_pageseg_mode:psm});
 const res=await worker.recognize(captureData.canvas);
 const elapsed=Math.round(performance.now()-t0);
-$('dbgTime').textContent=elapsed+'ms (W'+(workerIdx+1)+')';
-$('dbgTime').className=elapsed<100?'dbg-v ok':elapsed<200?'dbg-v warn':'dbg-v bad';
+$('dbgTime').textContent=elapsed+'ms (W'+(workerIdx+1)+')';$('dbgTime').className=elapsed<100?'dbg-v ok':elapsed<200?'dbg-v warn':'dbg-v bad';
 processDistResult(res);
 }catch(e){log('OCR W'+(workerIdx+1)+' err: '+e.message,'e')}
 ocrWorkerBusy[workerIdx]=false;
@@ -1008,14 +953,43 @@ function processDistResult(res){
 const raw=res.data.text.trim(),conf=Math.round(res.data.confidence);
 $('dbgRaw').textContent=raw?`"${raw.substring(0,80)}"`:'(empty)';
 $('dbgConf').textContent=conf+'%';$('dbgConf').className=conf>=60?'dbg-v ok':conf>=30?'dbg-v warn':'dbg-v bad';
-
 const lines=raw.split('\n').map(l=>l.trim()).filter(l=>l.length>0);
 $('dbgLines').textContent=lines.length+': '+lines.map(l=>`"${l}"`).join(', ').substring(0,100);
 
+// ═══ CHECK SPECIAL WORDS FIRST ═══
+
+// Check for GOAL
+if(detectGoal(raw,lines)){
+$('dbgSpecial').textContent='GOAL detected';$('dbgSpecial').className='dbg-v warn';
+$('dbgStrat').textContent='goal-word';$('dbgStrat').className='dbg-v ok';
+isGoal=true;isMiddle=false;isBallLoose=false;lastNum=null;
+$('resultNum').textContent='🥅 GOAL';$('resultNum').className='res-num goal';
+$('resultLbl').textContent='GOAL SCORED';$('resultLbl').className='res-lbl orange';$('resultBox').className='res-display orange';
+applyState('GOAL','goal');
+return;
+}
+
+// Check for MIDDLE
+if(detectMiddle(raw,lines)){
+$('dbgSpecial').textContent='MIDDLE detected';$('dbgSpecial').className='dbg-v warn';
+$('dbgStrat').textContent='middle-word';$('dbgStrat').className='dbg-v ok';
+isMiddle=true;isGoal=false;isBallLoose=false;lastNum=null;
+$('resultNum').textContent='⚽ MIDDLE';$('resultNum').className='res-num middle';
+$('resultLbl').textContent='BALL IN MIDDLE';$('resultLbl').className='res-lbl purple';$('resultBox').className='res-display purple';
+applyState('MIDDLE','middle');
+return;
+}
+
+// No longer middle/goal — reset flags
+if(isMiddle){isMiddle=false;middleAnnounced=false;$('dbgSpecial').textContent='Left middle';$('dbgSpecial').className='dbg-v'}
+if(isGoal){isGoal=false;goalAnnounced=false;$('dbgSpecial').textContent='Left goal';$('dbgSpecial').className='dbg-v'}
+
+// Check for ? (ball loose)
 if(hasQuestionMark(raw,lines)){
 $('dbgNum').textContent='? → BALL LOOSE';$('dbgNum').className='dbg-v bad';
 $('dbgBracket').textContent='?';$('dbgBracket').className='dbg-v bad';
 $('dbgStrat').textContent='question-mark';$('dbgStrat').className='dbg-v warn';
+$('dbgSpecial').textContent='—';$('dbgSpecial').className='dbg-v';
 isBallLoose=true;lastNum=null;
 $('resultNum').textContent='BALL LOOSE';$('resultNum').className='res-num loose';
 $('resultLbl').textContent='NO LOCK';$('resultLbl').className='res-lbl loose';$('resultBox').className='res-display red';
@@ -1023,6 +997,9 @@ applyState('BALL LOOSE','?');return;
 }
 
 isBallLoose=false;
+if(!isMiddle&&!isGoal){$('dbgSpecial').textContent='—';$('dbgSpecial').className='dbg-v'}
+
+// Standard number extraction
 let num=null,strat='none';
 for(const l of lines){const n=findBracket(l);if(n!==null){num=n;strat='bracket-line';break}}
 if(num===null){const n=findBracket(raw);if(n!==null){num=n;strat='bracket-full'}}
@@ -1042,21 +1019,16 @@ $('resultNum').textContent=num;$('resultNum').className='res-num '+st.toLowerCas
 $('resultLbl').textContent=st;$('resultLbl').className='res-lbl '+st.toLowerCase();
 $('resultBox').className='res-display '+st.toLowerCase();
 applyState(st,num);
-}else{
-noDetectCount++;$('dbgNum').textContent='Not found ('+noDetectCount+')';$('dbgNum').className='dbg-v bad';
-}
+}else{noDetectCount++;$('dbgNum').textContent='Not found ('+noDetectCount+')';$('dbgNum').className='dbg-v bad'}
 }
 
 async function dispatchDirOCR(workerIdx){
-if(!dirRegion)return;
-ocrWorkerBusy[workerIdx]=true;
+if(!dirRegion)return;ocrWorkerBusy[workerIdx]=true;
 try{
-const reg=dirRegion;
-const px=Math.round(reg.x*vidW),py=Math.round(reg.y*vidH);
+const reg=dirRegion;const px=Math.round(reg.x*vidW),py=Math.round(reg.y*vidH);
 const pw=Math.max(1,Math.round(reg.w*vidW)),ph=Math.max(1,Math.round(reg.h*vidH));
 const sc=getScale(pw,ph),sw=pw*sc,sh=ph*sc;
-workCvs2.width=sw;workCvs2.height=sh;
-workCtx2.imageSmoothingEnabled=true;workCtx2.imageSmoothingQuality='high';
+workCvs2.width=sw;workCvs2.height=sh;workCtx2.imageSmoothingEnabled=true;workCtx2.imageSmoothingQuality='high';
 workCtx2.drawImage(vid,px,py,pw,ph,0,0,sw,sh);
 const img=workCtx2.getImageData(0,0,sw,sh);processImg(img);workCtx2.putImageData(img,0,0);
 const worker=ocrWorkers[workerIdx];
@@ -1064,39 +1036,21 @@ await worker.setParameters({tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZa
 const res=await worker.recognize(workCvs2);
 const raw=res.data.text.trim().toLowerCase();
 $('dirRawText').textContent=raw?'OCR: "'+raw.substring(0,60)+'"':'';
-if(!manualDirOverride){
-let found='';for(const[k,v]of Object.entries(DIR_KEYWORDS))if(raw.includes(k)){found=v;break}
-if(found!==detectedDir){detectedDir=found;if(found)log('Dir: '+found,'g');updateDirDisplay();if(curState==='RED')restartRep()}
-}
+if(!manualDirOverride){let found='';for(const[k,v]of Object.entries(DIR_KEYWORDS))if(raw.includes(k)){found=v;break}if(found!==detectedDir){detectedDir=found;if(found)log('Dir: '+found,'g');updateDirDisplay();if(curState==='RED')restartRep()}}
 }catch(e){log('Dir err: '+e.message,'e')}
 ocrWorkerBusy[workerIdx]=false;
 }
 
-function getScale(pw,ph){
-const b=+$('sclR').value;const m=Math.max(pw,ph);
-if(m<50)return Math.max(b,4);if(m<100)return Math.min(b,4);
-if(m<200)return Math.min(b,3);return Math.min(b,2);
-}
+function getScale(pw,ph){const b=+$('sclR').value;const m=Math.max(pw,ph);if(m<50)return Math.max(b,4);if(m<100)return Math.min(b,4);if(m<200)return Math.min(b,3);return Math.min(b,2)}
 
 function processImg(img){
 const d=img.data,thr=+$('thrR').value,inv=$('invChk').checked,autoT=$('autoChk').checked;
 let useThr=thr;
-if(autoT){
-const h=new Array(256).fill(0);
-for(let i=0;i<d.length;i+=4){const g=Math.round(.299*d[i]+.587*d[i+1]+.114*d[i+2]);h[g]++}
-const tot=d.length/4;let sum=0;for(let i=0;i<256;i++)sum+=i*h[i];
-let sB=0,wB=0,wF=0,mx=0,best=thr;
-for(let t=0;t<256;t++){wB+=h[t];if(!wB)continue;wF=tot-wB;if(!wF)break;sB+=t*h[t];const mB=sB/wB,mF=(sum-sB)/wF,v=wB*wF*(mB-mF)*(mB-mF);if(v>mx){mx=v;best=t}}
-useThr=best;
-}
+if(autoT){const h=new Array(256).fill(0);for(let i=0;i<d.length;i+=4){const g=Math.round(.299*d[i]+.587*d[i+1]+.114*d[i+2]);h[g]++}const tot=d.length/4;let sum=0;for(let i=0;i<256;i++)sum+=i*h[i];let sB=0,wB=0,wF=0,mx=0,best=thr;for(let t=0;t<256;t++){wB+=h[t];if(!wB)continue;wF=tot-wB;if(!wF)break;sB+=t*h[t];const mB=sB/wB,mF=(sum-sB)/wF,v=wB*wF*(mB-mF)*(mB-mF);if(v>mx){mx=v;best=t}}useThr=best}
 for(let i=0;i<d.length;i+=4){const g=.299*d[i]+.587*d[i+1]+.114*d[i+2];let v=g>useThr?255:0;if(inv)v=255-v;d[i]=d[i+1]=d[i+2]=v}
 }
 
-function hasQuestionMark(raw,lines){
-if(raw.includes('?'))return true;
-for(const l of lines)if(l.includes('?'))return true;
-return false;
-}
+function hasQuestionMark(raw,lines){if(raw.includes('?'))return true;for(const l of lines)if(l.includes('?'))return true;return false}
 
 function findBracket(text){
 if(!text)return null;
@@ -1136,6 +1090,33 @@ function getState(n){if(n<=RED_MAX)return'RED';if(n<=YEL_MAX)return'YELLOW';retu
 function applyState(state,dist){
 const dir=getActiveDir();
 broadcastState(state,dist,$('dirChk').checked?dir:'');
+
+// MIDDLE — announce once, no repeat
+if(state==='MIDDLE'){
+$('stateBox').className='state-hero purple';$('stateVal').className='st-big purple';$('stateVal').textContent='⚽ MIDDLE';$('stateDist').textContent='Ball in middle';
+if(curState!=='MIDDLE'){
+log(curState+' → MIDDLE','w');curState='MIDDLE';stopRep();
+if(!middleAnnounced){speak('Ball is in the middle',false);middleAnnounced=true}
+}
+goalAnnounced=false;
+return;
+}
+
+// GOAL — announce once, no repeat
+if(state==='GOAL'){
+$('stateBox').className='state-hero orange';$('stateVal').className='st-big orange';$('stateVal').textContent='🥅 GOAL';$('stateDist').textContent='Goal scored!';
+if(curState!=='GOAL'){
+log(curState+' → GOAL','w');curState='GOAL';stopRep();
+if(!goalAnnounced){speak('Goal is scored',true);goalAnnounced=true}
+}
+middleAnnounced=false;
+return;
+}
+
+// Leaving middle/goal — reset announced flags
+if(curState==='MIDDLE')middleAnnounced=false;
+if(curState==='GOAL')goalAnnounced=false;
+
 if(state==='BALL LOOSE'){
 $('stateBox').className='state-hero red';$('stateVal').className='st-big loose';$('stateVal').textContent='BALL LOOSE';$('stateDist').textContent='? — No Lock';
 if(curState!=='BALL LOOSE'){log(curState+' → BALL LOOSE','w');curState='BALL LOOSE';speak('Ball loose',true);startRep()}return;
