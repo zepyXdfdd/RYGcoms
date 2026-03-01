@@ -105,10 +105,10 @@ body{background:var(--bg);color:var(--t1);font-family:'Inter','Segoe UI',system-
 .thr-i{flex:1;padding:7px;border-radius:4px;text-align:center;font-size:10px;font-weight:700}
 .thr-i.ri{background:var(--rg);color:var(--red)}.thr-i.yi{background:var(--yg);color:var(--yel)}.thr-i.gi{background:var(--gg);color:var(--grn)}
 .srow{display:flex;align-items:center;gap:10px;margin-bottom:13px}
-.srow label{font-size:11px;color:var(--t3);min-width:60px;font-weight:500}
+.srow label{font-size:11px;color:var(--t3);min-width:80px;font-weight:500}
 .srow input[type=range]{flex:1;height:4px;-webkit-appearance:none;background:#1a1a30;border-radius:2px;outline:none}
 .srow input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;background:var(--grn);border-radius:50%;cursor:pointer;box-shadow:0 0 6px var(--ga)}
-.srow .sv{font-size:11px;color:var(--t3);min-width:35px;text-align:right;font-family:monospace;font-weight:600}
+.srow .sv{font-size:11px;color:var(--t3);min-width:45px;text-align:right;font-family:monospace;font-weight:600}
 .srow select{flex:1;padding:8px 10px;background:#0c0c18;border:1px solid var(--brd);color:var(--t2);border-radius:var(--rs);font-size:11px;outline:none;cursor:pointer}
 .tgl{display:flex;align-items:center;gap:10px;margin-bottom:12px;font-size:12px;color:var(--t2);cursor:pointer}
 .tgl input[type=checkbox]{width:16px;height:16px;accent-color:var(--grn);cursor:pointer}
@@ -167,6 +167,19 @@ body{background:var(--bg);color:var(--t1);font-family:'Inter','Segoe UI',system-
 .latency-display b.bad{color:var(--red)}
 .fps-display{font-size:10px;color:var(--t3);font-family:monospace}
 .fps-display b{color:var(--grn)}
+.thr-slider-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.thr-slider-row label{font-size:11px;min-width:70px;font-weight:600}
+.thr-slider-row label.rl{color:var(--red)}
+.thr-slider-row label.yl{color:var(--yel)}
+.thr-slider-row input[type=range]{flex:1;height:4px;-webkit-appearance:none;background:#1a1a30;border-radius:2px;outline:none}
+.thr-slider-row input[type=range].red-range::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;background:var(--red);border-radius:50%;cursor:pointer;box-shadow:0 0 6px rgba(255,61,80,.4)}
+.thr-slider-row input[type=range].yel-range::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;background:var(--yel);border-radius:50%;cursor:pointer;box-shadow:0 0 6px rgba(255,184,0,.4)}
+.thr-slider-row .sv{font-size:12px;min-width:40px;text-align:right;font-family:'Consolas',monospace;font-weight:700}
+.thr-slider-row .sv.rv{color:var(--red)}
+.thr-slider-row .sv.yv{color:var(--yel)}
+.thr-visual{display:flex;height:8px;border-radius:4px;overflow:hidden;margin:8px 0 4px;gap:1px}
+.thr-visual .seg{transition:flex .3s}
+.thr-visual .seg.rs{background:var(--red)}.thr-visual .seg.ys{background:var(--yel)}.thr-visual .seg.gs{background:var(--grn)}
 </style>
 </head>
 <body><div class="overlay" id="overlay">
@@ -196,7 +209,7 @@ body{background:var(--bg);color:var(--t1);font-family:'Inter','Segoe UI',system-
 Share the room code with your teammate.<br>
 They open <b>this same URL</b> and join as <b>REMOTE</b>.<br><br>
 <div class="ex-box"><span class="na">EnemyPlayer </span><span class="br">(</span><span class="nm">428</span><span class="br">)</span></div><br>
-<span class="r">RED ≤400</span> · <span class="y">YEL 401-500</span> · <b>GRN >500</b><br>
+<span class="r">RED ≤500</span> · <span class="y">YEL 501-600</span> · <b>GRN >600</b><br>
 <b>?</b> detected → <span class="r">BALL LOOSE</span>
 </div>
 </div><div class="overlay hidden" id="remoteSetup">
@@ -280,9 +293,40 @@ They open <b>this same URL</b> and join as <b>REMOTE</b>.<br><br>
 <div class="st-big off" id="stateVal">—</div>
 <div class="st-dist" id="stateDist">Waiting...</div>
 <div class="thr-bar">
-<div class="thr-i ri">RED ≤400</div>
-<div class="thr-i yi">YEL 401-500</div>
-<div class="thr-i gi">GRN >500</div>
+<div class="thr-i ri" id="thrRedLabel">RED ≤500</div>
+<div class="thr-i yi" id="thrYelLabel">YEL 501-600</div>
+<div class="thr-i gi" id="thrGrnLabel">GRN >600</div>
+</div>
+</div>
+<div class="card">
+<div class="card-h"><span>🎯 Thresholds</span></div>
+<div class="card-b">
+<div class="thr-slider-row">
+<label class="rl">🔴 Red ≤</label>
+<input type="range" class="red-range" id="redThrR" min="100" max="2000" step="10" value="500">
+<span class="sv rv" id="redThrV">500</span>
+</div>
+<div class="thr-slider-row">
+<label class="yl">🟡 Yellow ≤</label>
+<input type="range" class="yel-range" id="yelThrR" min="100" max="2500" step="10" value="600">
+<span class="sv yv" id="yelThrV">600</span>
+</div>
+<div class="thr-visual">
+<div class="seg rs" id="thrSegR" style="flex:500"></div>
+<div class="seg ys" id="thrSegY" style="flex:100"></div>
+<div class="seg gs" id="thrSegG" style="flex:400"></div>
+</div>
+<div style="display:flex;justify-content:space-between;font-size:9px;color:var(--t3);margin-top:2px;font-family:monospace">
+<span>0</span>
+<span id="thrMidLabel">500 | 600</span>
+<span>1000+</span>
+</div>
+<div class="presets-row" style="margin-top:10px">
+<button class="pre-btn" onclick="setThresholds(400,500)">400/500</button>
+<button class="pre-btn" onclick="setThresholds(500,600)">500/600</button>
+<button class="pre-btn" onclick="setThresholds(600,800)">600/800</button>
+<button class="pre-btn" onclick="setThresholds(300,400)">300/400</button>
+</div>
 </div>
 </div>
 <div class="card">
@@ -387,18 +431,19 @@ let role=null,roomCode='',running=false,muted=false,voices=[],ocrReady=false;
 let distRegion=null,dirRegion=null,curState='OFF',lastNum=null,repTimer=null;
 let vidW=0,vidH=0,lastGoodNum=null,lastGoodTime=0,noDetectCount=0;
 let drawMode='distance',detectedDir='',manualDirOverride='',isBallLoose=false,recentReadings=[];
-const MAX_READINGS=5,RED_MAX=400,YEL_MAX=500;
-const DIR_KEYWORDS={behind:'behind',back:'behind',rear:'behind',front:'in front',ahead:'in front',forward:'in front',left:'left',right:'right',above:'above',up:'above',top:'above',below:'below',down:'below',bottom:'below',under:'below'};
+const MAX_READINGS=5;
 
 // ═══════════════════════════════════════════
-// DUAL OCR WORKER PIPELINE
-// Two workers alternate: while one recognizes, the other is ready
-// This cuts effective latency nearly in half
+// CONFIGURABLE THRESHOLDS
 // ═══════════════════════════════════════════
+let RED_MAX=500,YEL_MAX=600;
+
+const DIR_KEYWORDS={behind:'behind',back:'behind',rear:'behind',front:'in front',ahead:'in front',forward:'in front',left:'left',right:'right',above:'above',up:'above',top:'above',below:'below',down:'below',bottom:'below',under:'below'};
+
+// Dual OCR workers
 let ocrWorkers=[];
 let ocrWorkerBusy=[false,false];
 let ocrWorkerReady=[false,false];
-let currentWorkerIdx=0;
 let ocrInitCount=0;
 
 // FPS tracking
@@ -407,8 +452,52 @@ let ocrFrameCount=0,ocrFpsLastTime=Date.now(),ocrFps=0;
 // Remote state
 let rMuted=false,rVoices=[],rCurState='OFF',rRepTimer=null,rLastDir='',rLastDist='';
 
+// ═══════════════════════════════════════════
+// THRESHOLD SLIDERS
+// ═══════════════════════════════════════════
+function updateThresholdUI(){
+$('redThrV').textContent=RED_MAX;
+$('yelThrV').textContent=YEL_MAX;
+$('thrRedLabel').textContent='RED ≤'+RED_MAX;
+$('thrYelLabel').textContent='YEL '+(RED_MAX+1)+'-'+YEL_MAX;
+$('thrGrnLabel').textContent='GRN >'+ YEL_MAX;
+$('thrMidLabel').textContent=RED_MAX+' | '+YEL_MAX;
+
+// Visual bar
+const total=Math.max(YEL_MAX+400,1000);
+$('thrSegR').style.flex=RED_MAX;
+$('thrSegY').style.flex=YEL_MAX-RED_MAX;
+$('thrSegG').style.flex=total-YEL_MAX;
+}
+
+$('redThrR').oninput=e=>{
+let v=+e.target.value;
+if(v>=YEL_MAX){v=YEL_MAX-10;e.target.value=v}
+RED_MAX=v;
+updateThresholdUI();
+// Re-evaluate current number
+if(lastNum!==null&&!isBallLoose){const st=getState(lastNum);applyState(st,lastNum)}
+};
+
+$('yelThrR').oninput=e=>{
+let v=+e.target.value;
+if(v<=RED_MAX){v=RED_MAX+10;e.target.value=v}
+YEL_MAX=v;
+updateThresholdUI();
+if(lastNum!==null&&!isBallLoose){const st=getState(lastNum);applyState(st,lastNum)}
+};
+
+function setThresholds(r,y){
+RED_MAX=r;YEL_MAX=y;
+$('redThrR').value=r;$('yelThrR').value=y;
+updateThresholdUI();
+if(lastNum!==null&&!isBallLoose){const st=getState(lastNum);applyState(st,lastNum)}
+}
+
+updateThresholdUI();
+
 // ════════════════════════════════════════════
-// INSTANT WEBSOCKET RELAY
+// MQTT WEBSOCKET RELAY
 // ════════════════════════════════════════════
 let mqttWs=null,mqttConnected=false,mqttReconnectTimer=null;
 let mqttClientId='orion-'+Math.random().toString(36).substr(2,9);
@@ -450,9 +539,7 @@ mqttConnected=true;
 log('MQTT connected!','g');
 if(mqttPingInterval)clearInterval(mqttPingInterval);
 mqttPingInterval=setInterval(()=>{
-if(mqttWs&&mqttWs.readyState===1){
-mqttWs.send(new Uint8Array([0xC0,0x00]).buffer);
-}
+if(mqttWs&&mqttWs.readyState===1)mqttWs.send(new Uint8Array([0xC0,0x00]).buffer);
 },25000);
 if(onConnect)onConnect();
 }else if(type===3){
@@ -471,15 +558,12 @@ if(mqttPingInterval){clearInterval(mqttPingInterval);mqttPingInterval=null;}
 log('MQTT disconnected','e');
 scheduleReconnect(onConnect,onMessage);
 };
-mqttWs.onerror=(e)=>{log('MQTT error','e')};
+mqttWs.onerror=()=>{log('MQTT error','e')};
 }
 
 function scheduleReconnect(onConnect,onMessage){
 if(mqttReconnectTimer)return;
-mqttReconnectTimer=setTimeout(()=>{
-mqttReconnectTimer=null;
-mqttConnect(onConnect,onMessage);
-},2000);
+mqttReconnectTimer=setTimeout(()=>{mqttReconnectTimer=null;mqttConnect(onConnect,onMessage)},2000);
 }
 
 function mqttSubscribe(topic){
@@ -508,7 +592,7 @@ const pLen=payloadBytes.length;
 const remainLen=2+tLen+pLen;
 const rlBytes=[];
 let rl=remainLen;
-do{let b=rl%128;rl=Math.floor(rl/128);if(rl>0)b|=128;rlBytes.push(b);}while(rl>0);
+do{let b=rl%128;rl=Math.floor(rl/128);if(rl>0)b|=128;rlBytes.push(b)}while(rl>0);
 const pkt=new Uint8Array(1+rlBytes.length+2+tLen+pLen);
 let i=0;
 pkt[i++]=0x30;
@@ -528,9 +612,8 @@ let lastBroadcastState='',lastBroadcastTime=0;
 function broadcastState(state,dist,dir){
 const now=Date.now();
 const key=state+'|'+dist+'|'+dir;
-if(key===lastBroadcastState && now-lastBroadcastTime<150)return;
-lastBroadcastState=key;
-lastBroadcastTime=now;
+if(key===lastBroadcastState&&now-lastBroadcastTime<150)return;
+lastBroadcastState=key;lastBroadcastTime=now;
 const payload=JSON.stringify({s:state,d:dist,r:dir,t:now});
 if(mqttConnected)mqttPublish(getMqttTopic(roomCode),payload);
 localBroadcast(state,dist,dir);
@@ -542,20 +625,17 @@ function localBroadcast(state,dist,dir){if(bc)try{bc.postMessage({s:state,d:dist
 
 function genRoom(){
 const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-let r='';for(let i=0;i<5;i++)r+=c[Math.floor(Math.random()*c.length)];
-return r;
+let r='';for(let i=0;i<5;i++)r+=c[Math.floor(Math.random()*c.length)];return r;
 }
 
 // ════════════════════════════════════════════
 // ROLE SELECTION
 // ════════════════════════════════════════════
 function chooseRole(r){
-role=r;
-$('overlay').classList.add('hidden');
+role=r;$('overlay').classList.add('hidden');
 if(r==='host'){
 roomCode=genRoom();
-$('hostRoomCode').textContent=roomCode;
-$('hostRoomCodeSmall').textContent=roomCode;
+$('hostRoomCode').textContent=roomCode;$('hostRoomCodeSmall').textContent=roomCode;
 $('hostSetup').classList.remove('hidden');
 initLocalBroadcast(roomCode);
 $('hostServerStatus').textContent='Connecting to WebSocket relay...';
@@ -564,7 +644,7 @@ mqttConnect(()=>{
 $('hostServerStatus').textContent='✓ WebSocket relay connected (~50ms latency)';
 $('hostServerStatus').className='server-status ok';
 mqttSubscribe(getMqttTopic(roomCode));
-},(msg)=>{});
+},()=>{});
 log('Host mode. Room: '+roomCode,'g');
 }else{
 $('remoteSetup').classList.remove('hidden');
@@ -579,31 +659,27 @@ const code=$('remoteRoomInput').value.trim().toUpperCase();
 if(code.length<3){alert('Enter the room code from the host device');return}
 roomCode=code;
 $('remoteRoomDisplay').textContent=code;
-$('remoteSetup').classList.add('hidden');
-$('remoteUI').classList.remove('hidden');
+$('remoteSetup').classList.add('hidden');$('remoteUI').classList.remove('hidden');
 $('connStatus').textContent='Connecting to room '+code+'...';
 $('connStatus').className='conn-status waiting';
 mqttConnect(()=>{
 mqttSubscribe(getMqttTopic(code));
 $('connStatus').textContent='✓ Connected - Waiting for host...';
 $('connStatus').className='conn-status waiting';
-$('remotePill').className='pill live';
-$('remotePillTxt').textContent='CONNECTED';
+$('remotePill').className='pill live';$('remotePillTxt').textContent='CONNECTED';
 },(msg)=>{
 try{
 const data=JSON.parse(msg);
 if(data.s!==undefined){
 if(data.t){
 const lat=Date.now()-data.t;
-const cls=lat<100?'':'slow';
-const cls2=lat>500?'bad':cls;
+const cls=lat<100?'':'slow';const cls2=lat>500?'bad':cls;
 $('latencyDisplay').innerHTML='Latency: <b class="'+cls2+'">'+lat+'ms</b>';
 }
 if(!$('connStatus').classList.contains('connected')){
 $('connStatus').textContent='✓ LIVE — Receiving host data';
 $('connStatus').className='conn-status connected';
-$('remotePill').className='pill live';
-$('remotePillTxt').textContent='LIVE';
+$('remotePill').className='pill live';$('remotePillTxt').textContent='LIVE';
 }
 handleRemoteState({state:data.s,dist:data.d,dir:data.r});
 }
@@ -617,15 +693,13 @@ if(data.s!==undefined){
 if($('connStatus').className!=='conn-status connected'){
 $('connStatus').textContent='✓ LIVE (local)';
 $('connStatus').className='conn-status connected';
-$('remotePill').className='pill live';
-$('remotePillTxt').textContent='LIVE';
+$('remotePill').className='pill live';$('remotePillTxt').textContent='LIVE';
 }
 handleRemoteState({state:data.s,dist:data.d,dir:data.r});
 }
 };
 }
-rLoadVoices();
-log('Remote joined room: '+code,'g');
+rLoadVoices();log('Remote joined room: '+code,'g');
 }
 
 // ════════════════════════════════════════════
@@ -636,37 +710,21 @@ const{state,dist,dir}=data;
 const hero=$('remoteHero'),stEl=$('remoteState'),distEl=$('remoteDist'),dirEl=$('remoteDir'),timeEl=$('remoteTime');
 rLastDir=dir||'';rLastDist=dist||'';
 hero.className='remote-hero';
-if(state==='BALL LOOSE'){
-hero.classList.add('red');stEl.textContent='BALL LOOSE';stEl.className='remote-state loose';distEl.textContent='? — No Lock';
-}else if(state==='RED'){
-hero.classList.add('red');stEl.textContent='RED';stEl.className='remote-state red';distEl.textContent=dist;
-}else if(state==='YELLOW'){
-hero.classList.add('yellow');stEl.textContent='YELLOW';stEl.className='remote-state yellow';distEl.textContent=dist;
-}else if(state==='GREEN'){
-hero.classList.add('green');stEl.textContent='GREEN';stEl.className='remote-state green';distEl.textContent=dist;
-}else{
-stEl.textContent='WAITING';stEl.className='remote-state off';distEl.textContent='—';
-}
+if(state==='BALL LOOSE'){hero.classList.add('red');stEl.textContent='BALL LOOSE';stEl.className='remote-state loose';distEl.textContent='? — No Lock'}
+else if(state==='RED'){hero.classList.add('red');stEl.textContent='RED';stEl.className='remote-state red';distEl.textContent=dist}
+else if(state==='YELLOW'){hero.classList.add('yellow');stEl.textContent='YELLOW';stEl.className='remote-state yellow';distEl.textContent=dist}
+else if(state==='GREEN'){hero.classList.add('green');stEl.textContent='GREEN';stEl.className='remote-state green';distEl.textContent=dist}
+else{stEl.textContent='WAITING';stEl.className='remote-state off';distEl.textContent='—'}
 dirEl.textContent=dir?('↗ '+dir.toUpperCase()):'';
 timeEl.textContent='Updated: '+new Date().toLocaleTimeString();
-if(state!==rCurState){
-rCurState=state;
-const phrase=rGetPhrase(state,dir);
-if(phrase)rSpeak(phrase,state==='RED'||state==='BALL LOOSE');
-rStartRep();
-}
+if(state!==rCurState){rCurState=state;const phrase=rGetPhrase(state,dir);if(phrase)rSpeak(phrase,state==='RED'||state==='BALL LOOSE');rStartRep()}
 }
 
 function rLoadVoices(){
 const all=speechSynthesis.getVoices();if(!all.length)return;
-rVoices=all;
-const s=$('rVoiceSel');if(!s)return;
+rVoices=all;const s=$('rVoiceSel');if(!s)return;
 s.innerHTML='';let best=0;
-rVoices.forEach((v,i)=>{
-const o=document.createElement('option');o.value=i;
-o.textContent=v.name.slice(0,30)+' ('+v.lang+')';s.appendChild(o);
-if(/Google US|David|Samantha|Daniel/i.test(v.name))best=i;
-});
+rVoices.forEach((v,i)=>{const o=document.createElement('option');o.value=i;o.textContent=v.name.slice(0,30)+' ('+v.lang+')';s.appendChild(o);if(/Google US|David|Samantha|Daniel/i.test(v.name))best=i});
 s.value=best;
 }
 speechSynthesis.onvoiceschanged=()=>{loadVoices();rLoadVoices()};
@@ -680,8 +738,7 @@ $('rSpdR').oninput=e=>$('rSpdV').textContent=(+e.target.value).toFixed(1)+'x';
 $('rRepR').oninput=e=>{$('rRepV').textContent=(+e.target.value).toFixed(1)+'s';rStartRep()};
 
 function rSpeak(text,urgent){
-if(rMuted)return;
-speechSynthesis.cancel();
+if(rMuted)return;speechSynthesis.cancel();
 const u=new SpeechSynthesisUtterance(text);
 u.volume=+$('rVolR').value;u.rate=+$('rSpdR').value;u.pitch=urgent?1.15:1;
 if(rVoices.length){const v=rVoices[+$('rVoiceSel').value];if(v)u.voice=v}
@@ -690,13 +747,11 @@ u.onend=()=>{$('rVoiceLine').textContent='✓ '+text;$('rVoiceLine').className='
 u.onerror=()=>{$('rVoiceLine').textContent='⚠ Error';$('rVoiceLine').className='vstatus err'};
 speechSynthesis.speak(u);
 }
-
 function rGetPhrase(state,dir){
 if(state==='BALL LOOSE')return'Ball loose';
 if(state==='RED')return dir?'Red '+dir:'Red';
 if(state==='YELLOW')return'Yellow';
-if(state==='GREEN')return'Green';
-return'';
+if(state==='GREEN')return'Green';return'';
 }
 function rTestVoice(){rSpeak('Red behind. Yellow. Green. Ball loose.',false)}
 function rToggleMute(){
@@ -706,16 +761,12 @@ if(rMuted){speechSynthesis.cancel();rStopRep()}else{rStartRep()}
 function rStartRep(){
 rStopRep();if(rMuted||rCurState==='OFF')return;
 const ms=+$('rRepR').value*1000;
-rRepTimer=setInterval(()=>{
-if(rMuted){rStopRep();return}
-const phrase=rGetPhrase(rCurState,rLastDir);
-if(phrase)rSpeak(phrase,rCurState==='RED'||rCurState==='BALL LOOSE');
-},ms);
+rRepTimer=setInterval(()=>{if(rMuted){rStopRep();return}const phrase=rGetPhrase(rCurState,rLastDir);if(phrase)rSpeak(phrase,rCurState==='RED'||rCurState==='BALL LOOSE')},ms);
 }
 function rStopRep(){if(rRepTimer){clearInterval(rRepTimer);rRepTimer=null}}
 
 // ════════════════════════════════════════════
-// HOST — controls
+// HOST CONTROLS
 // ════════════════════════════════════════════
 $('volR').oninput=e=>$('volV').textContent=Math.round(e.target.value*100)+'%';
 $('spdR').oninput=e=>$('spdV').textContent=(+e.target.value).toFixed(1)+'x';
@@ -791,8 +842,7 @@ $('hostSetup').classList.add('hidden');$('navbar').classList.remove('hidden');
 $('mainUI').classList.remove('hidden');$('logBox').classList.remove('hidden');
 $('navPill').className='pill live';$('pillTxt').textContent='LIVE';
 log(`Capture: ${vidW}×${vidH}`,'g');
-speak('Screen shared.');
-initOCR();
+speak('Screen shared.');initOCR();
 }catch(e){log('Error: '+e.message,'e')}
 };
 
@@ -833,7 +883,6 @@ $('resultLbl').textContent='';$('resultBox').className='res-display';
 $('stateBox').className='state-hero';$('stateVal').className='st-big off';$('stateVal').textContent='—';$('stateDist').textContent='Waiting...';
 ['dbgRaw','dbgLines','dbgBracket','dbgNum','dbgConf','dbgStrat','dbgReg','dbgTime','dbgPipe'].forEach(id=>{$(id).textContent='—';$(id).className='dbg-v'});
 }
-
 function setPreset(name){
 const presets={topLeft:[.01,.01,.25,.06],topCenter:[.30,.01,.40,.06],topRight:[.65,.01,.30,.06],center:[.30,.45,.40,.10],bottom:[.25,.90,.50,.08]};
 const p=presets[name];if(!p)return;
@@ -843,96 +892,66 @@ distBox.classList.add('show');recentReadings=[];lastGoodNum=null;noDetectCount=0
 }
 
 // ═══════════════════════════════════════════
-// DUAL-WORKER OCR INIT — creates 2 workers for pipeline
+// DUAL-WORKER OCR INIT
 // ═══════════════════════════════════════════
 async function initOCR(){
 const b=$('ocrBadge');b.textContent='LOADING';b.className='badge load';
 try{
 if(typeof Tesseract==='undefined')await new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';s.onload=res;s.onerror=()=>rej(new Error('fail'));document.head.appendChild(s)});
-
-// Create TWO workers for pipeline
 const workerOpts={tessedit_char_whitelist:'0123456789()[]?ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz _-.|',tessedit_pageseg_mode:'7'};
 
 b.textContent='WORKER 1...';
-const w1=await Tesseract.createWorker('eng',1,{logger:m=>{}});
+const w1=await Tesseract.createWorker('eng',1,{logger:()=>{}});
 await w1.setParameters(workerOpts);
 ocrWorkers[0]=w1;ocrWorkerReady[0]=true;ocrInitCount++;
 
 b.textContent='WORKER 2...';
-const w2=await Tesseract.createWorker('eng',1,{logger:m=>{}});
+const w2=await Tesseract.createWorker('eng',1,{logger:()=>{}});
 await w2.setParameters(workerOpts);
 ocrWorkers[1]=w2;ocrWorkerReady[1]=true;ocrInitCount++;
 
 ocrReady=true;
 b.textContent='✓ 2x READY';b.className='badge rdy';
 log('Dual OCR workers ready — pipeline mode','g');
-
-// Start the high-speed pipeline loop
 pipelineLoop();
 }catch(e){b.textContent='✗ FAIL';b.className='badge fail';log('OCR err: '+e.message,'e')}
 }
 
 // ═══════════════════════════════════════════
 // HIGH-SPEED PIPELINE LOOP
-// Uses requestAnimationFrame + dual workers
-// Frame captured immediately, sent to next available worker
 // ═══════════════════════════════════════════
-let pipelineRunning=false;
-let lastDistCaptureData=null;
 let dirOcrTimer=0;
 
 function pipelineLoop(){
-if(!running||!ocrReady){
-if(running)requestAnimationFrame(pipelineLoop);
-return;
-}
-pipelineRunning=true;
+if(!running||!ocrReady){if(running)setTimeout(pipelineLoop,50);return}
 
-// Try to dispatch distance OCR to an available worker
 if(distRegion){
 const freeIdx=getFirstFreeWorker();
 if(freeIdx!==-1){
-// Capture frame NOW (sync, fast)
 const captureData=captureDistFrame();
-if(captureData){
-dispatchDistOCR(freeIdx,captureData);
-}
+if(captureData)dispatchDistOCR(freeIdx,captureData);
 }
 }
 
-// Direction OCR at lower priority (every 500ms)
 if($('dirChk').checked&&dirRegion){
 const now=Date.now();
 if(now-dirOcrTimer>500){
 const freeIdx=getFirstFreeWorker();
-if(freeIdx!==-1){
-dirOcrTimer=now;
-dispatchDirOCR(freeIdx);
-}
+if(freeIdx!==-1){dirOcrTimer=now;dispatchDirOCR(freeIdx)}
 }
 }
 
-// Update FPS counter
 ocrFrameCount++;
 const now=Date.now();
 if(now-ocrFpsLastTime>=1000){
-ocrFps=ocrFrameCount;
-ocrFrameCount=0;
-ocrFpsLastTime=now;
+ocrFps=ocrFrameCount;ocrFrameCount=0;ocrFpsLastTime=now;
 $('fpsDisplay').innerHTML='OCR: <b>'+ocrFps+' fps</b>';
 $('dbgPipe').textContent=ocrFps+' fps (dual-worker)';
 $('dbgPipe').className=ocrFps>=5?'dbg-v ok':ocrFps>=2?'dbg-v warn':'dbg-v bad';
 }
 
-// Schedule next frame — as fast as possible
-// Use setTimeout(0) instead of rAF for tighter loop when workers are busy
-if(ocrWorkerBusy[0]&&ocrWorkerBusy[1]){
-// Both busy, wait a tiny bit
-setTimeout(pipelineLoop,10);
-}else{
-// At least one free, go fast
-setTimeout(pipelineLoop,5);
-}
+if(ocrWorkerBusy[0]&&ocrWorkerBusy[1])setTimeout(pipelineLoop,10);
+else setTimeout(pipelineLoop,5);
 }
 
 function getFirstFreeWorker(){
@@ -941,9 +960,6 @@ if(!ocrWorkerBusy[1]&&ocrWorkerReady[1])return 1;
 return -1;
 }
 
-// ═══════════════════════════════════════════
-// FAST FRAME CAPTURE (synchronous)
-// ═══════════════════════════════════════════
 function captureDistFrame(){
 if(!distRegion)return null;
 const reg=distRegion;
@@ -951,62 +967,40 @@ const px=Math.round(reg.x*vidW),py=Math.round(reg.y*vidH);
 const pw=Math.max(1,Math.round(reg.w*vidW)),ph=Math.max(1,Math.round(reg.h*vidH));
 const sc=getScale(pw,ph),sw=pw*sc,sh=ph*sc;
 
-// Use the appropriate canvas based on which is not in use
-const cvs=workCvs;
-const ctx=workCtx;
-cvs.width=sw;cvs.height=sh;
-ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
-ctx.drawImage(vid,px,py,pw,ph,0,0,sw,sh);
+workCvs.width=sw;workCvs.height=sh;
+workCtx.imageSmoothingEnabled=true;workCtx.imageSmoothingQuality='high';
+workCtx.drawImage(vid,px,py,pw,ph,0,0,sw,sh);
 
-// Update raw preview
 rawCvs.width=Math.min(pw,400);rawCvs.height=Math.min(ph,100);rawCtx.imageSmoothingEnabled=false;
 rawCtx.drawImage(vid,px,py,pw,ph,0,0,rawCvs.width,rawCvs.height);
 
-// Process image
-const img=ctx.getImageData(0,0,sw,sh);
-processImg(img);
-ctx.putImageData(img,0,0);
+const img=workCtx.getImageData(0,0,sw,sh);processImg(img);workCtx.putImageData(img,0,0);
 
-// Update processed preview
 procCvs.width=Math.min(sw,400);procCvs.height=Math.min(sh,100);procCtx.imageSmoothingEnabled=false;
-procCtx.drawImage(cvs,0,0,procCvs.width,procCvs.height);
+procCtx.drawImage(workCvs,0,0,procCvs.width,procCvs.height);
 
 $('dbgReg').textContent=pw+'×'+ph+'px → '+sw+'×'+sh;
 $('dbgReg').className=pw>400||ph>200?'dbg-v warn':'dbg-v ok';
 
-// Create an ImageData or blob to send to worker
-// We need to create an offscreen canvas copy since the main one might be reused
 const offCvs=document.createElement('canvas');
 offCvs.width=sw;offCvs.height=sh;
-const offCtx=offCvs.getContext('2d');
-offCtx.drawImage(cvs,0,0);
-
+offCvs.getContext('2d').drawImage(workCvs,0,0);
 return{canvas:offCvs,pw,ph,sw,sh};
 }
 
-// ═══════════════════════════════════════════
-// DISPATCH OCR TO WORKER (async, non-blocking)
-// ═══════════════════════════════════════════
 async function dispatchDistOCR(workerIdx,captureData){
 ocrWorkerBusy[workerIdx]=true;
 const t0=performance.now();
-
 try{
 const worker=ocrWorkers[workerIdx];
 const psm=(captureData.pw>300||captureData.ph>150)?'6':'7';
 await worker.setParameters({tessedit_pageseg_mode:psm});
-
 const res=await worker.recognize(captureData.canvas);
 const elapsed=Math.round(performance.now()-t0);
-
 $('dbgTime').textContent=elapsed+'ms (W'+(workerIdx+1)+')';
 $('dbgTime').className=elapsed<100?'dbg-v ok':elapsed<200?'dbg-v warn':'dbg-v bad';
-
 processDistResult(res);
-}catch(e){
-log('OCR W'+(workerIdx+1)+' err: '+e.message,'e');
-}
-
+}catch(e){log('OCR W'+(workerIdx+1)+' err: '+e.message,'e')}
 ocrWorkerBusy[workerIdx]=false;
 }
 
@@ -1029,7 +1023,6 @@ applyState('BALL LOOSE','?');return;
 }
 
 isBallLoose=false;
-
 let num=null,strat='none';
 for(const l of lines){const n=findBracket(l);if(n!==null){num=n;strat='bracket-line';break}}
 if(num===null){const n=findBracket(raw);if(n!==null){num=n;strat='bracket-full'}}
@@ -1057,43 +1050,32 @@ noDetectCount++;$('dbgNum').textContent='Not found ('+noDetectCount+')';$('dbgNu
 async function dispatchDirOCR(workerIdx){
 if(!dirRegion)return;
 ocrWorkerBusy[workerIdx]=true;
-
 try{
 const reg=dirRegion;
 const px=Math.round(reg.x*vidW),py=Math.round(reg.y*vidH);
 const pw=Math.max(1,Math.round(reg.w*vidW)),ph=Math.max(1,Math.round(reg.h*vidH));
 const sc=getScale(pw,ph),sw=pw*sc,sh=ph*sc;
-
-const cvs=workCvs2;
-const ctx=workCtx2;
-cvs.width=sw;cvs.height=sh;
-ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
-ctx.drawImage(vid,px,py,pw,ph,0,0,sw,sh);
-
-const img=ctx.getImageData(0,0,sw,sh);processImg(img);ctx.putImageData(img,0,0);
-
+workCvs2.width=sw;workCvs2.height=sh;
+workCtx2.imageSmoothingEnabled=true;workCtx2.imageSmoothingQuality='high';
+workCtx2.drawImage(vid,px,py,pw,ph,0,0,sw,sh);
+const img=workCtx2.getImageData(0,0,sw,sh);processImg(img);workCtx2.putImageData(img,0,0);
 const worker=ocrWorkers[workerIdx];
 await worker.setParameters({tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz 0123456789',tessedit_pageseg_mode:'7'});
-const res=await worker.recognize(cvs);
+const res=await worker.recognize(workCvs2);
 const raw=res.data.text.trim().toLowerCase();
 $('dirRawText').textContent=raw?'OCR: "'+raw.substring(0,60)+'"':'';
-
 if(!manualDirOverride){
 let found='';for(const[k,v]of Object.entries(DIR_KEYWORDS))if(raw.includes(k)){found=v;break}
 if(found!==detectedDir){detectedDir=found;if(found)log('Dir: '+found,'g');updateDirDisplay();if(curState==='RED')restartRep()}
 }
 }catch(e){log('Dir err: '+e.message,'e')}
-
 ocrWorkerBusy[workerIdx]=false;
 }
 
 function getScale(pw,ph){
-const b=+$('sclR').value;
-const m=Math.max(pw,ph);
-if(m<50)return Math.max(b,4);
-if(m<100)return Math.min(b,4);
-if(m<200)return Math.min(b,3);
-return Math.min(b,2);
+const b=+$('sclR').value;const m=Math.max(pw,ph);
+if(m<50)return Math.max(b,4);if(m<100)return Math.min(b,4);
+if(m<200)return Math.min(b,3);return Math.min(b,2);
 }
 
 function processImg(img){
