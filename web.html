@@ -200,8 +200,7 @@
 
     .server-status{text-align:center;padding:6px 12px;font-size:10px;color:var(--t3);font-family:monospace}
     .server-status.ok{color:var(--grn)}.server-status.err{color:var(--red)}.server-status.warn{color:var(--yel)}
-    .remote-clients{font-size:11px;color:var(--t3);text-align:center;margin-top:4px}
-    .remote-clients b{color:var(--grn)}
+
     .latency-display{font-size:10px;color:var(--t3);text-align:center;margin-top:8px;font-family:monospace}
     .latency-display b{color:var(--grn)}
     .latency-display b.slow{color:var(--yel)}
@@ -488,6 +487,27 @@
         <div class="remote-time" id="remoteTime"></div>
       </div>
 
+      <!-- NEW: Remote Thresholds -->
+      <div class="card">
+        <div class="card-h"><span>🎯 Thresholds (Remote)</span></div>
+        <div class="card-b">
+          <div class="thr-slider-row">
+            <label class="rl">🔴 Red ≤</label>
+            <input type="range" class="red-range" id="rRedThrR" min="100" max="2000" step="10" value="500">
+            <span class="sv rv" id="rRedThrV">500</span>
+          </div>
+          <div class="thr-slider-row" id="rYelThrRow">
+            <label class="yl">🟡 Yellow ≤</label>
+            <input type="range" class="yel-range" id="rYelThrR" min="100" max="2500" step="10" value="600">
+            <span class="sv yv" id="rYelThrV">600</span>
+          </div>
+          <label class="tgl" style="margin-top:8px">
+            <input type="checkbox" id="rSkipYellowChk" onchange="rToggleSkipYellow()">
+            Skip Yellow (Red/Green only)
+          </label>
+        </div>
+      </div>
+
       <div class="card">
         <div class="card-h"><span>🔊 Voice Alerts</span></div>
         <div class="card-b">
@@ -534,7 +554,7 @@
   let rMuted = false, rVoices = [];
   let rSpeechActivePrio = 0;
 
-  // regions + state
+  // regions + state (host)
   let distRegion = null, dirRegion = null;
   let curState = 'OFF', lastNum = null;
   let repTimer = null;
@@ -543,12 +563,14 @@
   let lastGoodNum = null, lastGoodTime = 0, noDetectCount = 0;
   let drawMode = 'distance', detectedDir = '', manualDirOverride = '', isBallLoose = false;
   let recentReadings = []; const MAX_READINGS = 3;
+
   let RED_MAX = 500, YEL_MAX = 600;
   let skipYellow = false;
+
   let isMiddle = false, isGoal = false;
   let middleAnnounced = false, goalAnnounced = false;
 
-  // hysteresis
+  // hysteresis (host)
   let stateHistory = [];
   const HYST_WINDOW = 4;
 
@@ -574,6 +596,114 @@
   let rLastSeq = 0;
   let rClockOffset = null;
 
+  // ===== NEW: Remote thresholds (local to remote device) =====
+  let rRED_MAX = 500, rYEL_MAX = 600;
+  let rSkipYellow = false;
+  let rStateHistory = [];
+  const rHYST_WINDOW = 4;
+
+  function rToggleSkipYellow() {
+    rSkipYellow = $('rSkipYellowChk').checked;
+    $('rYelThrRow').style.display = rSkipYellow ? 'none' : 'flex';
+    rStateHistory = [];
+    rUpdateThresholdUI();
+    rUpdateFromThresholds();
+  }
+
+  function rUpdateThresholdUI() {
+    $('rRedThrV').textContent = rRED_MAX;
+    $('rYelThrV').textContent = rYEL_MAX;
+    $('rYelThrRow').style.display = rSkipYellow ? 'none' : 'flex';
+  }
+
+  function rGetStateRaw(n) {
+    if (n <= rRED_MAX) return 'RED';
+    if (rSkipYellow) return 'GREEN';
+    if (n <= rYEL_MAX) return 'YELLOW';
+    return 'GREEN';
+  }
+
+  function rGetStateWithHysteresis(n) {
+    const raw = rGetStateRaw(n);
+    rStateHistory.push(raw);
+    if (rStateHistory.length > rHYST_WINDOW) rStateHistory.shift();
+    if (rStateHistory.length < 2) return raw;
+
+    if (rSkipYellow) {
+      let weightRed = 0, weightGreen = 0;
+      for (let i = 0; i < rStateHistory.length; i++) {
+        const weight = i + 1;
+        if (rStateHistory[i] === 'RED') weightRed += weight; else weightGreen += weight;
+      }
+      const total = weightRed + weightGreen;
+      const redPct = total ? (weightRed / total) * 100 : 0;
+
+      if (raw === 'RED' && redPct < 30) return 'GREEN';
+      if (raw === 'GREEN' && redPct > 50) return 'RED';
+      return raw;
+    }
+
+    let wr=0, wy=0, wg=0;
+    for (let i = 0; i < rStateHistory.length; i++) {
+      const weight = i + 1;
+      const s = rStateHistory[i];
+      if (s === 'RED') wr += weight;
+      else if (s === 'YELLOW') wy += weight;
+      else wg += weight;
+    }
+    const tot = wr + wy + wg;
+    const redPct = tot ? (wr / tot) * 100 : 0;
+    const yelPct = tot ? (wy / tot) * 100 : 0;
+    const grnPct = tot ? (wg / tot) * 100 : 0;
+
+    if (raw === 'RED') {
+      if (redPct < 30 && (yelPct > 60 || grnPct > 60)) return yelPct > grnPct ? 'YELLOW' : 'GREEN';
+      return 'RED';
+    }
+    if (raw === 'YELLOW') {
+      if (redPct > 20) return 'RED';
+      if (grnPct > 60) return 'GREEN';
+      return 'YELLOW';
+    }
+    if (raw === 'GREEN') {
+      if (grnPct < 30 && redPct > 50) return 'RED';
+      if (grnPct < 40 && yelPct > 50) return 'YELLOW';
+      return 'GREEN';
+    }
+    return raw;
+  }
+
+  function rGetState(n) { return rGetStateWithHysteresis(n); }
+
+  function rUpdateFromThresholds() {
+    const n = (typeof rLastDist === 'number') ? rLastDist : parseInt(rLastDist, 10);
+    if (!isFinite(n)) return;
+
+    // Re-run remote rendering logic using current distance; raw state can be any color
+    handleRemoteState({ state: 'GREEN', dist: n, dir: rLastDir, _fromLocal: true });
+  }
+
+  // wire remote threshold sliders
+  $('rRedThrR').oninput = e => {
+    let v = +e.target.value;
+    if (!rSkipYellow && v >= rYEL_MAX) { v = rYEL_MAX - 10; e.target.value = v; }
+    rRED_MAX = v;
+    rStateHistory = [];
+    rUpdateThresholdUI();
+    rUpdateFromThresholds();
+  };
+
+  $('rYelThrR').oninput = e => {
+    let v = +e.target.value;
+    if (v <= rRED_MAX) { v = rRED_MAX + 10; e.target.value = v; }
+    rYEL_MAX = v;
+    rStateHistory = [];
+    rUpdateThresholdUI();
+    rUpdateFromThresholds();
+  };
+
+  rUpdateThresholdUI();
+
   // ===== speech unlock (fixes "remote voice not speaking" on mobile) =====
   let audioUnlocked = false;
   function ensureBeepCtx() {
@@ -587,7 +717,6 @@
 
     try { ensureBeepCtx(); } catch (e) {}
 
-    // iOS/Safari: needs speech during user gesture
     try {
       const u = new SpeechSynthesisUtterance(' ');
       u.volume = 0;
@@ -625,7 +754,7 @@
     return urgent ? 820 : 660;
   }
 
-  // distance-based beep interval
+  // distance-based beep interval (host thresholds by default; remote passes its own thresholds)
   function beepIntervalForDistance(n, state, repSeconds, redMax = RED_MAX, yelMax = YEL_MAX, skipY = skipYellow) {
     const repMult = clamp((repSeconds || 2) / 2, 0.25, 3);
     if (typeof n !== 'number' || !isFinite(n)) return Math.round(900 * repMult);
@@ -635,11 +764,11 @@
     if (skipY) {
       if (state === 'RED') {
         const t = clamp(n / Math.max(1, redMax), 0, 1);
-        ms = 120 + t * 650;     // 120..770
+        ms = 120 + t * 650;
       } else if (state === 'GREEN') {
         const span = 900;
         const t = clamp((n - redMax) / span, 0, 1);
-        ms = 650 + t * 1650;    // 650..2300
+        ms = 650 + t * 1650;
       }
     } else {
       if (state === 'RED') {
@@ -648,11 +777,11 @@
       } else if (state === 'YELLOW') {
         const span = Math.max(1, yelMax - redMax);
         const t = clamp((n - redMax) / span, 0, 1);
-        ms = 350 + t * 1150;    // 350..1500
+        ms = 350 + t * 1150;
       } else if (state === 'GREEN') {
         const span = 1100;
         const t = clamp((n - yelMax) / span, 0, 1);
-        ms = 750 + t * 1750;    // 750..2500
+        ms = 750 + t * 1750;
       }
     }
 
@@ -730,7 +859,7 @@
     rStartRep();
   }
 
-  // ===== direction helpers =====
+  // ===== direction helpers (host) =====
   function manualDir(v) { manualDirOverride = v; updateDirDisplay(); }
   function getActiveDir() { return manualDirOverride || detectedDir; }
 
@@ -777,7 +906,7 @@
     updateStateDirLine();
   }
 
-  // ===== thresholds / hysteresis =====
+  // ===== thresholds / hysteresis (host) =====
   function toggleSkipYellow() {
     skipYellow = $('skipYellowChk').checked;
     $('yelThrRow').style.display = skipYellow ? 'none' : 'flex';
@@ -1013,13 +1142,13 @@
     return bc;
   }
 
-  // ===== Network throttling + sequencing (FIX: huge delay) =====
+  // ===== Network throttling + sequencing =====
   let netSeq = 0;
   let lastNetSend = 0;
   let lastNetSent = { s: '', d: null, r: '' };
 
-  const NET_MIN_MS = 200;        // <= 5 msgs/sec
-  const NET_HEARTBEAT_MS = 1200; // keep remote alive
+  const NET_MIN_MS = 200;
+  const NET_HEARTBEAT_MS = 1200;
 
   function normDistForNet(d) {
     if (typeof d === 'number' && isFinite(d)) return Math.round(d / 5) * 5;
@@ -1117,13 +1246,11 @@
         const d = JSON.parse(msg);
         if (d.s === undefined) return;
 
-        // ignore out-of-order / old messages (prevents backlog effects)
         if (typeof d.q === 'number') {
           if (d.q <= rLastSeq) return;
           rLastSeq = d.q;
         }
 
-        // clock-skew corrected delay display (fixes "20k ms" if clocks differ)
         if (typeof d.t === 'number') {
           if (rClockOffset === null) rClockOffset = Date.now() - d.t;
           const age = Date.now() - (d.t + rClockOffset);
@@ -1164,40 +1291,51 @@
 
   // ===== Remote UI + voice =====
   function handleRemoteState(data) {
-    const { state, dist, dir } = data;
-    const hero = $('remoteHero'), stEl = $('remoteState'), distEl = $('remoteDist'), dirEl = $('remoteDir'), timeEl = $('remoteTime');
+    const { state: rawState, dist, dir } = data;
 
     rLastDir = dir || '';
     rLastDist = dist || '';
 
+    // Effective state: for color states, remote recalculates using remote thresholds
+    let effectiveState = rawState;
+    const n = (typeof dist === 'number') ? dist : parseInt(dist, 10);
+    if ((rawState === 'RED' || rawState === 'YELLOW' || rawState === 'GREEN') && isFinite(n)) {
+      effectiveState = rGetState(n);
+    } else {
+      // for special states, reset remote hysteresis history
+      rStateHistory = [];
+    }
+
+    const hero = $('remoteHero'), stEl = $('remoteState'), distEl = $('remoteDist'), dirEl = $('remoteDir'), timeEl = $('remoteTime');
     hero.className = 'remote-hero';
 
-    if (state === 'MIDDLE') {
+    // render UI using effectiveState
+    if (effectiveState === 'MIDDLE') {
       hero.classList.add('purple');
       stEl.textContent = '⚽ MIDDLE';
       stEl.className = 'remote-state purple';
       distEl.textContent = 'Ball in middle';
-    } else if (state === 'GOAL') {
+    } else if (effectiveState === 'GOAL') {
       hero.classList.add('orange');
       stEl.textContent = '🥅 GOAL';
       stEl.className = 'remote-state orange';
       distEl.textContent = 'Goal scored!';
-    } else if (state === 'BALL LOOSE') {
+    } else if (effectiveState === 'BALL LOOSE') {
       hero.classList.add('red');
       stEl.textContent = 'BALL LOOSE';
       stEl.className = 'remote-state loose';
       distEl.textContent = '? — No Lock';
-    } else if (state === 'RED') {
+    } else if (effectiveState === 'RED') {
       hero.classList.add('red');
       stEl.textContent = 'RED';
       stEl.className = 'remote-state red';
       distEl.textContent = dist;
-    } else if (state === 'YELLOW') {
+    } else if (effectiveState === 'YELLOW') {
       hero.classList.add('yellow');
       stEl.textContent = 'YELLOW';
       stEl.className = 'remote-state yellow';
       distEl.textContent = dist;
-    } else if (state === 'GREEN') {
+    } else if (effectiveState === 'GREEN') {
       hero.classList.add('green');
       stEl.textContent = 'GREEN';
       stEl.className = 'remote-state green';
@@ -1211,14 +1349,15 @@
     dirEl.textContent = dir ? ('↗ ' + dir.toUpperCase()) : '';
     timeEl.textContent = 'Updated: ' + new Date().toLocaleTimeString();
 
-    if (state !== rCurState) {
-      rCurState = state;
+    // voice/beep + repeat based on effectiveState changes
+    if (effectiveState !== rCurState) {
+      rCurState = effectiveState;
 
-      if (state === 'MIDDLE') {
+      if (effectiveState === 'MIDDLE') {
         if (!rMiddleAnnounced) { rSpeak('Ball is in the middle', false, prioForState('MIDDLE')); rMiddleAnnounced = true; }
         rGoalAnnounced = false;
         rStopRep();
-      } else if (state === 'GOAL') {
+      } else if (effectiveState === 'GOAL') {
         if (!rGoalAnnounced) { rSpeak('Goal is scored', true, prioForState('GOAL')); rGoalAnnounced = true; }
         rMiddleAnnounced = false;
         rStopRep();
@@ -1227,16 +1366,20 @@
         rGoalAnnounced = false;
 
         if (rBeepMode) {
-          if (state === 'RED' || state === 'YELLOW' || state === 'GREEN') {
-            const n = parseInt(dist, 10);
-            const ms = beepIntervalForDistance(isFinite(n) ? n : null, state, +$('rRepR').value);
-            playDirectionalBeep(dir || '', +$('rVolR').value, state === 'RED', $('rVoiceLine'), ms);
-          } else if (state === 'BALL LOOSE') {
+          if (effectiveState === 'RED' || effectiveState === 'YELLOW' || effectiveState === 'GREEN') {
+            const ms = beepIntervalForDistance(
+              isFinite(n) ? n : null,
+              effectiveState,
+              +$('rRepR').value,
+              rRED_MAX, rYEL_MAX, rSkipYellow
+            );
+            playDirectionalBeep(dir || '', +$('rVolR').value, effectiveState === 'RED', $('rVoiceLine'), ms);
+          } else if (effectiveState === 'BALL LOOSE') {
             rSpeak('Ball loose', true, prioForState('BALL LOOSE'));
           }
         } else {
-          const phrase = rGetPhrase(state, dir);
-          if (phrase) rSpeak(phrase, state === 'RED' || state === 'BALL LOOSE', prioForState(state));
+          const phrase = rGetPhrase(effectiveState, dir);
+          if (phrase) rSpeak(phrase, effectiveState === 'RED' || effectiveState === 'BALL LOOSE', prioForState(effectiveState));
         }
 
         rStartRep();
@@ -1266,8 +1409,6 @@
     if (!text) return;
 
     const synth = speechSynthesis;
-
-    // Don't cut off RED mid-speech for lower priority updates
     if ((synth.speaking || synth.pending) && prio <= rSpeechActivePrio) return;
 
     if (synth.speaking || synth.pending) synth.cancel();
@@ -1319,10 +1460,16 @@
       if (rMuted) { rStopRep(); return; }
       if (rCurState === 'OFF' || rCurState === 'MIDDLE' || rCurState === 'GOAL') { rStopRep(); return; }
 
+      const n = (typeof rLastDist === 'number') ? rLastDist : parseInt(rLastDist, 10);
+
       if (rBeepMode) {
         if (rCurState === 'RED' || rCurState === 'YELLOW' || rCurState === 'GREEN') {
-          const n = parseInt(rLastDist, 10);
-          const ms = beepIntervalForDistance(isFinite(n) ? n : null, rCurState, +$('rRepR').value);
+          const ms = beepIntervalForDistance(
+            isFinite(n) ? n : null,
+            rCurState,
+            +$('rRepR').value,
+            rRED_MAX, rYEL_MAX, rSkipYellow
+          );
           playDirectionalBeep(rLastDir || '', +$('rVolR').value, rCurState === 'RED', $('rVoiceLine'), ms);
           rRepTimer = setTimeout(tick, ms);
           return;
@@ -1343,9 +1490,11 @@
       rRepTimer = setTimeout(tick, ms);
     };
 
+    const n = (typeof rLastDist === 'number') ? rLastDist : parseInt(rLastDist, 10);
+
     const firstMs = rBeepMode
       ? ((rCurState === 'RED' || rCurState === 'YELLOW' || rCurState === 'GREEN')
-          ? beepIntervalForDistance(parseInt(rLastDist, 10), rCurState, +$('rRepR').value)
+          ? beepIntervalForDistance(isFinite(n) ? n : null, rCurState, +$('rRepR').value, rRED_MAX, rYEL_MAX, rSkipYellow)
           : Math.round(+$('rRepR').value * 1000))
       : Math.round(+$('rRepR').value * 1000);
 
@@ -1378,8 +1527,6 @@
     if (!text) return;
 
     const synth = speechSynthesis;
-
-    // Only interrupt current speech if higher priority (prevents "RED cut off")
     if ((synth.speaking || synth.pending) && prio <= speechActivePrio) return;
 
     if (synth.speaking || synth.pending) synth.cancel();
@@ -1416,10 +1563,7 @@
 
   function getPhrase(state) {
     if (state === 'BALL LOOSE') return 'Ball loose';
-
-    // Beep mode intentionally disables speech for colors
     if (beepMode && (state === 'RED' || state === 'YELLOW' || state === 'GREEN')) return '';
-
     if (state === 'RED') {
       const d = getActiveDir();
       if ($('dirChk').checked && d) return 'Red ' + d;
@@ -1845,8 +1989,6 @@
     const t0 = performance.now();
     try {
       const w = ocrWorkers[wi];
-
-      // IMPORTANT: restore distance whitelist (fixes direction OCR breaking distance OCR)
       await w.setParameters({ tessedit_char_whitelist: DIST_WHITELIST, tessedit_pageseg_mode: '7' });
 
       const res = await w.recognize(cd.canvas);
@@ -1901,16 +2043,6 @@
       if(m&&m[1]){
         const n=parseInt(m[1],10);
         if(n>=10&&n<=9999)return n;
-      }
-    }
-    for(const p of[/\((\d{1,4})(?:\s|$|[^0-9])/,/(?:^|[^0-9])(\d{1,4})\)/,/\(([^)]{1,6})\)/]){
-      const m=cl.match(p);
-      if(m&&m[1]){
-        const d=m[1].replace(/[^0-9]/g,'');
-        if(d.length>=2&&d.length<=4){
-          const n=parseInt(d,10);
-          if(n>=10&&n<=9999)return n;
-        }
       }
     }
     return null;
@@ -2096,7 +2228,6 @@
           detectedDir=found;
           if(found)log('Dir: '+found,'g');
           updateDirDisplay();
-          // direction change should NOT cut speech; restartRep just reschedules repeats/beeps
           restartRep();
         }
       }
@@ -2188,13 +2319,8 @@
   // ===== remote voice + host voice keepalive =====
   setInterval(() => { if (speechSynthesis.paused) speechSynthesis.resume(); }, 5000);
 
-  // ===== remote setup indicators =====
-  $('remoteServerStatus').textContent = 'Ready';
-  $('remoteServerStatus').className = 'server-status ok';
-
-  // ===== selection clearing =====
+  // ===== logger init =====
   log('ORION ready');
-
 </script>
 </body>
 </html>
