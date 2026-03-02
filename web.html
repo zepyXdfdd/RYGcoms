@@ -77,6 +77,10 @@ canvas{width:100%;height:70px;background:#05050d;border:1px solid var(--brd);bor
 .debugLog{margin-top:8px;padding:8px;background:#050510;border:1px solid var(--brd);border-radius:8px;max-height:120px;overflow-y:auto;font-family:ui-monospace,Consolas,monospace;font-size:10px;color:var(--t3)}
 .debugLog div{padding:1px 0}
 .debugLog .err{color:var(--red)}.debugLog .ok{color:var(--grn)}.debugLog .wrn{color:var(--yel)}
+.dirIndicator{display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:1fr 1fr 1fr;width:120px;height:120px;margin:12px auto;gap:2px}
+.dirCell{border-radius:6px;border:1px solid var(--brd);background:rgba(255,255,255,.02);display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--t3);font-weight:700;letter-spacing:1px;transition:all .2s}
+.dirCell.active{border-color:var(--blu);background:rgba(0,160,255,.25);color:var(--blu);box-shadow:0 0 12px rgba(0,160,255,.3)}
+.dirCell.center{border-color:var(--brd);background:rgba(255,255,255,.04)}
 </style>
 </head>
 <body>
@@ -85,13 +89,13 @@ canvas{width:100%;height:70px;background:#05050d;border:1px solid var(--brd);bor
 <div class="overlay" id="roleOverlay">
   <div class="panel">
     <div class="title">ORION</div>
-    <div class="sub">AI VOICE TTS · WORKS ON META QUEST BROWSER</div>
+    <div class="sub">DIRECTIONAL AUDIO · WORKS ON META QUEST BROWSER</div>
     <div class="row">
       <button class="btn" onclick="chooseRole('host')">HOST (PC)</button>
       <button class="btn" onclick="chooseRole('remote')">REMOTE (QUEST)</button>
     </div>
     <div class="status" style="margin-top:14px">
-      Uses audio fetched as MP3 and played via AudioContext — works on Quest.
+      Remote uses directional spatial beeping — no AI voice needed.
     </div>
   </div>
 </div>
@@ -109,7 +113,7 @@ canvas{width:100%;height:70px;background:#05050d;border:1px solid var(--brd);bor
       </div>
     </div>
     <div class="row"><button class="btn act" id="shareBtn">SHARE SCREEN</button></div>
-    <div class="status" style="margin-top:12px">Draw box around player name + distance.</div>
+    <div class="status" style="margin-top:12px">Draw box around player name + distance, and direction text.</div>
   </div>
 </div>
 
@@ -197,7 +201,7 @@ canvas{width:100%;height:70px;background:#05050d;border:1px solid var(--brd);bor
         </div>
       </div>
       <div class="card" style="margin-top:14px">
-        <div class="ch"><span>AI Voice</span></div>
+        <div class="ch"><span>Host Audio</span></div>
         <div class="cb">
           <div class="ttsBar" id="hTtsBar">Voice: ready</div>
           <div class="engRow">
@@ -262,6 +266,19 @@ canvas{width:100%;height:70px;background:#05050d;border:1px solid var(--brd);bor
       <div class="hState" id="rState">WAITING</div>
       <div class="hDist" id="rDist">—</div>
       <div class="hDir" id="rDir"></div>
+      <!-- Direction indicator grid -->
+      <div class="dirIndicator" id="dirGrid">
+        <div class="dirCell" id="dcAbove" data-dir="above"></div>
+        <div class="dirCell" id="dcAboveC" data-dir="above">▲<br>ABOVE</div>
+        <div class="dirCell" id="dcAboveR" data-dir="above"></div>
+        <div class="dirCell" id="dcLeft" data-dir="left">◄ LEFT</div>
+        <div class="dirCell center" id="dcCenter">●</div>
+        <div class="dirCell" id="dcRight" data-dir="right">RIGHT ►</div>
+        <div class="dirCell" id="dcBelowL" data-dir="below"></div>
+        <div class="dirCell" id="dcBelowC" data-dir="below">BELOW<br>▼</div>
+        <div class="dirCell" id="dcBelowR" data-dir="below"></div>
+      </div>
+      <div class="status" id="rDirLabel" style="margin-top:4px;color:var(--blu)">—</div>
       <div class="status" id="rNameLine"></div>
       <div class="status" id="rTime">—</div>
     </div>
@@ -281,36 +298,23 @@ canvas{width:100%;height:70px;background:#05050d;border:1px solid var(--brd);bor
       </div>
     </div>
     <div class="card" style="margin-top:14px">
-      <div class="ch"><span>AI Voice</span></div>
+      <div class="ch"><span>🔊 Directional Audio</span></div>
       <div class="cb">
-        <div class="ttsBar" id="rTtsBar">Voice: ready</div>
-        <div class="engRow">
-          <button class="engBtn act" id="rEng_ai" onclick="setRemoteEngine('ai')">AI Voice</button>
-          <button class="engBtn" id="rEng_beep" onclick="setRemoteEngine('beep')">Beep Only</button>
-        </div>
-        <div id="rAiVoiceRow" class="srow"><label>AI Voice</label>
-          <select id="rAiVoice">
-            <option value="Brian">Brian (UK Male)</option>
-            <option value="Amy">Amy (UK Female)</option>
-            <option value="Joanna" selected>Joanna (US Female)</option>
-            <option value="Joey">Joey (US Male)</option>
-            <option value="Matthew">Matthew (US Male)</option>
-            <option value="Kimberly">Kimberly (US Female)</option>
-            <option value="Salli">Salli (US Female)</option>
-            <option value="Ivy">Ivy (US Child)</option>
-            <option value="Nicole">Nicole (AU Female)</option>
-            <option value="Russell">Russell (AU Male)</option>
-          </select>
-        </div>
+        <div class="ttsBar" id="rTtsBar">Directional beep: ready</div>
         <div class="srow"><label>Volume</label><input type="range" id="rVol" min="0" max="1" step="0.05" value="0.9"><span class="pill" id="rVolV">90%</span></div>
-        <div class="srow"><label>Rate</label><input type="range" id="rSpd" min="0.5" max="2" step="0.05" value="1"><span class="pill" id="rSpdV">1.00x</span></div>
-        <div class="srow"><label>Interval</label><input type="range" id="rRep" min="1" max="8" step="0.5" value="2"><span class="pill" id="rRepV">2.0s</span></div>
+        <div class="srow"><label>Base Interval</label><input type="range" id="rRep" min="0.3" max="8" step="0.1" value="2"><span class="pill" id="rRepV">2.0s</span></div>
         <div class="row" style="justify-content:flex-start;margin-top:8px">
-          <button class="btn" id="rTestBtn" onclick="testRemoteVoice()">TEST VOICE</button>
+          <button class="btn" id="rTestBtn" onclick="testRemoteBeep()">TEST BEEP</button>
           <button class="btn act" id="rMuteBtn" onclick="rToggleMute()">AUDIO ON</button>
         </div>
         <div class="vline" id="rVoiceLine">—</div>
-        <div class="smallNote">⚡ Quest users: Tap TEST VOICE first. Make sure Quest volume is up. AI voice is fetched as audio — no browser TTS needed.</div>
+        <div class="smallNote">
+          ⚡ Directional beeping:<br>
+          <b>Left</b> → left speaker &nbsp;|&nbsp; <b>Right</b> → right speaker<br>
+          <b>Above</b> → high pitch &nbsp;|&nbsp; <b>Below</b> → low pitch<br>
+          <b>Behind</b> → muffled tone &nbsp;|&nbsp; <b>In Front</b> → bright/clear tone<br>
+          Beep speed increases as distance decreases. Red = fastest.
+        </div>
         <div class="debugLog" id="audioLog"></div>
       </div>
     </div>
@@ -321,7 +325,7 @@ canvas{width:100%;height:70px;background:#05050d;border:1px solid var(--brd);bor
 'use strict';
 
 /* ================================================================
-   DEBUG LOG — visible on Quest so we can see what's happening
+   DEBUG LOG
    ================================================================ */
 function dlog(containerId, msg, cls) {
   const c = document.getElementById(containerId);
@@ -331,13 +335,11 @@ function dlog(containerId, msg, cls) {
   if (cls) d.className = cls;
   c.appendChild(d);
   c.scrollTop = c.scrollHeight;
-  // keep max 40 lines
   while (c.children.length > 40) c.removeChild(c.firstChild);
 }
 
 /* ================================================================
-   AUDIO CONTEXT — single shared instance
-   Quest requires creation inside user gesture, then resume()
+   AUDIO CONTEXT
    ================================================================ */
 let audioCtx = null;
 let audioUnlocked = false;
@@ -362,7 +364,6 @@ function unlockAudio() {
   const ctx = getAudioCtx();
   if (!ctx) return;
   try {
-    // Play silent buffer to unlock
     const buf = ctx.createBuffer(1, 1, ctx.sampleRate);
     const src = ctx.createBufferSource();
     src.buffer = buf;
@@ -376,18 +377,13 @@ function unlockAudio() {
   }
 }
 
-// Unlock on ANY user gesture — critical for Quest
 ['pointerdown','mousedown','touchstart','touchend','click','keydown'].forEach(ev => {
   window.addEventListener(ev, unlockAudio, { passive: true, capture: true });
 });
 
 /* ================================================================
-   AI VOICE TTS — Fetch MP3 audio, decode, play via AudioContext
-   This is the ONLY method that works reliably on Quest Browser.
-   Uses a proxy-friendly TTS endpoint that returns MP3.
+   AI VOICE TTS — for HOST only
    ================================================================ */
-
-// Multiple TTS endpoints to try (in order)
 const TTS_ENDPOINTS = [
   { name: 'StreamElements', url: (voice, text) =>
     `https://api.streamelements.com/kappa/v2/speech?voice=${encodeURIComponent(voice)}&text=${encodeURIComponent(text)}` },
@@ -405,142 +401,61 @@ function stopCurrentPlay() {
   ttsPlaying = false;
 }
 
-/**
- * Fetch audio from TTS API, decode, play via AudioContext
- * Returns: Promise<'ok'|'error'>
- */
 async function aiSpeak(text, voice, volume, rate) {
-  const logId = role === 'remote' ? 'audioLog' : 'audioLog';
+  const logId = 'audioLog';
   const cacheKey = voice + '|' + text;
-
   const ctx = getAudioCtx();
-  if (!ctx) {
-    dlog(logId, 'No AudioContext!', 'err');
-    return 'error';
-  }
-
-  // Resume if suspended (Quest does this)
-  if (ctx.state === 'suspended') {
-    try { await ctx.resume(); } catch(e) {}
-  }
+  if (!ctx) { dlog(logId, 'No AudioContext!', 'err'); return 'error'; }
+  if (ctx.state === 'suspended') { try { await ctx.resume(); } catch(e) {} }
 
   let audioBuffer;
-
   if (audioCache.has(cacheKey)) {
     audioBuffer = audioCache.get(cacheKey);
-    dlog(logId, 'Cache hit: "' + text + '"', 'ok');
   } else {
-    // Try each endpoint
     let fetched = false;
     for (const ep of TTS_ENDPOINTS) {
       const url = ep.url(voice, text);
-      dlog(logId, 'Fetching: ' + ep.name + ' "' + text.slice(0,30) + '"…');
       try {
-        const resp = await fetch(url, {
-          mode: 'cors',
-          cache: 'force-cache',
-          headers: { 'Accept': 'audio/mpeg, audio/*' }
-        });
-        if (!resp.ok) {
-          dlog(logId, ep.name + ' HTTP ' + resp.status, 'err');
-          continue;
-        }
+        const resp = await fetch(url, { mode: 'cors', cache: 'force-cache', headers: { 'Accept': 'audio/mpeg, audio/*' } });
+        if (!resp.ok) continue;
         const arrayBuf = await resp.arrayBuffer();
-        if (arrayBuf.byteLength < 100) {
-          dlog(logId, ep.name + ' empty response', 'err');
-          continue;
-        }
-        dlog(logId, ep.name + ' got ' + arrayBuf.byteLength + ' bytes, decoding…');
-
-        // decodeAudioData — Quest supports this for MP3
+        if (arrayBuf.byteLength < 100) continue;
         try {
           audioBuffer = await new Promise((resolve, reject) => {
-            // Use callback form for wider compatibility
-            ctx.decodeAudioData(arrayBuf,
-              buf => resolve(buf),
-              err => reject(err || new Error('decode failed'))
-            );
+            ctx.decodeAudioData(arrayBuf, buf => resolve(buf), err => reject(err || new Error('decode failed')));
           });
-        } catch(decErr) {
-          dlog(logId, 'Decode failed: ' + decErr.message, 'err');
-          continue;
-        }
-
-        // Cache it
-        if (audioCache.size > 80) {
-          const firstKey = audioCache.keys().next().value;
-          audioCache.delete(firstKey);
-        }
+        } catch(decErr) { continue; }
+        if (audioCache.size > 80) { audioCache.delete(audioCache.keys().next().value); }
         audioCache.set(cacheKey, audioBuffer);
         fetched = true;
-        dlog(logId, ep.name + ' decoded OK (' + audioBuffer.duration.toFixed(1) + 's)', 'ok');
         break;
-      } catch(fetchErr) {
-        dlog(logId, ep.name + ' fetch error: ' + fetchErr.message, 'err');
-        continue;
-      }
+      } catch(fetchErr) { continue; }
     }
-
-    if (!fetched || !audioBuffer) {
-      dlog(logId, 'All TTS endpoints failed!', 'err');
-      return 'error';
-    }
+    if (!fetched || !audioBuffer) return 'error';
   }
 
-  // Stop any currently playing audio
   stopCurrentPlay();
-
-  // Play via AudioContext
   return new Promise(resolve => {
     try {
       const src = ctx.createBufferSource();
       src.buffer = audioBuffer;
       src.playbackRate.value = Math.max(0.25, Math.min(4, rate || 1));
-
       const gainNode = ctx.createGain();
       gainNode.gain.value = Math.max(0, Math.min(1, volume));
-
       src.connect(gainNode);
       gainNode.connect(ctx.destination);
-
       ttsPlaying = true;
       currentPlayingSrc = src;
-
-      src.onended = () => {
-        if (currentPlayingSrc === src) currentPlayingSrc = null;
-        ttsPlaying = false;
-        resolve('ok');
-      };
-
+      src.onended = () => { if (currentPlayingSrc === src) currentPlayingSrc = null; ttsPlaying = false; resolve('ok'); };
       src.start(0);
-      dlog(logId, 'Playing: "' + text + '"', 'ok');
-
-      // Safety timeout in case onended doesn't fire
       const maxMs = (audioBuffer.duration / (rate || 1)) * 1000 + 2000;
-      setTimeout(() => {
-        if (ttsPlaying && currentPlayingSrc === src) {
-          ttsPlaying = false;
-          currentPlayingSrc = null;
-          resolve('ok');
-        }
-      }, maxMs);
-
-    } catch(playErr) {
-      dlog(logId, 'Play error: ' + playErr.message, 'err');
-      ttsPlaying = false;
-      resolve('error');
-    }
+      setTimeout(() => { if (ttsPlaying && currentPlayingSrc === src) { ttsPlaying = false; currentPlayingSrc = null; resolve('ok'); } }, maxMs);
+    } catch(playErr) { ttsPlaying = false; resolve('error'); }
   });
 }
 
-/**
- * Pre-cache common phrases — call after user gesture
- */
 async function prewarmVoice(voice) {
-  const phrases = ['Red', 'Yellow', 'Green', 'Ball loose',
-    'Red, left', 'Red, right', 'Red, behind', 'Red, in front'];
-  const logId = role === 'remote' ? 'audioLog' : 'audioLog';
-  dlog(logId, 'Pre-caching voice: ' + voice + '…');
+  const phrases = ['Red', 'Yellow', 'Green', 'Ball loose', 'Red, left', 'Red, right', 'Red, behind', 'Red, in front'];
   for (const p of phrases) {
     const key = voice + '|' + p;
     if (audioCache.has(key)) continue;
@@ -551,20 +466,228 @@ async function prewarmVoice(voice) {
         const buf = await resp.arrayBuffer();
         const ctx = getAudioCtx();
         if (ctx && buf.byteLength > 100) {
-          const decoded = await new Promise((res, rej) => {
-            ctx.decodeAudioData(buf, b => res(b), e => rej(e));
-          });
+          const decoded = await new Promise((res, rej) => { ctx.decodeAudioData(buf, b => res(b), e => rej(e)); });
           audioCache.set(key, decoded);
         }
       }
     } catch(e) {}
     await new Promise(r => setTimeout(r, 80));
   }
-  dlog(logId, 'Pre-cache done (' + audioCache.size + ' items)', 'ok');
 }
 
 /* ================================================================
-   BEEP — always works even offline
+   DIRECTIONAL SPATIAL BEEP — for REMOTE
+   Uses StereoPannerNode for L/R, frequency for up/down,
+   BiquadFilter for behind (muffled) vs front (bright)
+   ================================================================ */
+
+/**
+ * Direction config:
+ *   left    → pan -1 (left speaker)
+ *   right   → pan +1 (right speaker)
+ *   above   → high pitch (1200Hz)
+ *   below   → low pitch (300Hz)
+ *   behind  → muffled (lowpass filter, center pan)
+ *   in front → bright (highpass boost, center pan)
+ *   no dir  → center pan, mid pitch
+ */
+function getDirectionalParams(dir) {
+  // defaults: center, mid pitch, no filter
+  let pan = 0;           // -1 left, +1 right
+  let freq = 660;        // base frequency
+  let filterType = null; // null = no filter, 'lowpass' for behind, 'highpass' for front
+  let filterFreq = 2000;
+  let waveform = 'sine';
+  let label = 'CENTER';
+
+  const d = (dir || '').toLowerCase().trim();
+
+  if (d === 'left') {
+    pan = -1;
+    freq = 660;
+    label = '◄ LEFT';
+  } else if (d === 'right') {
+    pan = 1;
+    freq = 660;
+    label = 'RIGHT ►';
+  } else if (d === 'above' || d === 'up') {
+    pan = 0;
+    freq = 1200;
+    waveform = 'sine';
+    label = '▲ ABOVE';
+  } else if (d === 'below' || d === 'down') {
+    pan = 0;
+    freq = 280;
+    waveform = 'sine';
+    label = '▼ BELOW';
+  } else if (d === 'behind' || d === 'back') {
+    pan = 0;
+    freq = 440;
+    filterType = 'lowpass';
+    filterFreq = 600;  // very muffled
+    label = '⟵ BEHIND';
+  } else if (d === 'in front' || d === 'front' || d === 'ahead' || d === 'forward') {
+    pan = 0;
+    freq = 880;
+    filterType = 'highpass';
+    filterFreq = 400;
+    waveform = 'square'; // brighter/sharper
+    label = 'FRONT ⟶';
+  }
+
+  return { pan, freq, filterType, filterFreq, waveform, label };
+}
+
+/**
+ * Play a single directional beep
+ * @param {number} vol 0-1
+ * @param {string} dir direction string
+ * @param {boolean} urgent true for RED state
+ * @param {number} intervalMs current interval (controls beep duration)
+ */
+function playDirectionalBeep(vol, dir, urgent, intervalMs) {
+  if (vol <= 0) return;
+  const ctx = getAudioCtx();
+  if (!ctx) return;
+
+  try {
+    const params = getDirectionalParams(dir);
+    const now = ctx.currentTime;
+    const dur = clamp((intervalMs * 0.45) / 1000, 0.04, 0.15);
+    const attack = Math.min(0.008, dur * 0.2);
+    const release = Math.min(0.05, dur * 0.4);
+
+    // Oscillator
+    const osc = ctx.createOscillator();
+    osc.type = params.waveform;
+    osc.frequency.value = params.freq;
+
+    // If urgent (RED), add slight vibrato for urgency
+    if (urgent) {
+      osc.frequency.setValueAtTime(params.freq, now);
+      osc.frequency.linearRampToValueAtTime(params.freq * 1.05, now + dur * 0.5);
+      osc.frequency.linearRampToValueAtTime(params.freq * 0.95, now + dur);
+    }
+
+    // Gain envelope
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(clamp(vol, 0, 1) * 0.4, now + attack);
+    gain.gain.setValueAtTime(clamp(vol, 0, 1) * 0.4, now + dur);
+    gain.gain.linearRampToValueAtTime(0, now + dur + release);
+
+    // Stereo panner
+    let lastNode = osc;
+
+    // Optional filter for behind/front
+    if (params.filterType) {
+      const filter = ctx.createBiquadFilter();
+      filter.type = params.filterType;
+      filter.frequency.value = params.filterFreq;
+      filter.Q.value = 1;
+      lastNode.connect(filter);
+      lastNode = filter;
+    }
+
+    lastNode.connect(gain);
+
+    // StereoPanner for left/right
+    if (typeof StereoPannerNode !== 'undefined' || ctx.createStereoPanner) {
+      const panner = ctx.createStereoPanner();
+      panner.pan.value = clamp(params.pan, -1, 1);
+      gain.connect(panner);
+      panner.connect(ctx.destination);
+    } else {
+      // Fallback: use channel merger for manual L/R
+      // This handles older browsers / Quest fallback
+      const splitter = ctx.createChannelMerger(2);
+      const leftGain = ctx.createGain();
+      const rightGain = ctx.createGain();
+      // pan: -1 = full left, +1 = full right, 0 = center
+      const p = clamp(params.pan, -1, 1);
+      leftGain.gain.value = Math.cos((p + 1) * Math.PI / 4);  // 1 at left, 0.707 at center, 0 at right
+      rightGain.gain.value = Math.sin((p + 1) * Math.PI / 4); // 0 at left, 0.707 at center, 1 at right
+      gain.connect(leftGain);
+      gain.connect(rightGain);
+      leftGain.connect(splitter, 0, 0);
+      rightGain.connect(splitter, 0, 1);
+      splitter.connect(ctx.destination);
+    }
+
+    osc.start(now);
+    osc.stop(now + dur + release + 0.02);
+
+    // Update UI
+    const lineEl = document.getElementById('rVoiceLine');
+    if (lineEl) {
+      lineEl.textContent = '🔊 ' + params.label + ' [' + Math.round(params.freq) + 'Hz]';
+      lineEl.className = 'vline talk';
+      setTimeout(() => {
+        lineEl.textContent = '✓ ' + params.label;
+        lineEl.className = 'vline ok';
+      }, Math.min(300, intervalMs));
+    }
+
+    dlog('audioLog', 'Beep: dir=' + (dir||'none') + ' pan=' + params.pan.toFixed(1) + ' freq=' + params.freq + 'Hz', 'ok');
+
+  } catch(e) {
+    dlog('audioLog', 'Beep error: ' + e.message, 'err');
+  }
+}
+
+/**
+ * Play a double-beep pattern for certain states (ball loose)
+ */
+function playAlertPattern(vol, dir) {
+  playDirectionalBeep(vol, dir, true, 200);
+  setTimeout(() => playDirectionalBeep(vol, dir, true, 200), 150);
+  setTimeout(() => playDirectionalBeep(vol, dir, true, 200), 300);
+}
+
+/**
+ * Update the direction indicator grid
+ */
+function updateDirGrid(dir) {
+  const d = (dir || '').toLowerCase().trim();
+  // Reset all
+  document.querySelectorAll('.dirCell').forEach(c => c.classList.remove('active'));
+  document.getElementById('dcCenter').classList.remove('active');
+
+  const label = document.getElementById('rDirLabel');
+
+  if (d === 'left') {
+    document.getElementById('dcLeft').classList.add('active');
+    if (label) label.textContent = '◄ LEFT SPEAKER';
+  } else if (d === 'right') {
+    document.getElementById('dcRight').classList.add('active');
+    if (label) label.textContent = 'RIGHT SPEAKER ►';
+  } else if (d === 'above' || d === 'up') {
+    document.getElementById('dcAbove').classList.add('active');
+    document.getElementById('dcAboveC').classList.add('active');
+    document.getElementById('dcAboveR').classList.add('active');
+    if (label) label.textContent = '▲ ABOVE — HIGH PITCH';
+  } else if (d === 'below' || d === 'down') {
+    document.getElementById('dcBelowL').classList.add('active');
+    document.getElementById('dcBelowC').classList.add('active');
+    document.getElementById('dcBelowR').classList.add('active');
+    if (label) label.textContent = '▼ BELOW — LOW PITCH';
+  } else if (d === 'behind' || d === 'back') {
+    // Light up top row (conceptually behind = away)
+    document.getElementById('dcAbove').classList.add('active');
+    document.getElementById('dcAboveR').classList.add('active');
+    if (label) label.textContent = '⟵ BEHIND — MUFFLED';
+  } else if (d === 'in front' || d === 'front' || d === 'ahead' || d === 'forward') {
+    document.getElementById('dcBelowL').classList.add('active');
+    document.getElementById('dcBelowR').classList.add('active');
+    if (label) label.textContent = 'IN FRONT ⟶ — BRIGHT';
+  } else {
+    document.getElementById('dcCenter').classList.add('active');
+    if (label) label.textContent = dir ? dir.toUpperCase() : '—';
+  }
+}
+
+/* ================================================================
+   HOST BEEP (simple, non-directional)
    ================================================================ */
 function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
 
@@ -608,9 +731,9 @@ function playBeep(vol, urgent, lineEl, intervalMs) {
 }
 
 /* ================================================================
-   ENGINE STATE — 'ai' or 'beep'
+   ENGINE STATE — HOST: 'ai' or 'beep', REMOTE: always directional beep
    ================================================================ */
-let hostEngine = 'ai', remoteEngine = 'ai';
+let hostEngine = 'ai';
 
 function setTtsBar(id, msg, cls) {
   const el = document.getElementById(id);
@@ -625,16 +748,8 @@ function setHostEngine(eng) {
   setTtsBar('hTtsBar', eng==='ai'?'AI Voice — fetches real MP3 audio':'Beep mode', eng==='ai'?'ok':'');
 }
 
-function setRemoteEngine(eng) {
-  remoteEngine = eng;
-  document.getElementById('rEng_ai').className = 'engBtn' + (eng==='ai'?' act':'');
-  document.getElementById('rEng_beep').className = 'engBtn' + (eng==='beep'?' act':'');
-  document.getElementById('rAiVoiceRow').style.display = eng==='ai' ? 'flex' : 'none';
-  setTtsBar('rTtsBar', eng==='ai'?'AI Voice — fetches real MP3 audio':'Beep mode', eng==='ai'?'ok':'');
-}
-
 /* ================================================================
-   UNIFIED SPEAK
+   UNIFIED SPEAK — HOST
    ================================================================ */
 let muted = false, rMuted = false;
 
@@ -661,33 +776,27 @@ async function hostSpeak(phrase, urgent) {
   }
 }
 
-async function remoteSpeak(phrase, urgent) {
-  if (rMuted || !phrase) return;
+/* ================================================================
+   REMOTE SPEAK — DIRECTIONAL BEEP ONLY (no AI voice)
+   ================================================================ */
+async function remoteSpeak(phrase, urgent, dir) {
+  if (rMuted) return;
   const vol = +document.getElementById('rVol').value;
-  const rate = +document.getElementById('rSpd').value;
-  const lineEl = document.getElementById('rVoiceLine');
-  if (remoteEngine === 'ai') {
-    const voice = document.getElementById('rAiVoice').value;
-    lineEl.textContent = '🔊 ' + phrase; lineEl.className = 'vline talk';
-    const result = await aiSpeak(phrase, voice, vol, rate);
-    if (result === 'ok') {
-      lineEl.textContent = '✓ ' + phrase; lineEl.className = 'vline ok';
-      setTtsBar('rTtsBar', '✓ AI voice playing', 'ok');
-    } else {
-      lineEl.textContent = '⚠ AI failed, beeping'; lineEl.className = 'vline bad';
-      setTtsBar('rTtsBar', '⚠ AI failed — check internet', 'bad');
-      const n = typeof rLastDist==='number'?rLastDist:parseInt(rLastDist,10);
-      playBeep(vol, urgent, lineEl, 500);
-    }
+  const n = typeof rLastDist==='number'?rLastDist:parseInt(rLastDist,10);
+  const ms = beepMs(isFinite(n)?n:null, rCurState, +document.getElementById('rRep').value, rRED_MAX, rYEL_MAX, rSkipYellow);
+  const direction = dir || rLastDir || '';
+
+  if (rCurState === 'BALL LOOSE') {
+    playAlertPattern(vol, direction);
   } else {
-    const n = typeof rLastDist==='number'?rLastDist:parseInt(rLastDist,10);
-    const ms = beepMs(isFinite(n)?n:null, rCurState, +document.getElementById('rRep').value, rRED_MAX, rYEL_MAX, rSkipYellow);
-    playBeep(vol, urgent, lineEl, ms);
+    playDirectionalBeep(vol, direction, urgent, ms);
   }
+
+  updateDirGrid(direction);
 }
 
 /* ================================================================
-   TEST VOICE
+   TEST
    ================================================================ */
 async function testHostVoice() {
   unlockAudio();
@@ -708,29 +817,36 @@ async function testHostVoice() {
   }
 }
 
-async function testRemoteVoice() {
+async function testRemoteBeep() {
   unlockAudio();
-  dlog('audioLog', 'TEST VOICE pressed', 'wrn');
+  dlog('audioLog', 'TEST DIRECTIONAL BEEP pressed', 'wrn');
   const vol = +document.getElementById('rVol').value;
-  const rate = +document.getElementById('rSpd').value;
   const lineEl = document.getElementById('rVoiceLine');
-  if (remoteEngine === 'ai') {
-    const voice = document.getElementById('rAiVoice').value;
-    lineEl.textContent = '🔊 Fetching AI voice…'; lineEl.className = 'vline talk';
-    setTtsBar('rTtsBar', 'Fetching from server…', 'warn');
-    const r = await aiSpeak('Red. Yellow. Green.', voice, vol, rate);
-    lineEl.textContent = r==='ok'?'✓ AI voice works!':'⚠ Failed — check WiFi/internet';
-    lineEl.className = r==='ok'?'vline ok':'vline bad';
-    setTtsBar('rTtsBar', r==='ok'?'✓ AI Voice working ('+voice+')':'⚠ Failed — try again or use Beep', r==='ok'?'ok':'bad');
-    if (r==='ok') prewarmVoice(voice).catch(()=>{});
-  } else {
-    playBeep(vol,true,lineEl,400);
-    setTimeout(()=>playBeep(vol,false,lineEl,400),500);
-  }
+
+  // Play sequence: left, right, above, below, behind, front
+  const dirs = ['left', 'right', 'above', 'below', 'behind', 'in front'];
+  let i = 0;
+  const playNext = () => {
+    if (i >= dirs.length) {
+      lineEl.textContent = '✓ Directional test complete';
+      lineEl.className = 'vline ok';
+      setTtsBar('rTtsBar', '✓ Directional beep working', 'ok');
+      updateDirGrid('');
+      return;
+    }
+    const d = dirs[i];
+    updateDirGrid(d);
+    playDirectionalBeep(vol, d, i === 0, 300);
+    lineEl.textContent = '🔊 Testing: ' + d.toUpperCase();
+    lineEl.className = 'vline talk';
+    i++;
+    setTimeout(playNext, 600);
+  };
+  playNext();
 }
 
 /* ================================================================
-   MQTT RELAY — multiple brokers, Quest-compatible
+   MQTT RELAY
    ================================================================ */
 const MQTT_ENDPOINTS = [
   { name:'HiveMQ',  url:'wss://broker.hivemq.com:8884/mqtt',      proto:'mqtt' },
@@ -771,10 +887,7 @@ function mqttConnect(){
   setRelayUI('Relay: trying '+ep.name+'…','warn');
   let ws;
   try{ws=new WebSocket(ep.url,ep.proto);}
-  catch(e){
-    setRelayUI('Relay: WebSocket blocked ('+ep.name+')','bad');
-    mqttEndpointIndex++;scheduleReconnect(true);return;
-  }
+  catch(e){mqttEndpointIndex++;scheduleReconnect(true);return;}
   mqttWs=ws;ws.binaryType='arraybuffer';
 
   mqttConnectTimer=setTimeout(()=>{
@@ -786,7 +899,6 @@ function mqttConnect(){
   ws.onopen=()=>{
     clearTimeout(mqttConnectTimer);mqttConnectTimer=null;
     setRelayUI('Relay: connected to '+ep.name+', authenticating…','warn');
-    // Send CONNECT packet
     const cid=mqttClientId,cl=cid.length,rl=10+2+cl;
     const p=new Uint8Array(2+rl);let i=0;
     p[i++]=0x10;p[i++]=rl;
@@ -806,25 +918,18 @@ function mqttConnect(){
     const data=new Uint8Array(evt.data);if(!data.length)return;
     const type=data[0]>>4;
     if(type===2){
-      // CONNACK
       clearTimeout(mqttConnAckTimer);mqttConnAckTimer=null;
       mqttConnected=true;
       setRelayUI('Relay: connected ✓ ('+ep.name+')','ok');
-      // PING keep-alive
       mqttPingInterval=setInterval(()=>{
         if(mqttWs&&mqttWs.readyState===1)mqttWs.send(new Uint8Array([0xC0,0]).buffer);
       },20000);
-      // Subscribe
       const topic=getTopic(roomCode);
       mqttSubscribe(topic);
       mqttSubscribedTopic=topic;
     }
-    if(type===9){
-      // SUBACK
-      setRelayUI('Relay: subscribed ✓ ('+ep.name+')','ok');
-    }
+    if(type===9){setRelayUI('Relay: subscribed ✓ ('+ep.name+')','ok');}
     if(type===3){
-      // PUBLISH
       let idx=1,mul=1,rem=0,enc;
       do{enc=data[idx++];rem+=(enc&127)*mul;mul*=128;}while((enc&128)!==0&&idx<data.length);
       const tl=(data[idx]<<8)|data[idx+1];idx+=2;idx+=tl;
@@ -832,10 +937,7 @@ function mqttConnect(){
     }
   };
 
-  ws.onerror=(e)=>{
-    setRelayUI('Relay: '+ep.name+' error','bad');
-  };
-
+  ws.onerror=(e)=>{setRelayUI('Relay: '+ep.name+' error','bad');};
   ws.onclose=()=>{
     mqttConnected=false;
     if(mqttConnAckTimer){clearTimeout(mqttConnAckTimer);mqttConnAckTimer=null;}
@@ -851,11 +953,9 @@ function mqttSubscribe(topic){
   const tb=new TextEncoder().encode(topic),tl=tb.length;
   const rl=2+tl+1;
   const p=new Uint8Array(2+rl);let i=0;
-  p[i++]=0x82;p[i++]=rl;
-  p[i++]=0;p[i++]=1;
+  p[i++]=0x82;p[i++]=rl;p[i++]=0;p[i++]=1;
   p[i++]=(tl>>8)&0xff;p[i++]=tl&0xff;
-  p.set(tb,i);i+=tl;
-  p[i]=0; // QoS 0
+  p.set(tb,i);i+=tl;p[i]=0;
   mqttWs.send(p.buffer);
   dlog('joinLog','Subscribing to: '+topic);
 }
@@ -955,8 +1055,6 @@ function joinRoom(){
   document.getElementById('remoteUI').classList.remove('hidden');
   rLastSeq=0;rClockOffset=null;
   mqttConnect();
-  // Start pre-caching voice
-  prewarmVoice(document.getElementById('rAiVoice').value).catch(()=>{});
 }
 
 /* ================================================================
@@ -976,7 +1074,6 @@ ws('rep','repV',v=>v.toFixed(1)+'s');
 ws('rRedR','rRedV',v=>{rRED_MAX=v;rStateHistory=[];return v;});
 ws('rYelR','rYelV',v=>{rYEL_MAX=v;rStateHistory=[];return v;});
 ws('rVol','rVolV',v=>Math.round(v*100)+'%');
-ws('rSpd','rSpdV',v=>v.toFixed(2)+'x');
 ws('rRep','rRepV',v=>v.toFixed(1)+'s');
 
 document.getElementById('skipY').addEventListener('change',()=>{skipYellow=document.getElementById('skipY').checked;document.getElementById('yelRow').classList.toggle('hidden',skipYellow);stateHistory=[];});
@@ -985,7 +1082,7 @@ document.getElementById('dirEnable').addEventListener('change',()=>{if(!document
 document.getElementById('dirManual').addEventListener('change',e=>{manualDirOverride=e.target.value;updateDirUI();});
 
 function toggleMute(){muted=!muted;document.getElementById('muteBtn').textContent=muted?'AUDIO OFF':'AUDIO ON';document.getElementById('muteBtn').classList.toggle('act',!muted);if(muted){stopCurrentPlay();stopRep();}else startRep();}
-function rToggleMute(){rMuted=!rMuted;document.getElementById('rMuteBtn').textContent=rMuted?'AUDIO OFF':'AUDIO ON';document.getElementById('rMuteBtn').classList.toggle('act',!rMuted);if(rMuted){stopCurrentPlay();rStopRep();}else rStartRep();}
+function rToggleMute(){rMuted=!rMuted;document.getElementById('rMuteBtn').textContent=rMuted?'AUDIO OFF':'AUDIO ON';document.getElementById('rMuteBtn').classList.toggle('act',!rMuted);if(rMuted){rStopRep();}else rStartRep();}
 
 /* ================================================================
    DRAG SELECT
@@ -1054,7 +1151,7 @@ function setHero(state,dist,dir,nameLine){
   document.getElementById('hNameLine').textContent=nameLine||'';
 }
 function setHostOff(reason){curState='OFF';lastNum=null;lastSpokenState='OFF';stopRep();setHero('OFF','',getActiveDir(),reason?'FILTER: '+reason:'');broadcastState('OFF','',getActiveDir(),'');}
-function setRemoteOff(reason){rCurState='OFF';rStopRep();const h=document.getElementById('rHero');h.className='hero blue';document.getElementById('rState').textContent='WAITING';document.getElementById('rDist').textContent='—';document.getElementById('rDir').textContent='';document.getElementById('rNameLine').textContent=reason?'FILTER: '+reason:'';document.getElementById('rTime').textContent='Updated: '+new Date().toLocaleTimeString();}
+function setRemoteOff(reason){rCurState='OFF';rStopRep();const h=document.getElementById('rHero');h.className='hero blue';document.getElementById('rState').textContent='WAITING';document.getElementById('rDist').textContent='—';document.getElementById('rDir').textContent='';document.getElementById('rNameLine').textContent=reason?'FILTER: '+reason:'';document.getElementById('rTime').textContent='Updated: '+new Date().toLocaleTimeString();updateDirGrid('');}
 
 async function ocrLoop(){
   if(!running||!tWorker)return;
@@ -1109,7 +1206,7 @@ function onRelayMessage(payload){
   if(role!=='remote')return;
   try{
     const d=JSON.parse(payload);if(d.s===undefined)return;
-    dlog('audioLog','MSG: '+d.s+' d='+d.d+' q='+d.q,'ok');
+    dlog('audioLog','MSG: '+d.s+' d='+d.d+' dir='+(d.r||'none')+' q='+d.q,'ok');
     if(typeof d.q==='number'){if(d.q<=rLastSeq)return;rLastSeq=d.q;}
     if(typeof d.t==='number'){
       if(rClockOffset===null)rClockOffset=Date.now()-d.t;
@@ -1133,6 +1230,7 @@ function renderRemote(state,dist,dir,name){
   document.getElementById('rDir').textContent=dir?'DIR: '+dir.toUpperCase():'';
   document.getElementById('rNameLine').textContent=name?'PLAYER: '+name:'';
   document.getElementById('rTime').textContent='Updated: '+new Date().toLocaleTimeString();
+  updateDirGrid(dir);
   if(state!==rCurState){rCurState=state;alertRemote(state,dir);rStartRep();}
 }
 
@@ -1147,7 +1245,7 @@ function phraseFor(state,dir){
 }
 
 function alertHost(state,dir){if(state===lastSpokenState)return;lastSpokenState=state;if(state==='OFF')return;hostSpeak(phraseFor(state,dir),state==='RED'||state==='BALL LOOSE');startRep();}
-function alertRemote(state,dir){if(state==='OFF')return;remoteSpeak(phraseFor(state,dir),state==='RED'||state==='BALL LOOSE');}
+function alertRemote(state,dir){if(state==='OFF')return;remoteSpeak(phraseFor(state,dir),state==='RED'||state==='BALL LOOSE',dir);}
 
 function startRep(){
   stopRep();if(muted||curState==='OFF'||curState==='')return;
@@ -1163,23 +1261,22 @@ function stopRep(){if(repTimer){clearTimeout(repTimer);repTimer=null;}}
 function rStartRep(){
   rStopRep();if(rMuted||rCurState==='OFF'||rCurState==='')return;
   const tick=()=>{if(rMuted){rStopRep();return;}
-    remoteSpeak(phraseFor(rCurState,rLastDir),rCurState==='RED'||rCurState==='BALL LOOSE');
     const n=typeof rLastDist==='number'?rLastDist:parseInt(rLastDist,10);
-    const interval=remoteEngine==='beep'?beepMs(isFinite(n)?n:null,rCurState,+document.getElementById('rRep').value,rRED_MAX,rYEL_MAX,rSkipYellow):Math.round(+document.getElementById('rRep').value*1000);
-    rRepTimer=setTimeout(tick,Math.max(500,interval));
+    const ms=beepMs(isFinite(n)?n:null, rCurState, +document.getElementById('rRep').value, rRED_MAX, rYEL_MAX, rSkipYellow);
+    remoteSpeak('', rCurState==='RED'||rCurState==='BALL LOOSE', rLastDir);
+    rRepTimer=setTimeout(tick, Math.max(150, ms));
   };
-  rRepTimer=setTimeout(tick,600);
+  rRepTimer=setTimeout(tick,400);
 }
 function rStopRep(){if(rRepTimer){clearTimeout(rRepTimer);rRepTimer=null;}}
 
 /* ================================================================
-   RELAY PILL + VISIBILITY HANDLING
+   RELAY PILL + VISIBILITY
    ================================================================ */
 setInterval(()=>{
   ['relayPill','remoteRelayPill'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=mqttConnected?'connected':'…';});
 },1500);
 
-// Quest suspends tabs — reconnect on visibility change
 document.addEventListener('visibilitychange',()=>{
   if(!document.hidden && roomCode){
     if(audioCtx && audioCtx.state==='suspended') audioCtx.resume().catch(()=>{});
