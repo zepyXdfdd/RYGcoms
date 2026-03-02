@@ -301,7 +301,7 @@ Flickering borders → snaps to safer color
 <span>✓</span> Any <b>?</b> → <b>BALL LOOSE</b><br>
 <span>✓</span> <b>middle</b> → ⚽ BALL IN MIDDLE (once)<br>
 <span>✓</span> <b>goal</b> → 🥅 GOAL SCORED (once)<br>
-<span>✓</span> Hysteresis: RED↔YEL snaps RED, YEL↔GRN snaps YEL<br>
+<span>✓</span> No digits in OCR → stays silent<br>
 <span>✓</span> Dual-worker pipeline · Instant WebSocket sync
 </div>
 </div>
@@ -1146,6 +1146,16 @@ function processDistResult(res) {
     const lines = raw.split('\n').map(l=>l.trim()).filter(l=>l.length>0);
     $('dbgLines').textContent = lines.length+': '+lines.map(l=>`"${l}"`).join(', ').substring(0,100);
 
+    // Empty or whitespace only — say nothing
+    if (!raw || raw.length === 0) {
+        noDetectCount++;
+        $('dbgNum').textContent = 'Empty (' + noDetectCount + ')';
+        $('dbgNum').className = 'dbg-v bad';
+        $('dbgStrat').textContent = 'empty';
+        $('dbgStrat').className = 'dbg-v bad';
+        return;
+    }
+
     if (detectGoal(raw,lines)) {
         $('dbgSpecial').textContent='GOAL'; $('dbgSpecial').className='dbg-v warn';
         $('dbgStrat').textContent='goal-word'; $('dbgStrat').className='dbg-v ok';
@@ -1180,6 +1190,18 @@ function processDistResult(res) {
     }
 
     isBallLoose=false; $('dbgSpecial').textContent='—'; $('dbgSpecial').className='dbg-v';
+
+    // *** KEY FIX: If no real digits exist in the raw text, skip entirely — say nothing ***
+    if (!/[0-9]/.test(raw)) {
+        noDetectCount++;
+        $('dbgNum').textContent = 'No digits (' + noDetectCount + ')';
+        $('dbgNum').className = 'dbg-v bad';
+        $('dbgBracket').textContent = 'None';
+        $('dbgBracket').className = 'dbg-v warn';
+        $('dbgStrat').textContent = 'no-digits';
+        $('dbgStrat').className = 'dbg-v bad';
+        return;
+    }
 
     let num=null, strat='none';
     for(const l of lines){const n=findBracket(l);if(n!==null){num=n;strat='bracket-line';break;}}
@@ -1269,6 +1291,8 @@ function findFromWords(words){
 
 function findAny(text){
     if(!text)return null;
+    // Only proceed if original text has real digits
+    if(!/[0-9]/.test(text))return null;
     let cl=text.replace(/[oOQ]/g,'0').replace(/[lIi|!]/g,'1').replace(/[sS$]/g,'5').replace(/[zZ]/g,'2').replace(/[Bb]/g,'8').replace(/[gG]/g,'9').replace(/[Aa@]/g,'4');
     const ms=cl.match(/\d{2,4}/g);if(!ms)return null;
     const cands=[];for(const m of ms){const n=parseInt(m,10);if(n>=10&&n<=9999)cands.push(n);}
