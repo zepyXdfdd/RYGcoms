@@ -48,7 +48,7 @@ video{width:100%;height:auto;display:block}
 .mode.onR{border-color:rgba(0,160,255,.25);color:var(--blu);background:rgba(0,160,255,.10)}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 canvas{width:100%;height:70px;background:#05050d;border:1px solid var(--brd);border-radius:10px;image-rendering:pixelated}
-.hero{border:2px solid var(--brd);border-radius:var(--r);padding:18px;text-align:center;position:relative;overflow:hidden;margin-bottom:0}
+.hero{border:2px solid var(--brd);border-radius:var(--r);padding:18px;text-align:center}
 .hero.red{border-color:var(--red);background:var(--rg)}
 .hero.yellow{border-color:var(--yel);background:var(--yg)}
 .hero.green{border-color:var(--grn);background:var(--gg)}
@@ -67,28 +67,28 @@ canvas{width:100%;height:70px;background:#05050d;border:1px solid var(--brd);bor
 .vline.talk{color:var(--yel)}.vline.ok{color:var(--grn)}.vline.bad{color:var(--red)}
 .remoteWrap{max-width:720px;margin:0 auto;padding:16px}
 .smallNote{color:var(--t3);font-size:11px;line-height:1.6;margin-top:8px}
-.engineBtns{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
-.engBtn{cursor:pointer;border:1px solid var(--brd);background:rgba(255,255,255,.03);color:var(--t3);padding:5px 11px;border-radius:8px;font-size:11px;font-weight:700}
+.engRow{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.engBtn{cursor:pointer;border:1px solid var(--brd);background:rgba(255,255,255,.03);color:var(--t3);padding:5px 12px;border-radius:8px;font-size:11px;font-weight:700}
 .engBtn.act{border-color:var(--grn);color:var(--grn);background:rgba(0,232,120,.10)}
-.ttsStatus{margin:6px 0;padding:6px 10px;border-radius:8px;background:#050510;border:1px solid var(--brd);font-size:11px;font-family:ui-monospace,Consolas,monospace;color:var(--t3)}
-.ttsStatus.ok{border-color:rgba(0,232,120,.3);color:var(--grn)}
-.ttsStatus.bad{border-color:rgba(255,61,80,.3);color:var(--red)}
-.ttsStatus.warn{border-color:rgba(255,184,0,.3);color:var(--yel)}
+.ttsBar{margin:6px 0;padding:7px 10px;border-radius:8px;background:#050510;border:1px solid var(--brd);font-size:11px;font-family:ui-monospace,Consolas,monospace;color:var(--t3)}
+.ttsBar.ok{border-color:rgba(0,232,120,.35);color:var(--grn)}
+.ttsBar.bad{border-color:rgba(255,61,80,.35);color:var(--red)}
+.ttsBar.warn{border-color:rgba(255,184,0,.35);color:var(--yel)}
 </style>
 </head>
 <body>
 
-<!-- ROLE OVERLAY -->
+<!-- ROLE -->
 <div class="overlay" id="roleOverlay">
   <div class="panel">
     <div class="title">ORION</div>
-    <div class="sub">REAL AI VOICE · WORKS ON META/QUEST BROWSER</div>
+    <div class="sub">REAL AI VOICE · QUEST / META BROWSER COMPATIBLE</div>
     <div class="row">
       <button class="btn" onclick="chooseRole('host')">HOST</button>
       <button class="btn" onclick="chooseRole('remote')">REMOTE</button>
     </div>
     <div class="status" style="margin-top:14px">
-      Uses real AI speech synthesis. Works on Quest, phones, and PC.
+      Real AI voices fetched as audio and played through AudioContext — works on Quest Browser.
     </div>
   </div>
 </div>
@@ -105,10 +105,8 @@ canvas{width:100%;height:70px;background:#05050d;border:1px solid var(--brd);bor
         <div class="status" id="hostRelayStatus">Relay: connecting…</div>
       </div>
     </div>
-    <div class="row">
-      <button class="btn act" id="shareBtn">SHARE SCREEN</button>
-    </div>
-    <div class="status">Draw box around player name + distance number.</div>
+    <div class="row"><button class="btn act" id="shareBtn">SHARE SCREEN</button></div>
+    <div class="status" style="margin-top:12px">Draw box around player name + distance number.</div>
   </div>
 </div>
 
@@ -133,10 +131,11 @@ canvas{width:100%;height:70px;background:#05050d;border:1px solid var(--brd);bor
     <div class="brand">ORION <span class="pill" id="hostRoomPill">ROOM -----</span></div>
     <div style="display:flex;gap:8px;align-items:center">
       <span class="pill conn" id="relayPill">Relay: …</span>
-      <span class="pill live" id="livePill">LIVE</span>
+      <span class="pill live">LIVE</span>
     </div>
   </div>
   <div class="app">
+    <!-- LEFT -->
     <div>
       <div class="card">
         <div class="ch"><span>Screen</span><span class="pill" id="capInfo">—</span></div>
@@ -170,6 +169,7 @@ canvas{width:100%;height:70px;background:#05050d;border:1px solid var(--brd);bor
         </div>
       </div>
     </div>
+    <!-- RIGHT -->
     <div>
       <div class="hero blue" id="hero">
         <div class="status">CURRENT</div>
@@ -184,7 +184,7 @@ canvas{width:100%;height:70px;background:#05050d;border:1px solid var(--brd);bor
         <div class="cb">
           <div class="tgl"><input type="checkbox" id="filterOn" checked/><span>Only track player:</span></div>
           <div class="srow"><label>Target</label><input type="text" id="filterName" value="zepyX"/></div>
-          <div class="smallNote">Non-target players are ignored. State becomes OFF until target appears.</div>
+          <div class="smallNote">Non-target players are ignored until target reappears.</div>
         </div>
       </div>
 
@@ -198,30 +198,41 @@ canvas{width:100%;height:70px;background:#05050d;border:1px solid var(--brd);bor
       </div>
 
       <div class="card" style="margin-top:14px">
-        <div class="ch"><span>Voice</span></div>
+        <div class="ch"><span>AI Voice</span></div>
         <div class="cb">
-          <div class="ttsStatus" id="hTtsStatus">TTS: initialising…</div>
-          <div class="engineBtns">
-            <button class="engBtn act" id="hEng_rv" onclick="setHostEngine('rv')">ResponsiveVoice AI</button>
+          <div class="ttsBar" id="hTtsBar">Voice: ready (StreamElements AI)</div>
+          <div class="engRow">
+            <button class="engBtn act" id="hEng_se" onclick="setHostEngine('se')">StreamElements AI</button>
             <button class="engBtn" id="hEng_browser" onclick="setHostEngine('browser')">Browser TTS</button>
             <button class="engBtn" id="hEng_beep" onclick="setHostEngine('beep')">Beep Only</button>
           </div>
-          <div class="srow"><label>Volume</label><input type="range" id="vol" min="0" max="1" step="0.05" value="0.8"><span class="pill" id="volV">80%</span></div>
-          <div class="srow"><label>Speed</label><input type="range" id="spd" min="0.5" max="2" step="0.1" value="1"><span class="pill" id="spdV">1.0x</span></div>
-          <div class="srow"><label>Pitch</label><input type="range" id="pit" min="0.5" max="2" step="0.1" value="1"><span class="pill" id="pitV">1.0</span></div>
-          <div class="srow"><label>Base Int</label><input type="range" id="rep" min="1" max="5" step="0.5" value="2"><span class="pill" id="repV">2.0s</span></div>
-          <div class="srow" id="hVoiceRow"><label>RV Voice</label>
-            <select id="hRvVoice">
-              <option value="UK English Female">UK English Female</option>
-              <option value="UK English Male">UK English Male</option>
-              <option value="US English Female" selected>US English Female</option>
-              <option value="US English Male">US English Male</option>
-              <option value="Australian Female">Australian Female</option>
-              <option value="Australian Male">Australian Male</option>
+          <div class="srow" id="hSeVoiceRow"><label>AI Voice</label>
+            <select id="hSeVoice">
+              <option value="Brian">Brian (UK Male)</option>
+              <option value="Amy">Amy (UK Female)</option>
+              <option value="Emma">Emma (UK Female)</option>
+              <option value="Joanna" selected>Joanna (US Female)</option>
+              <option value="Kendra">Kendra (US Female)</option>
+              <option value="Kimberly">Kimberly (US Female)</option>
+              <option value="Salli">Salli (US Female)</option>
+              <option value="Joey">Joey (US Male)</option>
+              <option value="Justin">Justin (US Male)</option>
+              <option value="Matthew">Matthew (US Male)</option>
+              <option value="Ivy">Ivy (US Child Female)</option>
+              <option value="Nicole">Nicole (AU Female)</option>
+              <option value="Russell">Russell (AU Male)</option>
+              <option value="Geraint">Geraint (Welsh Male)</option>
+              <option value="Celine">Celine (FR Female)</option>
+              <option value="Mathieu">Mathieu (FR Male)</option>
+              <option value="Hans">Hans (DE Male)</option>
+              <option value="Marlene">Marlene (DE Female)</option>
             </select>
           </div>
           <div class="srow" id="hBrowserVoiceRow" style="display:none"><label>Voice</label><select id="voiceSel"></select></div>
-          <div class="row" style="justify-content:flex-start;margin-top:10px">
+          <div class="srow"><label>Volume</label><input type="range" id="vol" min="0" max="1" step="0.05" value="0.9"><span class="pill" id="volV">90%</span></div>
+          <div class="srow"><label>Rate</label><input type="range" id="spd" min="0.5" max="2" step="0.05" value="1"><span class="pill" id="spdV">1.00x</span></div>
+          <div class="srow"><label>Base Int</label><input type="range" id="rep" min="1" max="8" step="0.5" value="2"><span class="pill" id="repV">2.0s</span></div>
+          <div class="row" style="justify-content:flex-start;margin-top:8px">
             <button class="btn" onclick="testHostVoice()">TEST VOICE</button>
             <button class="btn act" id="muteBtn" onclick="toggleMute()">AUDIO ON</button>
           </div>
@@ -288,30 +299,37 @@ canvas{width:100%;height:70px;background:#05050d;border:1px solid var(--brd);bor
     </div>
 
     <div class="card" style="margin-top:14px">
-      <div class="ch"><span>Voice (Remote)</span></div>
+      <div class="ch"><span>AI Voice (Remote)</span></div>
       <div class="cb">
-        <div class="ttsStatus" id="rTtsStatus">TTS: initialising…</div>
-        <div class="engineBtns">
-          <button class="engBtn act" id="rEng_rv" onclick="setRemoteEngine('rv')">ResponsiveVoice AI</button>
+        <div class="ttsBar" id="rTtsBar">Voice: ready (StreamElements AI)</div>
+        <div class="engRow">
+          <button class="engBtn act" id="rEng_se" onclick="setRemoteEngine('se')">StreamElements AI</button>
           <button class="engBtn" id="rEng_browser" onclick="setRemoteEngine('browser')">Browser TTS</button>
           <button class="engBtn" id="rEng_beep" onclick="setRemoteEngine('beep')">Beep Only</button>
         </div>
-        <div class="srow"><label>Volume</label><input type="range" id="rVol" min="0" max="1" step="0.05" value="0.8"><span class="pill" id="rVolV">80%</span></div>
-        <div class="srow"><label>Speed</label><input type="range" id="rSpd" min="0.5" max="2" step="0.1" value="1"><span class="pill" id="rSpdV">1.0x</span></div>
-        <div class="srow"><label>Pitch</label><input type="range" id="rPit" min="0.5" max="2" step="0.1" value="1"><span class="pill" id="rPitV">1.0</span></div>
-        <div class="srow"><label>Base Int</label><input type="range" id="rRep" min="1" max="5" step="0.5" value="2"><span class="pill" id="rRepV">2.0s</span></div>
-        <div class="srow" id="rVoiceRow"><label>RV Voice</label>
-          <select id="rRvVoice">
-            <option value="UK English Female">UK English Female</option>
-            <option value="UK English Male">UK English Male</option>
-            <option value="US English Female" selected>US English Female</option>
-            <option value="US English Male">US English Male</option>
-            <option value="Australian Female">Australian Female</option>
-            <option value="Australian Male">Australian Male</option>
+        <div class="srow" id="rSeVoiceRow"><label>AI Voice</label>
+          <select id="rSeVoice">
+            <option value="Brian">Brian (UK Male)</option>
+            <option value="Amy">Amy (UK Female)</option>
+            <option value="Emma">Emma (UK Female)</option>
+            <option value="Joanna" selected>Joanna (US Female)</option>
+            <option value="Kendra">Kendra (US Female)</option>
+            <option value="Kimberly">Kimberly (US Female)</option>
+            <option value="Salli">Salli (US Female)</option>
+            <option value="Joey">Joey (US Male)</option>
+            <option value="Justin">Justin (US Male)</option>
+            <option value="Matthew">Matthew (US Male)</option>
+            <option value="Ivy">Ivy (US Child Female)</option>
+            <option value="Nicole">Nicole (AU Female)</option>
+            <option value="Russell">Russell (AU Male)</option>
+            <option value="Geraint">Geraint (Welsh Male)</option>
           </select>
         </div>
         <div class="srow" id="rBrowserVoiceRow" style="display:none"><label>Voice</label><select id="rVoiceSel"></select></div>
-        <div class="row" style="justify-content:flex-start;margin-top:10px">
+        <div class="srow"><label>Volume</label><input type="range" id="rVol" min="0" max="1" step="0.05" value="0.9"><span class="pill" id="rVolV">90%</span></div>
+        <div class="srow"><label>Rate</label><input type="range" id="rSpd" min="0.5" max="2" step="0.05" value="1"><span class="pill" id="rSpdV">1.00x</span></div>
+        <div class="srow"><label>Base Int</label><input type="range" id="rRep" min="1" max="8" step="0.5" value="2"><span class="pill" id="rRepV">2.0s</span></div>
+        <div class="row" style="justify-content:flex-start;margin-top:8px">
           <button class="btn" onclick="testRemoteVoice()">TEST VOICE</button>
           <button class="btn act" id="rMuteBtn" onclick="rToggleMute()">AUDIO ON</button>
         </div>
@@ -321,136 +339,129 @@ canvas{width:100%;height:70px;background:#05050d;border:1px solid var(--brd);bor
   </div>
 </div>
 
-<!-- ResponsiveVoice (real AI TTS, works on Quest) -->
-<script src="https://code.responsivevoice.org/responsivevoice.js?key=FREE"></script>
-
 <script>
 'use strict';
 
 /* ================================================================
-   DEVICE + ENGINE STATE
+   STREAMELEMENTS AI TTS
+   - Real AI voices (AWS Polly via StreamElements)
+   - Returns MP3 audio, no API key needed, no CORS issues
+   - Works on Quest Browser via fetch + AudioContext.decodeAudioData
    ================================================================ */
-const IS_QUEST = /OculusBrowser|Quest|Meta\s?Quest/i.test(navigator.userAgent);
 
-// Engine: 'rv' = ResponsiveVoice (AI, works on Quest)
-//         'browser' = SpeechSynthesis
-//         'beep' = beep only
-let hostEngine   = 'rv';
-let remoteEngine = 'rv';
+const SE_URL = 'https://api.streamelements.com/kappa/v2/speech';
 
-let rvReady = false;
-let rvChecked = false;
+// Audio cache: avoid re-fetching same phrase+voice
+const audioCache = new Map();
 
-/* ================================================================
-   RESPONSIVEVOICE INIT + CHECK
-   ================================================================ */
-function checkRV() {
-  if (rvChecked) return;
-  rvChecked = true;
-  if (typeof responsiveVoice !== 'undefined') {
-    try {
-      responsiveVoice.init();
-      rvReady = true;
-      setTtsStatus('hTtsStatus', '✓ ResponsiveVoice AI ready', 'ok');
-      setTtsStatus('rTtsStatus', '✓ ResponsiveVoice AI ready', 'ok');
-    } catch(e) {
-      rvReady = false;
-      setTtsStatus('hTtsStatus', '⚠ RV init failed: ' + e.message, 'bad');
-      setTtsStatus('rTtsStatus', '⚠ RV init failed: ' + e.message, 'bad');
-    }
-  } else {
-    rvReady = false;
-    setTtsStatus('hTtsStatus', '⚠ RV not loaded — check connection', 'bad');
-    setTtsStatus('rTtsStatus', '⚠ RV not loaded — check connection', 'bad');
-  }
-}
-
-// Try to init RV on load and after short delay
-window.addEventListener('load', () => setTimeout(checkRV, 800));
-setTimeout(checkRV, 2000);
-
-function setTtsStatus(id, msg, cls) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.textContent = msg;
-  el.className = 'ttsStatus ' + (cls || '');
-}
-
-/* ================================================================
-   AUDIO CONTEXT (for beeps)
-   ================================================================ */
 let audioCtx = null;
 function getAudioCtx() {
   if (!audioCtx || audioCtx.state === 'closed') {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   }
-  if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume().catch(() => {});
+  }
   return audioCtx;
 }
 
-let audioUnlocked = false;
-function unlockAudio() {
-  if (audioUnlocked) return;
-  audioUnlocked = true;
-  try {
-    const ctx = getAudioCtx();
-    const buf = ctx.createBuffer(1, 1, ctx.sampleRate);
-    const src = ctx.createBufferSource();
-    src.buffer = buf;
-    src.connect(ctx.destination);
-    src.start(0);
-  } catch(e) {}
-  // Also unlock RV
-  checkRV();
-  if (rvReady) {
-    try { responsiveVoice.init(); } catch(e) {}
+// Currently playing source node so we can stop it
+let currentSrc = null;
+
+function stopCurrentAudio() {
+  if (currentSrc) {
+    try { currentSrc.stop(); } catch(e) {}
+    currentSrc = null;
   }
 }
-['pointerdown','mousedown','touchstart','click','keydown'].forEach(ev => {
-  window.addEventListener(ev, unlockAudio, { passive: true });
-});
 
-/* ================================================================
-   SPEAK — RESPONSIVEVOICE
-   Uses responsivevoice.org free AI TTS.
-   Works on Quest Browser (uses HTML5 Audio internally).
-   ================================================================ */
-let rvSpeaking = false;
-let rvQueue = [];
-let rvProcessing = false;
-
-function rvSpeak(text, voice, vol, rate, pitch, onDone) {
-  if (!rvReady || typeof responsiveVoice === 'undefined') {
-    onDone?.('not_ready');
-    return;
-  }
+/**
+ * Fetch MP3 from StreamElements, decode via AudioContext, play it.
+ * volume: 0-1
+ * rate: playback rate (0.5-2.0)
+ * onDone(status): 'ok' | 'error'
+ */
+async function seSpeak(text, voice, volume, rate, onDone) {
+  const cacheKey = voice + '|' + text;
   try {
-    responsiveVoice.speak(text, voice || 'US English Female', {
-      volume: vol,
-      rate: rate,
-      pitch: pitch,
-      onstart: () => { rvSpeaking = true; },
-      onend: () => { rvSpeaking = false; onDone?.('ok'); },
-      onerror: (e) => { rvSpeaking = false; onDone?.('error'); }
-    });
+    const ctx = getAudioCtx();
+    let audioBuffer;
+
+    if (audioCache.has(cacheKey)) {
+      audioBuffer = audioCache.get(cacheKey);
+    } else {
+      const url = `${SE_URL}?voice=${encodeURIComponent(voice)}&text=${encodeURIComponent(text)}`;
+      const resp = await fetch(url);
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      const arrayBuf = await resp.arrayBuffer();
+      audioBuffer = await ctx.decodeAudioData(arrayBuf);
+      // Cache up to 60 entries
+      if (audioCache.size > 60) {
+        const firstKey = audioCache.keys().next().value;
+        audioCache.delete(firstKey);
+      }
+      audioCache.set(cacheKey, audioBuffer);
+    }
+
+    stopCurrentAudio();
+
+    const src = ctx.createBufferSource();
+    src.buffer = audioBuffer;
+    src.playbackRate.value = Math.max(0.25, Math.min(4, rate));
+
+    const gainNode = ctx.createGain();
+    gainNode.gain.value = Math.max(0, Math.min(1, volume));
+
+    src.connect(gainNode);
+    gainNode.connect(ctx.destination);
+
+    src.onended = () => {
+      if (currentSrc === src) currentSrc = null;
+      onDone?.('ok');
+    };
+
+    src.start(0);
+    currentSrc = src;
+
   } catch(e) {
-    rvSpeaking = false;
+    console.warn('SE TTS error:', e);
     onDone?.('error');
   }
 }
 
-/* ================================================================
-   SPEAK — BROWSER TTS
-   ================================================================ */
-let browserVoices = [];
-let bSpeakPrio = 0;
+// Pre-fetch and cache common phrases for instant playback
+async function prewarmCache(voice) {
+  const phrases = ['Red', 'Yellow', 'Green', 'Ball loose',
+    'Red, left', 'Red, right', 'Red, behind', 'Red, in front',
+    'Red, above', 'Red, below'];
+  for (const p of phrases) {
+    const cacheKey = voice + '|' + p;
+    if (!audioCache.has(cacheKey)) {
+      try {
+        const url = `${SE_URL}?voice=${encodeURIComponent(voice)}&text=${encodeURIComponent(p)}`;
+        const resp = await fetch(url);
+        if (resp.ok) {
+          const buf = await resp.arrayBuffer();
+          const ctx = getAudioCtx();
+          const decoded = await ctx.decodeAudioData(buf);
+          audioCache.set(cacheKey, decoded);
+        }
+      } catch(e) {}
+      // small delay between prefetch calls
+      await new Promise(r => setTimeout(r, 120));
+    }
+  }
+}
 
-function browserSpeak(text, vol, rate, pitch, voiceSelId, onDone) {
+/* ================================================================
+   BROWSER TTS FALLBACK
+   ================================================================ */
+function browserSpeak(text, vol, rate, voiceSelId, onDone) {
   try {
     const synth = speechSynthesis;
     if (synth.speaking || synth.pending) synth.cancel();
     const u = new SpeechSynthesisUtterance(text);
-    u.volume = vol; u.rate = rate; u.pitch = pitch;
+    u.volume = vol; u.rate = rate; u.pitch = 1;
     const vList = speechSynthesis.getVoices();
     if (vList.length) {
       const sel = document.getElementById(voiceSelId);
@@ -463,7 +474,7 @@ function browserSpeak(text, vol, rate, pitch, voiceSelId, onDone) {
 }
 
 /* ================================================================
-   BEEP
+   BEEP FALLBACK
    ================================================================ */
 function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
 
@@ -472,12 +483,12 @@ function beepMs(n, state, baseSec, redMax, yelMax, skipY) {
   if (typeof n !== 'number' || !isFinite(n)) return Math.round(900 * m);
   let ms = 1200;
   if (skipY) {
-    if (state === 'RED') { const t = clamp(n / Math.max(1, redMax), 0, 1); ms = 120 + t * 650; }
-    else if (state === 'GREEN') { const t = clamp((n - redMax) / 900, 0, 1); ms = 650 + t * 1650; }
+    if (state === 'RED') { const t = clamp(n/Math.max(1,redMax),0,1); ms=120+t*650; }
+    else if (state === 'GREEN') { const t = clamp((n-redMax)/900,0,1); ms=650+t*1650; }
   } else {
-    if (state === 'RED') { const t = clamp(n / Math.max(1, redMax), 0, 1); ms = 120 + t * 650; }
-    else if (state === 'YELLOW') { const span = Math.max(1, yelMax - redMax); const t = clamp((n - redMax) / span, 0, 1); ms = 350 + t * 1150; }
-    else if (state === 'GREEN') { const t = clamp((n - yelMax) / 1100, 0, 1); ms = 750 + t * 1750; }
+    if (state === 'RED') { const t = clamp(n/Math.max(1,redMax),0,1); ms=120+t*650; }
+    else if (state === 'YELLOW') { const span=Math.max(1,yelMax-redMax); const t=clamp((n-redMax)/span,0,1); ms=350+t*1150; }
+    else if (state === 'GREEN') { const t = clamp((n-yelMax)/1100,0,1); ms=750+t*1750; }
   }
   return Math.round(clamp(ms * m, 90, 3000));
 }
@@ -489,54 +500,130 @@ function playBeep(vol, urgent, lineEl, intervalMs) {
     const now = ctx.currentTime;
     const dur = clamp((intervalMs * 0.55) / 1000, 0.06, 0.18);
     const attack = Math.min(0.012, dur * 0.25);
-    const release = Math.min(0.060, dur * 0.45);
+    const release = Math.min(0.06, dur * 0.45);
     const osc = ctx.createOscillator();
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(urgent ? 820 : 660, now);
+    osc.frequency.value = urgent ? 820 : 660;
     const gain = ctx.createGain();
     gain.gain.setValueAtTime(0, now);
-    gain.gain.linearRampToValueAtTime(clamp(vol, 0, 1) * 0.35, now + attack);
-    gain.gain.linearRampToValueAtTime(0, now + dur + release);
+    gain.gain.linearRampToValueAtTime(clamp(vol,0,1)*0.35, now+attack);
+    gain.gain.linearRampToValueAtTime(0, now+dur+release);
     osc.connect(gain); gain.connect(ctx.destination);
-    osc.start(now); osc.stop(now + dur + release + 0.02);
+    osc.start(now); osc.stop(now+dur+release+0.02);
     if (lineEl) {
-      lineEl.textContent = 'BEEP';
-      lineEl.className = 'vline talk';
+      lineEl.textContent = 'BEEP'; lineEl.className = 'vline talk';
       setTimeout(() => { lineEl.textContent = '✓'; lineEl.className = 'vline ok'; }, Math.min(300, intervalMs));
     }
   } catch(e) {}
 }
 
 /* ================================================================
+   AUDIO UNLOCK (required on Quest for first gesture)
+   ================================================================ */
+let audioUnlocked = false;
+function unlockAudio() {
+  if (audioUnlocked) return;
+  audioUnlocked = true;
+  try {
+    const ctx = getAudioCtx();
+    const buf = ctx.createBuffer(1, 1, ctx.sampleRate);
+    const src = ctx.createBufferSource();
+    src.buffer = buf; src.connect(ctx.destination); src.start(0);
+  } catch(e) {}
+}
+['pointerdown','mousedown','touchstart','click','keydown'].forEach(ev => {
+  window.addEventListener(ev, unlockAudio, { passive: true });
+});
+
+/* ================================================================
+   ENGINE STATE
+   ================================================================ */
+// 'se' = StreamElements AI, 'browser' = SpeechSynthesis, 'beep' = beeps
+let hostEngine = 'se';
+let remoteEngine = 'se';
+
+function setTtsBar(id, msg, cls) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = msg;
+  el.className = 'ttsBar ' + (cls || '');
+}
+
+function setHostEngine(eng) {
+  hostEngine = eng;
+  ['se','browser','beep'].forEach(e => {
+    const b = document.getElementById('hEng_' + e);
+    if (b) b.className = 'engBtn' + (e === eng ? ' act' : '');
+  });
+  document.getElementById('hSeVoiceRow').style.display = eng === 'se' ? 'flex' : 'none';
+  document.getElementById('hBrowserVoiceRow').style.display = eng === 'browser' ? 'flex' : 'none';
+  if (eng === 'se') {
+    setTtsBar('hTtsBar', 'StreamElements AI — real voice, Quest compatible', 'ok');
+    // Prewarm cache for selected voice
+    prewarmCache(document.getElementById('hSeVoice').value).catch(()=>{});
+  } else if (eng === 'browser') {
+    setTtsBar('hTtsBar', 'Browser TTS — may be silent on Quest', 'warn');
+  } else {
+    setTtsBar('hTtsBar', 'Beep mode — no voice', '');
+  }
+}
+
+function setRemoteEngine(eng) {
+  remoteEngine = eng;
+  ['se','browser','beep'].forEach(e => {
+    const b = document.getElementById('rEng_' + e);
+    if (b) b.className = 'engBtn' + (e === eng ? ' act' : '');
+  });
+  document.getElementById('rSeVoiceRow').style.display = eng === 'se' ? 'flex' : 'none';
+  document.getElementById('rBrowserVoiceRow').style.display = eng === 'browser' ? 'flex' : 'none';
+  if (eng === 'se') {
+    setTtsBar('rTtsBar', 'StreamElements AI — real voice, Quest compatible', 'ok');
+    prewarmCache(document.getElementById('rSeVoice').value).catch(()=>{});
+  } else if (eng === 'browser') {
+    setTtsBar('rTtsBar', 'Browser TTS — may be silent on Quest', 'warn');
+  } else {
+    setTtsBar('rTtsBar', 'Beep mode — no voice', '');
+  }
+}
+
+/* When voice selection changes, prewarm the new voice */
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('hSeVoice')?.addEventListener('change', e => {
+    prewarmCache(e.target.value).catch(()=>{});
+  });
+  document.getElementById('rSeVoice')?.addEventListener('change', e => {
+    prewarmCache(e.target.value).catch(()=>{});
+  });
+});
+
+/* ================================================================
    UNIFIED SPEAK
    ================================================================ */
-// Track if RV is actually producing audio (test on first speak)
-let hostRvWorking = null;  // null=untested, true=working, false=failed
-let remoteRvWorking = null;
+let hostSpeaking = false;
+let remoteSpeaking = false;
 
 function hostSpeak(phrase, urgent) {
   if (muted || !phrase) return;
   const vol = +document.getElementById('vol').value;
   const rate = +document.getElementById('spd').value;
-  const pitch = +document.getElementById('pit').value;
   const lineEl = document.getElementById('voiceLine');
 
-  if (hostEngine === 'rv') {
-    const voice = document.getElementById('hRvVoice').value;
+  if (hostEngine === 'se') {
+    const voice = document.getElementById('hSeVoice').value;
     lineEl.textContent = '🔊 ' + phrase;
     lineEl.className = 'vline talk';
-    rvSpeak(phrase, voice, vol, rate, pitch, (result) => {
+    hostSpeaking = true;
+    seSpeak(phrase, voice, vol, rate, (result) => {
+      hostSpeaking = false;
       if (result === 'ok') {
-        hostRvWorking = true;
         lineEl.textContent = '✓ ' + phrase;
         lineEl.className = 'vline ok';
-        setTtsStatus('hTtsStatus', '✓ ResponsiveVoice AI speaking', 'ok');
+        setTtsBar('hTtsBar', '✓ AI voice playing', 'ok');
       } else {
-        if (hostRvWorking !== false) {
-          hostRvWorking = false;
-          setTtsStatus('hTtsStatus', '⚠ RV failed — auto-switched to beep', 'bad');
-        }
-        // fallback to beep
+        lineEl.textContent = '⚠ Fetch failed — check internet';
+        lineEl.className = 'vline bad';
+        setTtsBar('hTtsBar', '⚠ SE fetch failed — switch to Beep or check internet', 'bad');
+        // beep fallback
         const ms = beepMs(lastNum, curState, +document.getElementById('rep').value, RED_MAX, YEL_MAX, skipYellow);
         playBeep(vol, urgent, lineEl, ms);
       }
@@ -544,12 +631,11 @@ function hostSpeak(phrase, urgent) {
   } else if (hostEngine === 'browser') {
     lineEl.textContent = '🔊 ' + phrase;
     lineEl.className = 'vline talk';
-    browserSpeak(phrase, vol, rate, pitch, 'voiceSel', (result) => {
-      if (result === 'ok') { lineEl.textContent = '✓ ' + phrase; lineEl.className = 'vline ok'; }
-      else { lineEl.textContent = '⚠ Browser TTS failed'; lineEl.className = 'vline bad'; }
+    browserSpeak(phrase, vol, rate, 'voiceSel', (result) => {
+      lineEl.textContent = result === 'ok' ? ('✓ ' + phrase) : '⚠ Browser TTS failed';
+      lineEl.className = result === 'ok' ? 'vline ok' : 'vline bad';
     });
   } else {
-    // beep
     const ms = beepMs(lastNum, curState, +document.getElementById('rep').value, RED_MAX, YEL_MAX, skipYellow);
     playBeep(vol, urgent, lineEl, ms);
   }
@@ -559,79 +645,39 @@ function remoteSpeak(phrase, urgent) {
   if (rMuted || !phrase) return;
   const vol = +document.getElementById('rVol').value;
   const rate = +document.getElementById('rSpd').value;
-  const pitch = +document.getElementById('rPit').value;
   const lineEl = document.getElementById('rVoiceLine');
 
-  if (remoteEngine === 'rv') {
-    const voice = document.getElementById('rRvVoice').value;
+  if (remoteEngine === 'se') {
+    const voice = document.getElementById('rSeVoice').value;
     lineEl.textContent = '🔊 ' + phrase;
     lineEl.className = 'vline talk';
-    rvSpeak(phrase, voice, vol, rate, pitch, (result) => {
+    remoteSpeaking = true;
+    seSpeak(phrase, voice, vol, rate, (result) => {
+      remoteSpeaking = false;
       if (result === 'ok') {
-        remoteRvWorking = true;
         lineEl.textContent = '✓ ' + phrase;
         lineEl.className = 'vline ok';
-        setTtsStatus('rTtsStatus', '✓ ResponsiveVoice AI speaking', 'ok');
+        setTtsBar('rTtsBar', '✓ AI voice playing', 'ok');
       } else {
-        if (remoteRvWorking !== false) {
-          remoteRvWorking = false;
-          setTtsStatus('rTtsStatus', '⚠ RV failed — auto-switched to beep', 'bad');
-        }
+        lineEl.textContent = '⚠ Fetch failed — check internet';
+        lineEl.className = 'vline bad';
+        setTtsBar('rTtsBar', '⚠ SE fetch failed — switch to Beep or check internet', 'bad');
         const n = typeof rLastDist === 'number' ? rLastDist : parseInt(rLastDist, 10);
-        const ms = beepMs(isFinite(n) ? n : null, rCurState, +document.getElementById('rRep').value, rRED_MAX, rYEL_MAX, rSkipYellow);
+        const ms = beepMs(isFinite(n)?n:null, rCurState, +document.getElementById('rRep').value, rRED_MAX, rYEL_MAX, rSkipYellow);
         playBeep(vol, urgent, lineEl, ms);
       }
     });
   } else if (remoteEngine === 'browser') {
     lineEl.textContent = '🔊 ' + phrase;
     lineEl.className = 'vline talk';
-    browserSpeak(phrase, vol, rate, pitch, 'rVoiceSel', (result) => {
-      if (result === 'ok') { lineEl.textContent = '✓ ' + phrase; lineEl.className = 'vline ok'; }
-      else { lineEl.textContent = '⚠ Browser TTS failed'; lineEl.className = 'vline bad'; }
+    browserSpeak(phrase, vol, rate, 'rVoiceSel', (result) => {
+      lineEl.textContent = result === 'ok' ? ('✓ ' + phrase) : '⚠ Browser TTS failed';
+      lineEl.className = result === 'ok' ? 'vline ok' : 'vline bad';
     });
   } else {
     const n = typeof rLastDist === 'number' ? rLastDist : parseInt(rLastDist, 10);
-    const ms = beepMs(isFinite(n) ? n : null, rCurState, +document.getElementById('rRep').value, rRED_MAX, rYEL_MAX, rSkipYellow);
+    const ms = beepMs(isFinite(n)?n:null, rCurState, +document.getElementById('rRep').value, rRED_MAX, rYEL_MAX, rSkipYellow);
     playBeep(vol, urgent, lineEl, ms);
-  }
-}
-
-/* ================================================================
-   ENGINE SWITCHING
-   ================================================================ */
-function setHostEngine(eng) {
-  hostEngine = eng;
-  ['rv', 'browser', 'beep'].forEach(e => {
-    const b = document.getElementById('hEng_' + e);
-    if (b) b.className = 'engBtn' + (e === eng ? ' act' : '');
-  });
-  document.getElementById('hVoiceRow').style.display = eng === 'rv' ? 'flex' : 'none';
-  document.getElementById('hBrowserVoiceRow').style.display = eng === 'browser' ? 'flex' : 'none';
-  if (eng === 'rv') {
-    if (!rvReady) checkRV();
-    setTtsStatus('hTtsStatus', rvReady ? '✓ ResponsiveVoice AI ready' : '⚠ RV loading…', rvReady ? 'ok' : 'warn');
-  } else if (eng === 'browser') {
-    setTtsStatus('hTtsStatus', 'Browser TTS (may not work on Quest)', 'warn');
-  } else {
-    setTtsStatus('hTtsStatus', 'Beep mode — no voice', '');
-  }
-}
-
-function setRemoteEngine(eng) {
-  remoteEngine = eng;
-  ['rv', 'browser', 'beep'].forEach(e => {
-    const b = document.getElementById('rEng_' + e);
-    if (b) b.className = 'engBtn' + (e === eng ? ' act' : '');
-  });
-  document.getElementById('rVoiceRow').style.display = eng === 'rv' ? 'flex' : 'none';
-  document.getElementById('rBrowserVoiceRow').style.display = eng === 'browser' ? 'flex' : 'none';
-  if (eng === 'rv') {
-    if (!rvReady) checkRV();
-    setTtsStatus('rTtsStatus', rvReady ? '✓ ResponsiveVoice AI ready' : '⚠ RV loading…', rvReady ? 'ok' : 'warn');
-  } else if (eng === 'browser') {
-    setTtsStatus('rTtsStatus', 'Browser TTS (may not work on Quest)', 'warn');
-  } else {
-    setTtsStatus('rTtsStatus', 'Beep mode — no voice', '');
   }
 }
 
@@ -640,36 +686,32 @@ function setRemoteEngine(eng) {
    ================================================================ */
 function testHostVoice() {
   unlockAudio();
-  checkRV();
-  if (hostEngine === 'rv') {
-    const voice = document.getElementById('hRvVoice').value;
-    const vol = +document.getElementById('vol').value;
-    const rate = +document.getElementById('spd').value;
-    const pitch = +document.getElementById('pit').value;
-    const lineEl = document.getElementById('voiceLine');
-    lineEl.textContent = '🔊 Testing…';
+  const vol = +document.getElementById('vol').value;
+  const rate = +document.getElementById('spd').value;
+  const lineEl = document.getElementById('voiceLine');
+  if (hostEngine === 'se') {
+    const voice = document.getElementById('hSeVoice').value;
+    lineEl.textContent = '🔊 Fetching AI voice…';
     lineEl.className = 'vline talk';
-    rvSpeak('Red. Yellow. Green.', voice, vol, rate, pitch, (result) => {
+    setTtsBar('hTtsBar', 'Fetching audio from StreamElements…', 'warn');
+    seSpeak('Red. Yellow. Green.', voice, vol, rate, (result) => {
       if (result === 'ok') {
-        hostRvWorking = true;
-        lineEl.textContent = '✓ Voice working!';
+        lineEl.textContent = '✓ AI voice working!';
         lineEl.className = 'vline ok';
-        setTtsStatus('hTtsStatus', '✓ ResponsiveVoice AI working', 'ok');
+        setTtsBar('hTtsBar', '✓ StreamElements AI working — ' + voice, 'ok');
       } else {
-        hostRvWorking = false;
-        lineEl.textContent = '⚠ RV failed. Try Browser TTS or Beep.';
+        lineEl.textContent = '⚠ Could not fetch voice. Check internet connection.';
         lineEl.className = 'vline bad';
-        setTtsStatus('hTtsStatus', '⚠ RV not working on this device', 'bad');
+        setTtsBar('hTtsBar', '⚠ StreamElements unreachable — switch to Beep', 'bad');
       }
     });
   } else if (hostEngine === 'browser') {
-    const vol = +document.getElementById('vol').value;
-    const rate = +document.getElementById('spd').value;
-    const pitch = +document.getElementById('pit').value;
-    browserSpeak('Red. Yellow. Green.', vol, rate, pitch, 'voiceSel', () => {});
+    lineEl.textContent = '🔊 Testing…'; lineEl.className = 'vline talk';
+    browserSpeak('Red. Yellow. Green.', vol, rate, 'voiceSel', (r) => {
+      lineEl.textContent = r==='ok' ? '✓ Browser TTS working' : '⚠ Browser TTS failed';
+      lineEl.className = r==='ok' ? 'vline ok' : 'vline bad';
+    });
   } else {
-    const vol = +document.getElementById('vol').value;
-    const lineEl = document.getElementById('voiceLine');
     playBeep(vol, true, lineEl, 400);
     setTimeout(() => playBeep(vol, false, lineEl, 400), 500);
     setTimeout(() => playBeep(vol, false, lineEl, 400), 1000);
@@ -678,36 +720,32 @@ function testHostVoice() {
 
 function testRemoteVoice() {
   unlockAudio();
-  checkRV();
-  if (remoteEngine === 'rv') {
-    const voice = document.getElementById('rRvVoice').value;
-    const vol = +document.getElementById('rVol').value;
-    const rate = +document.getElementById('rSpd').value;
-    const pitch = +document.getElementById('rPit').value;
-    const lineEl = document.getElementById('rVoiceLine');
-    lineEl.textContent = '🔊 Testing…';
+  const vol = +document.getElementById('rVol').value;
+  const rate = +document.getElementById('rSpd').value;
+  const lineEl = document.getElementById('rVoiceLine');
+  if (remoteEngine === 'se') {
+    const voice = document.getElementById('rSeVoice').value;
+    lineEl.textContent = '🔊 Fetching AI voice…';
     lineEl.className = 'vline talk';
-    rvSpeak('Red. Yellow. Green.', voice, vol, rate, pitch, (result) => {
+    setTtsBar('rTtsBar', 'Fetching audio from StreamElements…', 'warn');
+    seSpeak('Red. Yellow. Green.', voice, vol, rate, (result) => {
       if (result === 'ok') {
-        remoteRvWorking = true;
-        lineEl.textContent = '✓ Voice working!';
+        lineEl.textContent = '✓ AI voice working!';
         lineEl.className = 'vline ok';
-        setTtsStatus('rTtsStatus', '✓ ResponsiveVoice AI working', 'ok');
+        setTtsBar('rTtsBar', '✓ StreamElements AI working — ' + voice, 'ok');
       } else {
-        remoteRvWorking = false;
-        lineEl.textContent = '⚠ RV failed. Try Browser TTS or Beep.';
+        lineEl.textContent = '⚠ Could not fetch voice. Check internet connection.';
         lineEl.className = 'vline bad';
-        setTtsStatus('rTtsStatus', '⚠ RV not working on this device', 'bad');
+        setTtsBar('rTtsBar', '⚠ StreamElements unreachable — switch to Beep', 'bad');
       }
     });
   } else if (remoteEngine === 'browser') {
-    const vol = +document.getElementById('rVol').value;
-    const rate = +document.getElementById('rSpd').value;
-    const pitch = +document.getElementById('rPit').value;
-    browserSpeak('Red. Yellow. Green.', vol, rate, pitch, 'rVoiceSel', () => {});
+    lineEl.textContent = '🔊 Testing…'; lineEl.className = 'vline talk';
+    browserSpeak('Red. Yellow. Green.', vol, rate, 'rVoiceSel', (r) => {
+      lineEl.textContent = r==='ok' ? '✓ Browser TTS working' : '⚠ Browser TTS failed';
+      lineEl.className = r==='ok' ? 'vline ok' : 'vline bad';
+    });
   } else {
-    const vol = +document.getElementById('rVol').value;
-    const lineEl = document.getElementById('rVoiceLine');
     playBeep(vol, true, lineEl, 400);
     setTimeout(() => playBeep(vol, false, lineEl, 400), 500);
     setTimeout(() => playBeep(vol, false, lineEl, 400), 1000);
@@ -718,131 +756,119 @@ function testRemoteVoice() {
    MQTT RELAY
    ================================================================ */
 const MQTT_ENDPOINTS = [
-  { name: 'Eclipse 443', url: 'wss://mqtt.eclipseprojects.io:443/mqtt', proto: 'mqtt' },
-  { name: 'Eclipse',     url: 'wss://mqtt.eclipseprojects.io/mqtt',     proto: 'mqtt' },
-  { name: 'HiveMQ',      url: 'wss://broker.hivemq.com:8884/mqtt',      proto: 'mqtt' },
-  { name: 'EMQX',        url: 'wss://broker.emqx.io:8084/mqtt',         proto: 'mqtt' },
+  { name:'Eclipse 443', url:'wss://mqtt.eclipseprojects.io:443/mqtt', proto:'mqtt' },
+  { name:'Eclipse',     url:'wss://mqtt.eclipseprojects.io/mqtt',     proto:'mqtt' },
+  { name:'HiveMQ',      url:'wss://broker.hivemq.com:8884/mqtt',      proto:'mqtt' },
+  { name:'EMQX',        url:'wss://broker.emqx.io:8084/mqtt',         proto:'mqtt' },
 ];
-let mqttWs = null, mqttConnected = false, mqttEndpointIndex = 0;
-let mqttConnectTimer = null, mqttConnAckTimer = null, mqttReconnectTimer = null, mqttPingInterval = null;
-let mqttClientId = 'orion-' + Math.random().toString(36).slice(2, 10);
+let mqttWs=null, mqttConnected=false, mqttEndpointIndex=0;
+let mqttConnectTimer=null, mqttConnAckTimer=null, mqttReconnectTimer=null, mqttPingInterval=null;
+let mqttClientId = 'orion-' + Math.random().toString(36).slice(2,10);
 
-function mqttEncodeRL(len) {
-  const out = [];
-  do { let d = len % 128; len = Math.floor(len / 128); if (len > 0) d |= 0x80; out.push(d); } while (len > 0);
-  return out;
+function mqttEncodeRL(len){
+  const out=[]; do{let d=len%128;len=Math.floor(len/128);if(len>0)d|=0x80;out.push(d);}while(len>0); return out;
 }
-function mqttClose() {
-  try { if (mqttWs) mqttWs.close(); } catch(e) {}
-  mqttWs = null; mqttConnected = false;
-  if (mqttPingInterval) { clearInterval(mqttPingInterval); mqttPingInterval = null; }
-  if (mqttConnAckTimer) { clearTimeout(mqttConnAckTimer); mqttConnAckTimer = null; }
-  if (mqttConnectTimer) { clearTimeout(mqttConnectTimer); mqttConnectTimer = null; }
+function mqttClose(){
+  try{if(mqttWs)mqttWs.close();}catch(e){}
+  mqttWs=null;mqttConnected=false;
+  if(mqttPingInterval){clearInterval(mqttPingInterval);mqttPingInterval=null;}
+  if(mqttConnAckTimer){clearTimeout(mqttConnAckTimer);mqttConnAckTimer=null;}
+  if(mqttConnectTimer){clearTimeout(mqttConnectTimer);mqttConnectTimer=null;}
 }
-function scheduleReconnect() {
-  if (mqttReconnectTimer) return;
-  mqttReconnectTimer = setTimeout(() => { mqttReconnectTimer = null; mqttConnect(); }, 1500);
+function scheduleReconnect(){
+  if(mqttReconnectTimer)return;
+  mqttReconnectTimer=setTimeout(()=>{mqttReconnectTimer=null;mqttConnect();},1500);
 }
-function setRelayUI(text, cls) {
-  ['hostRelayStatus', 'remoteRelayStatus'].forEach(id => {
-    const e = document.getElementById(id); if (e) { e.textContent = text; e.className = 'status ' + (cls || ''); }
-  });
-  ['relayPill', 'remoteRelayPill'].forEach(id => {
-    const e = document.getElementById(id); if (e) e.textContent = text.replace('Relay: ', '');
-  });
+function setRelayUI(text,cls){
+  ['hostRelayStatus','remoteRelayStatus'].forEach(id=>{const e=document.getElementById(id);if(e){e.textContent=text;e.className='status '+(cls||'');}});
+  ['relayPill','remoteRelayPill'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=text.replace('Relay: ','');});
 }
-function mqttConnect() {
-  mqttClose(); mqttConnected = false;
-  const ep = MQTT_ENDPOINTS[mqttEndpointIndex % MQTT_ENDPOINTS.length];
-  setRelayUI(`Relay: connecting (${ep.name})…`, 'warn');
+function mqttConnect(){
+  mqttClose();mqttConnected=false;
+  const ep=MQTT_ENDPOINTS[mqttEndpointIndex%MQTT_ENDPOINTS.length];
+  setRelayUI(`Relay: connecting (${ep.name})…`,'warn');
   let ws;
-  try { ws = new WebSocket(ep.url, ep.proto); } catch(e) {
-    mqttEndpointIndex++; setRelayUI(`Relay: blocked, trying next…`, 'bad'); scheduleReconnect(); return;
-  }
-  mqttWs = ws; mqttWs.binaryType = 'arraybuffer';
-  mqttConnectTimer = setTimeout(() => {
-    mqttEndpointIndex++; mqttClose(); setRelayUI('Relay: timeout, trying next…', 'bad'); scheduleReconnect();
-  }, 6500);
-  mqttWs.onopen = () => {
-    clearTimeout(mqttConnectTimer); mqttConnectTimer = null;
-    const cid = mqttClientId, cl = cid.length, rl = 10 + 2 + cl;
-    const p = new Uint8Array(2 + rl); let i = 0;
+  try{ws=new WebSocket(ep.url,ep.proto);}
+  catch(e){mqttEndpointIndex++;setRelayUI('Relay: blocked, trying next…','bad');scheduleReconnect();return;}
+  mqttWs=ws;mqttWs.binaryType='arraybuffer';
+  mqttConnectTimer=setTimeout(()=>{mqttEndpointIndex++;mqttClose();setRelayUI('Relay: timeout, trying next…','bad');scheduleReconnect();},6500);
+  mqttWs.onopen=()=>{
+    clearTimeout(mqttConnectTimer);mqttConnectTimer=null;
+    const cid=mqttClientId,cl=cid.length,rl=10+2+cl;
+    const p=new Uint8Array(2+rl);let i=0;
     p[i++]=0x10;p[i++]=rl;p[i++]=0;p[i++]=4;p[i++]=77;p[i++]=81;p[i++]=84;p[i++]=84;
     p[i++]=4;p[i++]=2;p[i++]=0;p[i++]=60;p[i++]=(cl>>8)&0xff;p[i++]=cl&0xff;
-    for (let c = 0; c < cl; c++) p[i++] = cid.charCodeAt(c);
+    for(let c=0;c<cl;c++)p[i++]=cid.charCodeAt(c);
     mqttWs.send(p.buffer);
-    mqttConnAckTimer = setTimeout(() => {
-      mqttEndpointIndex++; mqttClose(); setRelayUI('Relay: no CONNACK, trying next…', 'bad'); scheduleReconnect();
-    }, 4000);
+    mqttConnAckTimer=setTimeout(()=>{mqttEndpointIndex++;mqttClose();setRelayUI('Relay: no CONNACK, trying next…','bad');scheduleReconnect();},4000);
   };
-  mqttWs.onmessage = (evt) => {
-    const data = new Uint8Array(evt.data); if (!data.length) return;
-    const type = data[0] >> 4;
-    if (type === 2) {
-      clearTimeout(mqttConnAckTimer); mqttConnAckTimer = null;
-      mqttConnected = true; setRelayUI(`Relay: connected (${ep.name})`, 'ok');
-      mqttPingInterval = setInterval(() => { if (mqttWs && mqttWs.readyState === 1) mqttWs.send(new Uint8Array([0xC0,0]).buffer); }, 25000);
+  mqttWs.onmessage=(evt)=>{
+    const data=new Uint8Array(evt.data);if(!data.length)return;
+    const type=data[0]>>4;
+    if(type===2){
+      clearTimeout(mqttConnAckTimer);mqttConnAckTimer=null;
+      mqttConnected=true;setRelayUI(`Relay: connected (${ep.name})`,'ok');
+      mqttPingInterval=setInterval(()=>{if(mqttWs&&mqttWs.readyState===1)mqttWs.send(new Uint8Array([0xC0,0]).buffer);},25000);
       mqttSubscribe(getTopic(roomCode));
     }
-    if (type === 3) {
-      let idx = 1, mul = 1, rem = 0, enc;
-      do { enc = data[idx++]; rem += (enc & 127) * mul; mul *= 128; } while ((enc & 128) !== 0 && idx < data.length);
-      const tl = (data[idx] << 8) | data[idx+1]; idx += 2; idx += tl;
+    if(type===3){
+      let idx=1,mul=1,rem=0,enc;
+      do{enc=data[idx++];rem+=(enc&127)*mul;mul*=128;}while((enc&128)!==0&&idx<data.length);
+      const tl=(data[idx]<<8)|data[idx+1];idx+=2;idx+=tl;
       onRelayMessage(new TextDecoder().decode(data.slice(idx)));
     }
   };
-  mqttWs.onerror = () => setRelayUI(`Relay: error, trying next…`, 'bad');
-  mqttWs.onclose = () => {
-    mqttConnected = false;
-    if (mqttConnAckTimer) { clearTimeout(mqttConnAckTimer); mqttConnAckTimer = null; }
-    if (mqttPingInterval) { clearInterval(mqttPingInterval); mqttPingInterval = null; }
-    mqttEndpointIndex++; setRelayUI('Relay: disconnected, retrying…', 'warn'); scheduleReconnect();
+  mqttWs.onerror=()=>setRelayUI('Relay: error, trying next…','bad');
+  mqttWs.onclose=()=>{
+    mqttConnected=false;
+    if(mqttConnAckTimer){clearTimeout(mqttConnAckTimer);mqttConnAckTimer=null;}
+    if(mqttPingInterval){clearInterval(mqttPingInterval);mqttPingInterval=null;}
+    mqttEndpointIndex++;setRelayUI('Relay: disconnected, retrying…','warn');scheduleReconnect();
   };
 }
-function mqttSubscribe(topic) {
-  if (!mqttWs || mqttWs.readyState !== 1) return;
-  const tb = new TextEncoder().encode(topic), tl = tb.length;
-  const p = new Uint8Array(2 + 2 + 2 + tl + 1); let i = 0;
-  p[i++]=0x82;p[i++]=2+2+tl+1;p[i++]=0;p[i++]=1;p[i++]=(tl>>8)&0xff;p[i++]=tl&0xff;
-  p.set(tb, i); i += tl; p[i++] = 0;
+function mqttSubscribe(topic){
+  if(!mqttWs||mqttWs.readyState!==1)return;
+  const tb=new TextEncoder().encode(topic),tl=tb.length;
+  const p=new Uint8Array(6+tl);let i=0;
+  p[i++]=0x82;p[i++]=4+tl;p[i++]=0;p[i++]=1;p[i++]=(tl>>8)&0xff;p[i++]=tl&0xff;
+  p.set(tb,i);i+=tl;
+  // QoS byte already set to 0 by Uint8Array default
   mqttWs.send(p.buffer);
 }
-function mqttPublish(topic, payload) {
-  if (!mqttWs || !mqttConnected || mqttWs.readyState !== 1) return;
-  const tb = new TextEncoder().encode(topic), pb = new TextEncoder().encode(payload);
-  const tl = tb.length, pl = pb.length, rl = 2 + tl + pl;
-  const rem = mqttEncodeRL(rl);
-  const p = new Uint8Array(1 + rem.length + 2 + tl + pl); let i = 0;
-  p[i++] = 0x30; for (const b of rem) p[i++] = b;
-  p[i++] = (tl>>8)&0xff; p[i++] = tl&0xff;
-  p.set(tb, i); i += tl; p.set(pb, i);
+function mqttPublish(topic,payload){
+  if(!mqttWs||!mqttConnected||mqttWs.readyState!==1)return;
+  const tb=new TextEncoder().encode(topic),pb=new TextEncoder().encode(payload);
+  const tl=tb.length,pl=pb.length,rl=2+tl+pl;
+  const rem=mqttEncodeRL(rl);
+  const p=new Uint8Array(1+rem.length+2+tl+pl);let i=0;
+  p[i++]=0x30;for(const b of rem)p[i++]=b;
+  p[i++]=(tl>>8)&0xff;p[i++]=tl&0xff;
+  p.set(tb,i);i+=tl;p.set(pb,i);
   mqttWs.send(p.buffer);
 }
-function getTopic(code) { return 'orion/room/' + (code || '').toLowerCase(); }
+function getTopic(code){return 'orion/room/'+(code||'').toLowerCase();}
 
 /* ================================================================
    APP STATE
    ================================================================ */
-let role = null, roomCode = '';
-let running = false;
-const vid = document.getElementById('vid');
-const rawCvs = document.getElementById('rawCvs'), procCvs = document.getElementById('procCvs');
-const rawCtx = rawCvs.getContext('2d'), procCtx = procCvs.getContext('2d');
-const workCvs = document.createElement('canvas'), workCvs2 = document.createElement('canvas');
-const workCtx = workCvs.getContext('2d', {willReadFrequently:true});
-const workCtx2 = workCvs2.getContext('2d', {willReadFrequently:true});
+let role=null,roomCode='',running=false;
+const vid=document.getElementById('vid');
+const rawCvs=document.getElementById('rawCvs'),procCvs=document.getElementById('procCvs');
+const rawCtx=rawCvs.getContext('2d'),procCtx=procCvs.getContext('2d');
+const workCvs=document.createElement('canvas'),workCvs2=document.createElement('canvas');
+const workCtx=workCvs.getContext('2d',{willReadFrequently:true});
+const workCtx2=workCvs2.getContext('2d',{willReadFrequently:true});
 
-let drawMode = 'distance';
-let distRegion = null, dirRegion = null;
-let RED_MAX = 500, YEL_MAX = 600, skipYellow = false;
-let stateHistory = [];
-let lastNum = null, curState = 'OFF', lastSpokenState = '';
-let detectedDir = '', manualDirOverride = '';
-let muted = false, repTimer = null;
-let netSeq = 0, lastNetSend = 0, lastNetSent = {s:'',d:null,r:'',n:''};
-const NET_MIN_MS = 200, NET_HEARTBEAT_MS = 1200;
+let drawMode='distance',distRegion=null,dirRegion=null;
+let RED_MAX=500,YEL_MAX=600,skipYellow=false;
+let stateHistory=[];
+let lastNum=null,curState='OFF',lastSpokenState='';
+let detectedDir='',manualDirOverride='';
+let muted=false,repTimer=null;
+let netSeq=0,lastNetSend=0,lastNetSent={s:'',d:null,r:'',n:''};
+const NET_MIN_MS=200,NET_HEARTBEAT_MS=1200;
 
-const DIR_KW = {
+const DIR_KW={
   behind:'behind',back:'behind',rear:'behind',
   front:'in front',ahead:'in front',forward:'in front',
   left:'left',right:'right',
@@ -850,263 +876,256 @@ const DIR_KW = {
   below:'below',down:'below',bottom:'below',under:'below'
 };
 
-// Remote
-let rMuted = false, rRepTimer = null;
-let rCurState = 'OFF', rLastDist = null, rLastDir = '', rLastName = '';
-let rLastSeq = 0, rClockOffset = null;
-let rRED_MAX = 500, rYEL_MAX = 600, rSkipYellow = false;
-let rStateHistory = [];
+let rMuted=false,rRepTimer=null;
+let rCurState='OFF',rLastDist=null,rLastDir='',rLastName='';
+let rLastSeq=0,rClockOffset=null;
+let rRED_MAX=500,rYEL_MAX=600,rSkipYellow=false;
+let rStateHistory=[];
 
 /* ================================================================
    ROLE / ROOM
    ================================================================ */
-function genRoom() {
-  const c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let r = ''; for (let i = 0; i < 5; i++) r += c[Math.floor(Math.random() * c.length)];
-  return r;
+function genRoom(){
+  const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let r='';for(let i=0;i<5;i++)r+=c[Math.floor(Math.random()*c.length)];return r;
 }
-function normName(s) { return (s || '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
+function normName(s){return(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');}
 
-function chooseRole(r) {
-  role = r;
+function chooseRole(r){
+  role=r;
   document.getElementById('roleOverlay').classList.add('hidden');
-  if (r === 'host') {
-    roomCode = genRoom();
-    document.getElementById('hostRoomCode').textContent = roomCode;
-    document.getElementById('hostRoomPill').textContent = 'ROOM ' + roomCode;
+  if(r==='host'){
+    roomCode=genRoom();
+    document.getElementById('hostRoomCode').textContent=roomCode;
+    document.getElementById('hostRoomPill').textContent='ROOM '+roomCode;
     document.getElementById('hostOverlay').classList.remove('hidden');
     mqttConnect();
   } else {
     document.getElementById('remoteOverlay').classList.remove('hidden');
   }
-  setTimeout(checkRV, 500);
 }
 
-document.getElementById('shareBtn').addEventListener('click', async () => {
+document.getElementById('shareBtn').addEventListener('click',async()=>{
   unlockAudio();
-  try {
-    const stream = await navigator.mediaDevices.getDisplayMedia({ video: { cursor: 'never' }, audio: false });
-    vid.srcObject = stream; await vid.play();
-    await new Promise(res => vid.readyState >= 1 ? res() : (vid.onloadedmetadata = res));
-    running = true;
+  try{
+    const stream=await navigator.mediaDevices.getDisplayMedia({video:{cursor:'never'},audio:false});
+    vid.srcObject=stream;await vid.play();
+    await new Promise(res=>vid.readyState>=1?res():(vid.onloadedmetadata=res));
+    running=true;
     document.getElementById('hostOverlay').classList.add('hidden');
     document.getElementById('hostUI').classList.remove('hidden');
-    document.getElementById('capInfo').textContent = `${vid.videoWidth}×${vid.videoHeight}`;
-    stream.getVideoTracks()[0].onended = () => {
-      running = false;
+    document.getElementById('capInfo').textContent=`${vid.videoWidth}×${vid.videoHeight}`;
+    stream.getVideoTracks()[0].onended=()=>{
+      running=false;
       document.getElementById('hostOverlay').classList.remove('hidden');
       document.getElementById('hostUI').classList.add('hidden');
       stopRep();
     };
-    await initOCR(); ocrLoop();
-  } catch(e) { alert(e.message); }
+    // prewarm voice cache
+    prewarmCache(document.getElementById('hSeVoice').value).catch(()=>{});
+    await initOCR();
+    ocrLoop();
+  }catch(e){alert(e.message);}
 });
 
-function joinRoom() {
+function joinRoom(){
   unlockAudio();
-  const code = (document.getElementById('roomIn').value || '').trim().toUpperCase();
-  if (code.length < 3) { alert('Enter room code'); return; }
-  roomCode = code;
-  document.getElementById('remoteRoomPill').textContent = 'ROOM ' + code;
+  const code=(document.getElementById('roomIn').value||'').trim().toUpperCase();
+  if(code.length<3){alert('Enter room code');return;}
+  roomCode=code;
+  document.getElementById('remoteRoomPill').textContent='ROOM '+code;
   document.getElementById('remoteOverlay').classList.add('hidden');
   document.getElementById('remoteUI').classList.remove('hidden');
-  rLastSeq = 0; rClockOffset = null;
+  rLastSeq=0;rClockOffset=null;
   mqttConnect();
-  setTimeout(checkRV, 300);
+  // prewarm remote voice
+  prewarmCache(document.getElementById('rSeVoice').value).catch(()=>{});
 }
 
 /* ================================================================
    UI CONTROLS
    ================================================================ */
-function setMode(m) {
-  drawMode = m;
-  document.getElementById('modeDist').className = 'mode' + (m === 'distance' ? ' onD' : '');
-  document.getElementById('modeDir').className = 'mode' + (m === 'direction' ? ' onR' : '');
-  document.getElementById('hint').textContent = m === 'distance' ? 'Draw DISTANCE box' : 'Draw DIRECTION box';
+function setMode(m){
+  drawMode=m;
+  document.getElementById('modeDist').className='mode'+(m==='distance'?' onD':'');
+  document.getElementById('modeDir').className='mode'+(m==='direction'?' onR':'');
+  document.getElementById('hint').textContent=m==='distance'?'Draw DISTANCE box':'Draw DIRECTION box';
 }
-function clearBoxes() {
-  distRegion = null; dirRegion = null;
+function clearBoxes(){
+  distRegion=null;dirRegion=null;
   document.getElementById('distBox').classList.remove('show');
   document.getElementById('dirBox').classList.remove('show');
-  detectedDir = ''; updateDirUI(); setHostOff('Cleared');
+  detectedDir='';updateDirUI();setHostOff('Cleared');
 }
-function setPreset(name) {
-  if (!vid.videoWidth) return;
-  if (name === 'top') distRegion = {x:0.30,y:0.02,w:0.40,h:0.08};
-  else if (name === 'topRight') distRegion = {x:0.62,y:0.02,w:0.35,h:0.08};
-  applyRegionBox('distBox', distRegion);
+function setPreset(name){
+  if(!vid.videoWidth)return;
+  if(name==='top')distRegion={x:0.30,y:0.02,w:0.40,h:0.08};
+  else if(name==='topRight')distRegion={x:0.62,y:0.02,w:0.35,h:0.08};
+  applyRegionBox('distBox',distRegion);
 }
-function applyRegionBox(id, reg) {
-  if (!reg) return;
-  const el = document.getElementById(id);
-  el.style.left=(reg.x*100)+'%'; el.style.top=(reg.y*100)+'%';
-  el.style.width=(reg.w*100)+'%'; el.style.height=(reg.h*100)+'%';
+function applyRegionBox(id,reg){
+  if(!reg)return;
+  const el=document.getElementById(id);
+  el.style.left=(reg.x*100)+'%';el.style.top=(reg.y*100)+'%';
+  el.style.width=(reg.w*100)+'%';el.style.height=(reg.h*100)+'%';
   el.classList.add('show');
 }
 
 // Sliders
-function wireSlider(id, dispId, fmt) {
-  const el = document.getElementById(id), disp = document.getElementById(dispId);
-  if (!el || !disp) return;
-  el.addEventListener('input', () => disp.textContent = fmt(+el.value));
+function ws(id,dId,fn){
+  const e=document.getElementById(id),d=document.getElementById(dId);
+  if(!e||!d)return;
+  e.addEventListener('input',()=>{d.textContent=fn(+e.value);});
 }
-wireSlider('redR','redV', v => { RED_MAX=v; stateHistory=[]; return v; });
-wireSlider('yelR','yelV', v => { YEL_MAX=v; stateHistory=[]; return v; });
-wireSlider('vol','volV', v => Math.round(v*100)+'%');
-wireSlider('spd','spdV', v => v.toFixed(1)+'x');
-wireSlider('pit','pitV', v => v.toFixed(1));
-wireSlider('rep','repV', v => v.toFixed(1)+'s');
-wireSlider('rRedR','rRedV', v => { rRED_MAX=v; rStateHistory=[]; return v; });
-wireSlider('rYelR','rYelV', v => { rYEL_MAX=v; rStateHistory=[]; return v; });
-wireSlider('rVol','rVolV', v => Math.round(v*100)+'%');
-wireSlider('rSpd','rSpdV', v => v.toFixed(1)+'x');
-wireSlider('rPit','rPitV', v => v.toFixed(1));
-wireSlider('rRep','rRepV', v => v.toFixed(1)+'s');
+ws('redR','redV',v=>{RED_MAX=v;stateHistory=[];return v;});
+ws('yelR','yelV',v=>{YEL_MAX=v;stateHistory=[];return v;});
+ws('vol','volV',v=>Math.round(v*100)+'%');
+ws('spd','spdV',v=>v.toFixed(2)+'x');
+ws('rep','repV',v=>v.toFixed(1)+'s');
+ws('rRedR','rRedV',v=>{rRED_MAX=v;rStateHistory=[];return v;});
+ws('rYelR','rYelV',v=>{rYEL_MAX=v;rStateHistory=[];return v;});
+ws('rVol','rVolV',v=>Math.round(v*100)+'%');
+ws('rSpd','rSpdV',v=>v.toFixed(2)+'x');
+ws('rRep','rRepV',v=>v.toFixed(1)+'s');
 
-document.getElementById('skipY').addEventListener('change', () => {
-  skipYellow = document.getElementById('skipY').checked;
-  document.getElementById('yelRow').classList.toggle('hidden', skipYellow);
-  stateHistory = [];
+document.getElementById('skipY').addEventListener('change',()=>{
+  skipYellow=document.getElementById('skipY').checked;
+  document.getElementById('yelRow').classList.toggle('hidden',skipYellow);
+  stateHistory=[];
 });
-document.getElementById('rSkipY').addEventListener('change', () => {
-  rSkipYellow = document.getElementById('rSkipY').checked;
-  document.getElementById('rYelRow').classList.toggle('hidden', rSkipYellow);
-  rStateHistory = [];
+document.getElementById('rSkipY').addEventListener('change',()=>{
+  rSkipYellow=document.getElementById('rSkipY').checked;
+  document.getElementById('rYelRow').classList.toggle('hidden',rSkipYellow);
+  rStateHistory=[];
 });
-document.getElementById('dirEnable').addEventListener('change', () => {
-  if (!document.getElementById('dirEnable').checked) { dirRegion=null; detectedDir=''; document.getElementById('dirBox').classList.remove('show'); }
+document.getElementById('dirEnable').addEventListener('change',()=>{
+  if(!document.getElementById('dirEnable').checked){dirRegion=null;detectedDir='';document.getElementById('dirBox').classList.remove('show');}
   updateDirUI();
 });
-document.getElementById('dirManual').addEventListener('change', e => { manualDirOverride = e.target.value; updateDirUI(); });
+document.getElementById('dirManual').addEventListener('change',e=>{manualDirOverride=e.target.value;updateDirUI();});
 
-function toggleMute() {
-  muted = !muted;
-  document.getElementById('muteBtn').textContent = muted ? 'AUDIO OFF' : 'AUDIO ON';
-  document.getElementById('muteBtn').classList.toggle('act', !muted);
-  if (muted) { try{responsiveVoice.cancel();}catch(e){} try{speechSynthesis.cancel();}catch(e){} stopRep(); }
+function toggleMute(){
+  muted=!muted;
+  document.getElementById('muteBtn').textContent=muted?'AUDIO OFF':'AUDIO ON';
+  document.getElementById('muteBtn').classList.toggle('act',!muted);
+  if(muted){stopCurrentAudio();try{speechSynthesis.cancel();}catch(e){}stopRep();}
   else startRep();
 }
-function rToggleMute() {
-  rMuted = !rMuted;
-  document.getElementById('rMuteBtn').textContent = rMuted ? 'AUDIO OFF' : 'AUDIO ON';
-  document.getElementById('rMuteBtn').classList.toggle('act', !rMuted);
-  if (rMuted) { try{responsiveVoice.cancel();}catch(e){} try{speechSynthesis.cancel();}catch(e){} rStopRep(); }
+function rToggleMute(){
+  rMuted=!rMuted;
+  document.getElementById('rMuteBtn').textContent=rMuted?'AUDIO OFF':'AUDIO ON';
+  document.getElementById('rMuteBtn').classList.toggle('act',!rMuted);
+  if(rMuted){stopCurrentAudio();try{speechSynthesis.cancel();}catch(e){}rStopRep();}
   else rStartRep();
 }
 
 /* ================================================================
-   DRAG TO SELECT
+   DRAG SELECT
    ================================================================ */
-let dragging = false, sx = 0, sy = 0;
-const wrap = document.getElementById('videoWrap');
-const drag = document.getElementById('drag');
-
-function relPos(e) {
-  const r = wrap.getBoundingClientRect();
-  return { x: clamp((e.clientX-r.left)/r.width,0,1), y: clamp((e.clientY-r.top)/r.height,0,1) };
-}
-drag.addEventListener('mousedown', e => {
-  dragging = true; const p = relPos(e); sx = p.x; sy = p.y;
-  const el = drawMode==='direction' ? document.getElementById('dirBox') : document.getElementById('distBox');
-  el.style.left=(sx*100)+'%'; el.style.top=(sy*100)+'%'; el.style.width='0%'; el.style.height='0%';
+let dragging=false,sx=0,sy=0;
+const wrap=document.getElementById('videoWrap');
+const drag=document.getElementById('drag');
+function relPos(e){const r=wrap.getBoundingClientRect();return{x:clamp((e.clientX-r.left)/r.width,0,1),y:clamp((e.clientY-r.top)/r.height,0,1)};}
+drag.addEventListener('mousedown',e=>{
+  dragging=true;const p=relPos(e);sx=p.x;sy=p.y;
+  const el=drawMode==='direction'?document.getElementById('dirBox'):document.getElementById('distBox');
+  el.style.left=(sx*100)+'%';el.style.top=(sy*100)+'%';el.style.width='0%';el.style.height='0%';
   el.classList.add('show');
 });
-document.addEventListener('mousemove', e => {
-  if (!dragging) return;
-  const p = relPos(e), x=Math.min(sx,p.x), y=Math.min(sy,p.y), w=Math.abs(p.x-sx), h=Math.abs(p.y-sy);
-  const el = drawMode==='direction' ? document.getElementById('dirBox') : document.getElementById('distBox');
-  el.style.left=(x*100)+'%'; el.style.top=(y*100)+'%'; el.style.width=(w*100)+'%'; el.style.height=(h*100)+'%';
+document.addEventListener('mousemove',e=>{
+  if(!dragging)return;
+  const p=relPos(e),x=Math.min(sx,p.x),y=Math.min(sy,p.y),w=Math.abs(p.x-sx),h=Math.abs(p.y-sy);
+  const el=drawMode==='direction'?document.getElementById('dirBox'):document.getElementById('distBox');
+  el.style.left=(x*100)+'%';el.style.top=(y*100)+'%';el.style.width=(w*100)+'%';el.style.height=(h*100)+'%';
 });
-document.addEventListener('mouseup', e => {
-  if (!dragging) return; dragging = false;
-  const p = relPos(e), x=Math.min(sx,p.x), y=Math.min(sy,p.y), w=Math.abs(p.x-sx), h=Math.abs(p.y-sy);
-  if (w < 0.005 || h < 0.003) {
-    if (drawMode === 'distance') { distRegion=null; document.getElementById('distBox').classList.remove('show'); setHostOff('No box'); }
-    else { dirRegion=null; document.getElementById('dirBox').classList.remove('show'); detectedDir=''; updateDirUI(); }
+document.addEventListener('mouseup',e=>{
+  if(!dragging)return;dragging=false;
+  const p=relPos(e),x=Math.min(sx,p.x),y=Math.min(sy,p.y),w=Math.abs(p.x-sx),h=Math.abs(p.y-sy);
+  if(w<0.005||h<0.003){
+    if(drawMode==='distance'){distRegion=null;document.getElementById('distBox').classList.remove('show');setHostOff('No box');}
+    else{dirRegion=null;document.getElementById('dirBox').classList.remove('show');detectedDir='';updateDirUI();}
     return;
   }
-  const reg = {x,y,w,h};
-  if (drawMode === 'distance') { distRegion=reg; applyRegionBox('distBox',reg); stateHistory=[]; }
-  else { dirRegion=reg; applyRegionBox('dirBox',reg); updateDirUI(); }
+  const reg={x,y,w,h};
+  if(drawMode==='distance'){distRegion=reg;applyRegionBox('distBox',reg);stateHistory=[];}
+  else{dirRegion=reg;applyRegionBox('dirBox',reg);updateDirUI();}
 });
 
 /* ================================================================
    OCR
    ================================================================ */
-let tWorker = null, ocrBusy = false, dirOcrCooldown = 0;
-
-async function initOCR() {
-  if (typeof Tesseract === 'undefined') {
-    document.getElementById('ocrStatus').textContent = 'loading…';
-    await new Promise((res, rej) => {
-      const s = document.createElement('script');
-      s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
-      s.onload = res; s.onerror = () => rej(new Error('Tesseract load failed'));
+let tWorker=null,ocrBusy=false,dirOcrCooldown=0;
+async function initOCR(){
+  if(typeof Tesseract==='undefined'){
+    document.getElementById('ocrStatus').textContent='loading…';
+    await new Promise((res,rej)=>{
+      const s=document.createElement('script');
+      s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+      s.onload=res;s.onerror=()=>rej(new Error('Tesseract load failed'));
       document.head.appendChild(s);
     });
   }
-  document.getElementById('ocrStatus').textContent = 'init…';
-  tWorker = await Tesseract.createWorker('eng', 1, { logger: () => {} });
+  document.getElementById('ocrStatus').textContent='init…';
+  tWorker=await Tesseract.createWorker('eng',1,{logger:()=>{}});
   await tWorker.setParameters({
-    tessedit_pageseg_mode: '7',
-    tessedit_char_whitelist: '0123456789()[]?ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz _-.:'
+    tessedit_pageseg_mode:'7',
+    tessedit_char_whitelist:'0123456789()[]?ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz _-.:'
   });
-  document.getElementById('ocrStatus').textContent = 'ready';
+  document.getElementById('ocrStatus').textContent='ready';
 }
 
-function captureRegion(reg, maxW=360, maxH=90, forDir=false) {
-  if (!reg || !vid.videoWidth) return null;
-  const vw=vid.videoWidth, vh=vid.videoHeight;
-  const px=Math.max(0,Math.floor(reg.x*vw)), py=Math.max(0,Math.floor(reg.y*vh));
-  const pw=Math.max(1,Math.floor(reg.w*vw)), ph=Math.max(1,Math.floor(reg.h*vh));
-  const scale=Math.min(maxW/pw, maxH/ph, 3);
-  const w=Math.max(1,Math.floor(pw*scale)), h=Math.max(1,Math.floor(ph*scale));
-  const ctx=forDir?workCtx2:workCtx, cv=forDir?workCvs2:workCvs;
-  cv.width=w; cv.height=h;
-  ctx.drawImage(vid, px,py,pw,ph, 0,0,w,h);
+function captureRegion(reg,maxW=360,maxH=90,forDir=false){
+  if(!reg||!vid.videoWidth)return null;
+  const vw=vid.videoWidth,vh=vid.videoHeight;
+  const px=Math.max(0,Math.floor(reg.x*vw)),py=Math.max(0,Math.floor(reg.y*vh));
+  const pw=Math.max(1,Math.floor(reg.w*vw)),ph=Math.max(1,Math.floor(reg.h*vh));
+  const scale=Math.min(maxW/pw,maxH/ph,3);
+  const w=Math.max(1,Math.floor(pw*scale)),h=Math.max(1,Math.floor(ph*scale));
+  const ctx=forDir?workCtx2:workCtx,cv=forDir?workCvs2:workCvs;
+  cv.width=w;cv.height=h;
+  ctx.drawImage(vid,px,py,pw,ph,0,0,w,h);
   const img=ctx.getImageData(0,0,w,h);
   let sum=0;
-  for(let i=0;i<img.data.length;i+=4) sum+=0.299*img.data[i]+0.587*img.data[i+1]+0.114*img.data[i+2];
+  for(let i=0;i<img.data.length;i+=4)sum+=0.299*img.data[i]+0.587*img.data[i+1]+0.114*img.data[i+2];
   const thr=sum/(img.data.length/4);
   for(let i=0;i<img.data.length;i+=4){const g=0.299*img.data[i]+0.587*img.data[i+1]+0.114*img.data[i+2];const v=g>thr?255:0;img.data[i]=img.data[i+1]=img.data[i+2]=v;}
   ctx.putImageData(img,0,0);
-  if (!forDir) {
-    rawCvs.width=Math.min(pw,200); rawCvs.height=Math.min(ph,70);
+  if(!forDir){
+    rawCvs.width=Math.min(pw,200);rawCvs.height=Math.min(ph,70);
     rawCtx.drawImage(vid,px,py,pw,ph,0,0,rawCvs.width,rawCvs.height);
-    procCvs.width=Math.min(w,200); procCvs.height=Math.min(h,70);
+    procCvs.width=Math.min(w,200);procCvs.height=Math.min(h,70);
     procCtx.drawImage(cv,0,0,procCvs.width,procCvs.height);
   }
   return cv;
 }
 
-function parseOCR(raw) {
+function parseOCR(raw){
   const t=(raw||'').trim();
-  if(!t) return{name:'',num:null,special:null};
-  if(t.includes('?')) return{name:'',num:null,special:'BALL LOOSE'};
+  if(!t)return{name:'',num:null,special:null};
+  if(t.includes('?'))return{name:'',num:null,special:'BALL LOOSE'};
   let m=t.match(/([A-Za-z0-9._-]{2,24})?\s*[\(\[]\s*(\d{2,4})\s*[\)\]]/);
-  if(m) return{name:m[1]||'',num:parseInt(m[2],10),special:null};
+  if(m)return{name:m[1]||'',num:parseInt(m[2],10),special:null};
   m=t.match(/\d{2,4}/);
-  if(m) return{name:(t.split(/\s+/)[0]||''),num:parseInt(m[0],10),special:null};
+  if(m)return{name:(t.split(/\s+/)[0]||''),num:parseInt(m[0],10),special:null};
   return{name:'',num:null,special:null};
 }
 
-function getStateRaw(n) { if(n<=RED_MAX) return'RED'; if(skipYellow) return'GREEN'; if(n<=YEL_MAX) return'YELLOW'; return'GREEN'; }
-function getStateHyst(n) {
-  const raw=getStateRaw(n); stateHistory.push(raw); if(stateHistory.length>4) stateHistory.shift();
-  if(stateHistory.length<2) return raw;
+function getStateRaw(n){if(n<=RED_MAX)return'RED';if(skipYellow)return'GREEN';if(n<=YEL_MAX)return'YELLOW';return'GREEN';}
+function getStateHyst(n){
+  const raw=getStateRaw(n);stateHistory.push(raw);if(stateHistory.length>4)stateHistory.shift();
+  if(stateHistory.length<2)return raw;
   const w={RED:0,YELLOW:0,GREEN:0};
-  for(let i=0;i<stateHistory.length;i++) w[stateHistory[i]]+=(i+1);
+  for(let i=0;i<stateHistory.length;i++)w[stateHistory[i]]+=(i+1);
   return Object.keys(w).reduce((a,b)=>w[a]>w[b]?a:b);
 }
 
-function getActiveDir() { return manualDirOverride || detectedDir || ''; }
-function updateDirUI() {
+function getActiveDir(){return manualDirOverride||detectedDir||'';}
+function updateDirUI(){
   const dir=getActiveDir();
   document.getElementById('dirDbg').textContent=dir?'DIR: '+dir.toUpperCase():dirRegion?'DIR: SCANNING':'Draw direction box.';
   document.getElementById('hDir').textContent=(document.getElementById('dirEnable').checked&&(dir||dirRegion))?'DIR: '+(dir?dir.toUpperCase():'SCANNING'):'';
 }
-
-function setHero(state, dist, dir, nameLine) {
+function setHero(state,dist,dir,nameLine){
   const h=document.getElementById('hero');
   h.className='hero '+(state==='RED'?'red':state==='YELLOW'?'yellow':state==='GREEN'?'green':'blue');
   document.getElementById('hState').textContent=state==='OFF'?'—':state;
@@ -1114,14 +1133,14 @@ function setHero(state, dist, dir, nameLine) {
   document.getElementById('hDir').textContent=(document.getElementById('dirEnable').checked&&(dir||dirRegion))?'DIR: '+(dir?dir.toUpperCase():'SCANNING'):'';
   document.getElementById('hNameLine').textContent=nameLine||'';
 }
-function setHostOff(reason) {
-  curState='OFF'; lastNum=null; lastSpokenState='OFF'; stopRep();
+function setHostOff(reason){
+  curState='OFF';lastNum=null;lastSpokenState='OFF';stopRep();
   setHero('OFF','',getActiveDir(),reason?'FILTER: '+reason:'');
   broadcastState('OFF','',getActiveDir(),'');
 }
-function setRemoteOff(reason) {
-  rCurState='OFF'; rStopRep();
-  const h=document.getElementById('rHero'); h.className='hero blue';
+function setRemoteOff(reason){
+  rCurState='OFF';rStopRep();
+  const h=document.getElementById('rHero');h.className='hero blue';
   document.getElementById('rState').textContent='WAITING';
   document.getElementById('rDist').textContent='—';
   document.getElementById('rDir').textContent='';
@@ -1129,37 +1148,36 @@ function setRemoteOff(reason) {
   document.getElementById('rTime').textContent='Updated: '+new Date().toLocaleTimeString();
 }
 
-async function ocrLoop() {
-  if (!running || !tWorker) return;
-  if (distRegion && !ocrBusy) {
-    ocrBusy = true;
-    try {
+async function ocrLoop(){
+  if(!running||!tWorker)return;
+  if(distRegion&&!ocrBusy){
+    ocrBusy=true;
+    try{
       const cv=captureRegion(distRegion,360,90,false);
-      if (cv) {
+      if(cv){
         await tWorker.setParameters({tessedit_pageseg_mode:'7',tessedit_char_whitelist:'0123456789()[]?ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz _-.:'});
         const res=await tWorker.recognize(cv);
         const raw=(res.data.text||'').trim();
         const parsed=parseOCR(raw);
         document.getElementById('ocrDbg').textContent=raw?`OCR: "${raw.slice(0,100)}"`:' OCR: (empty)';
-
         const want=normName(document.getElementById('filterName').value||'');
         const hasFilter=document.getElementById('filterOn').checked&&want.length>0;
         let seenNorm=normName(parsed.name)||(raw?normName(raw.split(/\s+/)[0]):'');
         if(hasFilter&&(!seenNorm||!seenNorm.includes(want))){
           setHostOff(`Ignoring "${parsed.name||'?'}" (want ${document.getElementById('filterName').value})`);
-          ocrBusy=false; setTimeout(ocrLoop,120); return;
+          ocrBusy=false;setTimeout(ocrLoop,120);return;
         }
         const nameLine=parsed.name?'PLAYER: '+parsed.name:hasFilter?'PLAYER: '+document.getElementById('filterName').value:'';
         document.getElementById('hNameLine').textContent=nameLine;
         const dir=getActiveDir();
-        if(parsed.special){ curState='BALL LOOSE'; lastNum=null; setHero('BALL LOOSE','?',dir,nameLine); alertHost('BALL LOOSE',dir); broadcastState('BALL LOOSE','?',dir,parsed.name||''); }
-        else if(parsed.num!==null){ lastNum=parsed.num; const st=getStateHyst(parsed.num); curState=st; setHero(st,parsed.num,dir,nameLine); alertHost(st,dir); broadcastState(st,parsed.num,dir,parsed.name||''); }
+        if(parsed.special){curState='BALL LOOSE';lastNum=null;setHero('BALL LOOSE','?',dir,nameLine);alertHost('BALL LOOSE',dir);broadcastState('BALL LOOSE','?',dir,parsed.name||'');}
+        else if(parsed.num!==null){lastNum=parsed.num;const st=getStateHyst(parsed.num);curState=st;setHero(st,parsed.num,dir,nameLine);alertHost(st,dir);broadcastState(st,parsed.num,dir,parsed.name||'');}
       }
-    } catch(e) { document.getElementById('ocrDbg').textContent='OCR error: '+e.message; }
+    }catch(e){document.getElementById('ocrDbg').textContent='OCR error: '+e.message;}
     ocrBusy=false;
   }
   if(document.getElementById('dirEnable').checked&&dirRegion&&Date.now()-dirOcrCooldown>350&&!ocrBusy){
-    dirOcrCooldown=Date.now(); ocrBusy=true;
+    dirOcrCooldown=Date.now();ocrBusy=true;
     try{
       const cv=captureRegion(dirRegion,240,70,true);
       if(cv){
@@ -1182,40 +1200,40 @@ async function ocrLoop() {
    ================================================================ */
 function normDist(d){return typeof d==='number'&&isFinite(d)?Math.round(d/5)*5:d;}
 function broadcastState(state,dist,dir,name){
-  const now=Date.now(), dQ=normDist(dist), r=dir||'', nm=(name||'').slice(0,24);
+  const now=Date.now(),dQ=normDist(dist),r=dir||'',nm=(name||'').slice(0,24);
   const changed=state!==lastNetSent.s||dQ!==lastNetSent.d||r!==lastNetSent.r||nm!==lastNetSent.n;
-  if(now-lastNetSend<(changed?NET_MIN_MS:NET_HEARTBEAT_MS)) return;
-  lastNetSend=now; lastNetSent={s:state,d:dQ,r,n:nm};
+  if(now-lastNetSend<(changed?NET_MIN_MS:NET_HEARTBEAT_MS))return;
+  lastNetSend=now;lastNetSent={s:state,d:dQ,r,n:nm};
   mqttPublish(getTopic(roomCode),JSON.stringify({s:state,d:dQ,r,n:nm,t:now,q:++netSeq}));
 }
 function heartbeatTick(){
-  if(!mqttConnected||!roomCode) return;
-  if(curState==='OFF') broadcastState('OFF','',getActiveDir(),'');
-  else if(curState==='BALL LOOSE') broadcastState('BALL LOOSE','?',getActiveDir(),'');
-  else if(lastNum!==null) broadcastState(curState,lastNum,getActiveDir(),'');
+  if(!mqttConnected||!roomCode)return;
+  if(curState==='OFF')broadcastState('OFF','',getActiveDir(),'');
+  else if(curState==='BALL LOOSE')broadcastState('BALL LOOSE','?',getActiveDir(),'');
+  else if(lastNum!==null)broadcastState(curState,lastNum,getActiveDir(),'');
 }
 
 /* ================================================================
    REMOTE RECEIVE
    ================================================================ */
-function rGetStateRaw(n){if(n<=rRED_MAX) return'RED';if(rSkipYellow) return'GREEN';if(n<=rYEL_MAX) return'YELLOW';return'GREEN';}
+function rGetStateRaw(n){if(n<=rRED_MAX)return'RED';if(rSkipYellow)return'GREEN';if(n<=rYEL_MAX)return'YELLOW';return'GREEN';}
 function rGetStateHyst(n){
-  const raw=rGetStateRaw(n); rStateHistory.push(raw); if(rStateHistory.length>4) rStateHistory.shift();
-  if(rStateHistory.length<2) return raw;
+  const raw=rGetStateRaw(n);rStateHistory.push(raw);if(rStateHistory.length>4)rStateHistory.shift();
+  if(rStateHistory.length<2)return raw;
   const w={RED:0,YELLOW:0,GREEN:0};
-  for(let i=0;i<rStateHistory.length;i++) w[rStateHistory[i]]+=(i+1);
+  for(let i=0;i<rStateHistory.length;i++)w[rStateHistory[i]]+=(i+1);
   return Object.keys(w).reduce((a,b)=>w[a]>w[b]?a:b);
 }
 function onRelayMessage(payload){
-  if(role!=='remote') return;
+  if(role!=='remote')return;
   try{
-    const d=JSON.parse(payload); if(d.s===undefined) return;
-    if(typeof d.q==='number'){if(d.q<=rLastSeq) return; rLastSeq=d.q;}
+    const d=JSON.parse(payload);if(d.s===undefined)return;
+    if(typeof d.q==='number'){if(d.q<=rLastSeq)return;rLastSeq=d.q;}
     if(typeof d.t==='number'){
-      if(rClockOffset===null) rClockOffset=Date.now()-d.t;
+      if(rClockOffset===null)rClockOffset=Date.now()-d.t;
       document.getElementById('delayPill').textContent='Delay: '+Math.max(0,Math.round(Date.now()-(d.t+rClockOffset)))+'ms';
     }
-    rLastDist=d.d; rLastDir=d.r||''; rLastName=d.n||'';
+    rLastDist=d.d;rLastDir=d.r||'';rLastName=d.n||'';
     const rWant=normName(document.getElementById('rFilterName').value||'');
     const rHasFilter=document.getElementById('rFilterOn').checked&&rWant.length>0;
     if(rHasFilter&&d.s!=='OFF'){
@@ -1224,7 +1242,7 @@ function onRelayMessage(payload){
     }
     let effective=d.s;
     const n=typeof d.d==='number'?d.d:parseInt(d.d,10);
-    if((d.s==='RED'||d.s==='YELLOW'||d.s==='GREEN')&&isFinite(n)) effective=rGetStateHyst(n);
+    if((d.s==='RED'||d.s==='YELLOW'||d.s==='GREEN')&&isFinite(n))effective=rGetStateHyst(n);
     else rStateHistory=[];
     renderRemote(effective,d.d,rLastDir,rLastName);
   }catch(e){}
@@ -1237,96 +1255,92 @@ function renderRemote(state,dist,dir,name){
   document.getElementById('rDir').textContent=dir?'DIR: '+dir.toUpperCase():'';
   document.getElementById('rNameLine').textContent=name?'PLAYER: '+name:'';
   document.getElementById('rTime').textContent='Updated: '+new Date().toLocaleTimeString();
-  if(state!==rCurState){rCurState=state; alertRemote(state,dir); rStartRep();}
+  if(state!==rCurState){rCurState=state;alertRemote(state,dir);rStartRep();}
 }
 
 /* ================================================================
    ALERTS + REPEAT
    ================================================================ */
-function phraseFor(state, dir) {
-  if (state==='BALL LOOSE') return 'Ball loose';
-  if (state==='RED') return dir ? 'Red, ' + dir : 'Red';
-  if (state==='YELLOW') return 'Yellow';
-  if (state==='GREEN') return 'Green';
-  return '';
+function phraseFor(state,dir){
+  if(state==='BALL LOOSE')return'Ball loose';
+  if(state==='RED')return dir?'Red, '+dir:'Red';
+  if(state==='YELLOW')return'Yellow';
+  if(state==='GREEN')return'Green';
+  return'';
 }
 
-function alertHost(state, dir) {
-  if (state === lastSpokenState) return;
-  lastSpokenState = state;
-  if (state === 'OFF') return;
-  hostSpeak(phraseFor(state, dir), state==='RED'||state==='BALL LOOSE');
+function alertHost(state,dir){
+  if(state===lastSpokenState)return;
+  lastSpokenState=state;
+  if(state==='OFF')return;
+  hostSpeak(phraseFor(state,dir),state==='RED'||state==='BALL LOOSE');
   startRep();
 }
-function alertRemote(state, dir) {
-  if (state === 'OFF') return;
-  remoteSpeak(phraseFor(state, dir), state==='RED'||state==='BALL LOOSE');
+function alertRemote(state,dir){
+  if(state==='OFF')return;
+  remoteSpeak(phraseFor(state,dir),state==='RED'||state==='BALL LOOSE');
 }
 
-function startRep() {
-  stopRep(); if (muted || curState==='OFF' || curState==='') return;
-  const tick = () => {
-    if (muted) { stopRep(); return; }
-    hostSpeak(phraseFor(curState, getActiveDir()), curState==='RED'||curState==='BALL LOOSE');
-    const interval = hostEngine==='beep'
-      ? beepMs(lastNum, curState, +document.getElementById('rep').value, RED_MAX, YEL_MAX, skipYellow)
-      : Math.round(+document.getElementById('rep').value * 1000);
-    repTimer = setTimeout(tick, interval);
+function startRep(){
+  stopRep();if(muted||curState==='OFF'||curState==='')return;
+  const tick=()=>{
+    if(muted){stopRep();return;}
+    hostSpeak(phraseFor(curState,getActiveDir()),curState==='RED'||curState==='BALL LOOSE');
+    const interval=hostEngine==='beep'
+      ?beepMs(lastNum,curState,+document.getElementById('rep').value,RED_MAX,YEL_MAX,skipYellow)
+      :Math.round(+document.getElementById('rep').value*1000);
+    repTimer=setTimeout(tick,Math.max(500,interval));
   };
-  repTimer = setTimeout(tick, 400);
+  repTimer=setTimeout(tick,500);
 }
-function stopRep() { if (repTimer) { clearTimeout(repTimer); repTimer=null; } }
+function stopRep(){if(repTimer){clearTimeout(repTimer);repTimer=null;}}
 
-function rStartRep() {
-  rStopRep(); if (rMuted || rCurState==='OFF' || rCurState==='') return;
-  const tick = () => {
-    if (rMuted) { rStopRep(); return; }
-    remoteSpeak(phraseFor(rCurState, rLastDir), rCurState==='RED'||rCurState==='BALL LOOSE');
-    const n = typeof rLastDist==='number' ? rLastDist : parseInt(rLastDist,10);
-    const interval = remoteEngine==='beep'
-      ? beepMs(isFinite(n)?n:null, rCurState, +document.getElementById('rRep').value, rRED_MAX, rYEL_MAX, rSkipYellow)
-      : Math.round(+document.getElementById('rRep').value * 1000);
-    rRepTimer = setTimeout(tick, interval);
+function rStartRep(){
+  rStopRep();if(rMuted||rCurState==='OFF'||rCurState==='')return;
+  const tick=()=>{
+    if(rMuted){rStopRep();return;}
+    remoteSpeak(phraseFor(rCurState,rLastDir),rCurState==='RED'||rCurState==='BALL LOOSE');
+    const n=typeof rLastDist==='number'?rLastDist:parseInt(rLastDist,10);
+    const interval=remoteEngine==='beep'
+      ?beepMs(isFinite(n)?n:null,rCurState,+document.getElementById('rRep').value,rRED_MAX,rYEL_MAX,rSkipYellow)
+      :Math.round(+document.getElementById('rRep').value*1000);
+    rRepTimer=setTimeout(tick,Math.max(500,interval));
   };
-  rRepTimer = setTimeout(tick, 400);
+  rRepTimer=setTimeout(tick,500);
 }
-function rStopRep() { if (rRepTimer) { clearTimeout(rRepTimer); rRepTimer=null; } }
+function rStopRep(){if(rRepTimer){clearTimeout(rRepTimer);rRepTimer=null;}}
 
 /* ================================================================
-   BROWSER TTS VOICES
+   BROWSER VOICES
    ================================================================ */
-function loadBrowserVoices() {
-  browserVoices = speechSynthesis.getVoices();
-  ['voiceSel','rVoiceSel'].forEach(id => {
-    const sel = document.getElementById(id); if (!sel) return;
-    sel.innerHTML=''; let best=0;
-    browserVoices.forEach((v,i)=>{
-      const o=document.createElement('option'); o.value=i; o.textContent=v.name.slice(0,28)+' ('+v.lang+')';
-      sel.appendChild(o); if(/Google US|David|Samantha|Daniel/i.test(v.name)) best=i;
+function loadBrowserVoices(){
+  const vList=speechSynthesis.getVoices();
+  ['voiceSel','rVoiceSel'].forEach(id=>{
+    const sel=document.getElementById(id);if(!sel)return;
+    sel.innerHTML='';let best=0;
+    vList.forEach((v,i)=>{
+      const o=document.createElement('option');o.value=i;o.textContent=v.name.slice(0,28)+' ('+v.lang+')';
+      sel.appendChild(o);if(/Google US|David|Samantha|Daniel/i.test(v.name))best=i;
     });
     sel.value=String(best);
   });
 }
-try { speechSynthesis.onvoiceschanged = loadBrowserVoices; } catch(e) {}
-setTimeout(loadBrowserVoices, 600);
+try{speechSynthesis.onvoiceschanged=loadBrowserVoices;}catch(e){}
+setTimeout(loadBrowserVoices,600);
 
-/* ================================================================
-   RELAY PILL UPDATE
-   ================================================================ */
-setInterval(() => {
-  ['relayPill','remoteRelayPill'].forEach(id => {
-    const e=document.getElementById(id); if(e) e.textContent=mqttConnected?'connected':'…';
+/* relay pill */
+setInterval(()=>{
+  ['relayPill','remoteRelayPill'].forEach(id=>{
+    const e=document.getElementById(id);if(e)e.textContent=mqttConnected?'connected':'…';
   });
-}, 1500);
+},1500);
 
-/* ================================================================
-   INIT DEFAULTS
-   ================================================================ */
-document.getElementById('filterName').value = 'zepyX';
-document.getElementById('redV').textContent = RED_MAX;
-document.getElementById('yelV').textContent = YEL_MAX;
-document.getElementById('rRedV').textContent = rRED_MAX;
-document.getElementById('rYelV').textContent = rYEL_MAX;
+/* init defaults */
+document.getElementById('filterName').value='zepyX';
+document.getElementById('redV').textContent=RED_MAX;
+document.getElementById('yelV').textContent=YEL_MAX;
+document.getElementById('rRedV').textContent=rRED_MAX;
+document.getElementById('rYelV').textContent=rYEL_MAX;
 </script>
 </body>
 </html>
