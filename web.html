@@ -114,6 +114,8 @@
     .st-big.loose{color:var(--red);font-size:28px;animation:flash .7s infinite}
     .st-big.purple{color:var(--pur)}.st-big.orange{color:var(--org)}
     .st-dist{font-size:18px;font-family:monospace;color:var(--t3);position:relative;z-index:1}
+    /* NEW: direction line under predicted distance */
+    .st-dir{font-size:14px;font-family:monospace;color:var(--blu);margin-top:6px;letter-spacing:2px;position:relative;z-index:1;min-height:18px}
     .thr-bar{display:flex;gap:4px;margin-top:16px;position:relative;z-index:1}
     .thr-i{flex:1;padding:7px;border-radius:4px;text-align:center;font-size:10px;font-weight:700}
     .thr-i.ri{background:var(--rg);color:var(--red)}.thr-i.yi{background:var(--yg);color:var(--yel)}.thr-i.gi{background:var(--gg);color:var(--grn)}
@@ -146,6 +148,7 @@
     .log-c div{padding:2px 0;color:var(--t3)}.log-c .lg{color:var(--grn)}.log-c .le{color:var(--red)}.log-c .lw{color:var(--yel)}
     .hidden{display:none!important}
     ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#222240;border-radius:2px}
+
     .remote-container{padding:20px;max-width:600px;margin:0 auto}
     .remote-hero{text-align:center;padding:50px 30px;border-radius:16px;border:4px solid var(--brd);background:var(--card);position:relative;overflow:hidden;transition:all .4s;margin-bottom:20px}
     .remote-hero::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .4s}
@@ -333,6 +336,9 @@
       <div class="st-lbl">Current State</div>
       <div class="st-big off" id="stateVal">—</div>
       <div class="st-dist" id="stateDist">Waiting...</div>
+      <!-- NEW: direction always shown below prediction distance -->
+      <div class="st-dir" id="stateDir"></div>
+
       <div class="thr-bar" id="thrBar">
         <div class="thr-i ri" id="thrRedLabel">RED ≤500</div>
         <div class="thr-i yi" id="thrYelLabel">YEL 501-600</div>
@@ -381,7 +387,6 @@
         <div class="srow"><label>Interval</label><input type="range" id="repR" min="1" max="5" step="0.5" value="2"><span class="sv" id="repV">2.0s</span></div>
         <div class="srow"><label>Voice</label><select id="voiceSel"></select></div>
 
-        <!-- NEW TOGGLE -->
         <label class="tgl" style="margin-top:8px">
           <input type="checkbox" id="beepChk" onchange="toggleBeepMode()">
           Directional Beep Mode (no voice for RED / YELLOW / GREEN)
@@ -468,7 +473,6 @@
         <div class="srow"><label>Interval</label><input type="range" id="rRepR" min="1" max="5" step="0.5" value="2"><span class="sv" id="rRepV">2.0s</span></div>
         <div class="srow"><label>Voice</label><select id="rVoiceSel"></select></div>
 
-        <!-- NEW TOGGLE -->
         <label class="tgl" style="margin-top:8px">
           <input type="checkbox" id="rBeepChk" onchange="rToggleBeepMode()">
           Directional Beep Mode (no voice for RED / YELLOW / GREEN)
@@ -517,20 +521,31 @@
   const DIST_WHITELIST = '0123456789()[]?ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz _-.|';
   const DIR_WHITELIST  = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz ';
 
+  // ===== NEW: speech priority so RED won't get cut off by lower priority updates =====
+  let speechActivePrio = 0; // host
+  let rSpeechActivePrio = 0; // remote
+
+  function prioForState(state) {
+    if (state === 'GOAL') return 6;
+    if (state === 'MIDDLE') return 5;
+    if (state === 'BALL LOOSE') return 5;
+    if (state === 'RED') return 4;
+    if (state === 'YELLOW') return 3;
+    if (state === 'GREEN') return 2;
+    return 1;
+  }
+
   function ensureBeepCtx() {
     if (!beepCtx) beepCtx = new (window.AudioContext || window.webkitAudioContext)();
     if (beepCtx.state === 'suspended') beepCtx.resume().catch(() => {});
     return beepCtx;
   }
-  // unlock audio on first user gesture
   document.addEventListener('pointerdown', () => { try { ensureBeepCtx(); } catch(e){} }, { once: true });
 
   function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
 
-  // interval depends on distance + current state
   function beepIntervalForDistance(n, state, repSeconds, redMax = RED_MAX, yelMax = YEL_MAX, skipY = skipYellow) {
     const repMult = clamp((repSeconds || 2) / 2, 0.25, 3);
-
     if (typeof n !== 'number' || !isFinite(n)) return Math.round(900 * repMult);
 
     let ms = 1200;
@@ -538,24 +553,24 @@
     if (skipY) {
       if (state === 'RED') {
         const t = clamp(n / Math.max(1, redMax), 0, 1);
-        ms = 120 + t * 650;     // 120ms .. 770ms
+        ms = 120 + t * 650;     // 120..770
       } else if (state === 'GREEN') {
         const span = 900;
         const t = clamp((n - redMax) / span, 0, 1);
-        ms = 650 + t * 1650;    // 650ms .. 2300ms
+        ms = 650 + t * 1650;    // 650..2300
       }
     } else {
       if (state === 'RED') {
         const t = clamp(n / Math.max(1, redMax), 0, 1);
-        ms = 120 + t * 650;     // 120ms .. 770ms
+        ms = 120 + t * 650;
       } else if (state === 'YELLOW') {
         const span = Math.max(1, yelMax - redMax);
         const t = clamp((n - redMax) / span, 0, 1);
-        ms = 350 + t * 1150;    // 350ms .. 1500ms
+        ms = 350 + t * 1150;    // 350..1500
       } else if (state === 'GREEN') {
         const span = 1100;
         const t = clamp((n - yelMax) / span, 0, 1);
-        ms = 750 + t * 1750;    // 750ms .. 2500ms
+        ms = 750 + t * 1750;    // 750..2500
       }
     }
 
@@ -578,7 +593,6 @@
     return urgent ? 820 : 660;
   }
 
-  // NOTE: intervalMs influences beep duration (shorter when faster).
   function playDirectionalBeep(dir, volume, urgent, lineEl, intervalMs = 600) {
     if (volume <= 0) return;
 
@@ -636,6 +650,7 @@
     beepMode = $('beepChk').checked;
     try { ensureBeepCtx(); } catch(e){}
     speechSynthesis.cancel();
+    speechActivePrio = 0;
     stopRep();
     startRep();
   }
@@ -643,8 +658,25 @@
     rBeepMode = $('rBeepChk').checked;
     try { ensureBeepCtx(); } catch(e){}
     speechSynthesis.cancel();
+    rSpeechActivePrio = 0;
     rStopRep();
     rStartRep();
+  }
+
+  function updateStateDirLine() {
+    const el = $('stateDir');
+    if (!el) return;
+
+    if (!$('dirChk').checked) { el.textContent = ''; return; }
+
+    const d = getActiveDir();
+    if (d) {
+      el.textContent = 'DIR: ' + d.toUpperCase();
+    } else if (dirRegion) {
+      el.textContent = 'DIR: SCANNING';
+    } else {
+      el.textContent = '';
+    }
   }
 
   function toggleSkipYellow() {
@@ -653,10 +685,7 @@
     $('thrYelLabel').style.display = skipYellow ? 'none' : '';
     updateThresholdUI();
     stateHistory = [];
-    if (lastNum !== null && !isBallLoose && !isMiddle && !isGoal) {
-      const st = getState(lastNum);
-      applyState(st, lastNum);
-    }
+    if (lastNum !== null && !isBallLoose && !isMiddle && !isGoal) applyState(getState(lastNum), lastNum);
   }
 
   function getStateRaw(n) {
@@ -811,7 +840,7 @@
     return false;
   }
 
-  // ===== MQTT relay (unchanged) =====
+  // ===== MQTT relay =====
   let mqttWs = null, mqttConnected = false, mqttReconnectTimer = null;
   let mqttClientId = 'orion-' + Math.random().toString(36).substr(2, 9);
   let mqttTopic = '', mqttPingInterval = null;
@@ -1042,6 +1071,7 @@
       distEl.textContent = '—';
     }
 
+    // direction already below distance in remote UI
     dirEl.textContent = dir ? ('↗ ' + dir.toUpperCase()) : '';
     timeEl.textContent = 'Updated: ' + new Date().toLocaleTimeString();
 
@@ -1049,29 +1079,28 @@
       rCurState = state;
 
       if (state === 'MIDDLE') {
-        if (!rMiddleAnnounced) { rSpeak('Ball is in the middle', false); rMiddleAnnounced = true; }
+        if (!rMiddleAnnounced) { rSpeak('Ball is in the middle', false, prioForState('MIDDLE')); rMiddleAnnounced = true; }
         rGoalAnnounced = false;
         rStopRep();
       } else if (state === 'GOAL') {
-        if (!rGoalAnnounced) { rSpeak('Goal is scored', true); rGoalAnnounced = true; }
+        if (!rGoalAnnounced) { rSpeak('Goal is scored', true, prioForState('GOAL')); rGoalAnnounced = true; }
         rMiddleAnnounced = false;
         rStopRep();
       } else {
         rMiddleAnnounced = false;
         rGoalAnnounced = false;
 
-        // NEW: beep mode state-change behavior with distance-based speed
         if (rBeepMode) {
           if (state === 'RED' || state === 'YELLOW' || state === 'GREEN') {
             const n = parseInt(dist, 10);
             const ms = beepIntervalForDistance(isFinite(n) ? n : null, state, +$('rRepR').value);
             playDirectionalBeep(dir || '', +$('rVolR').value, state === 'RED', $('rVoiceLine'), ms);
           } else if (state === 'BALL LOOSE') {
-            rSpeak('Ball loose', true);
+            rSpeak('Ball loose', true, prioForState('BALL LOOSE'));
           }
         } else {
           const phrase = rGetPhrase(state, dir);
-          if (phrase) rSpeak(phrase, state === 'RED' || state === 'BALL LOOSE');
+          if (phrase) rSpeak(phrase, state === 'RED' || state === 'BALL LOOSE', prioForState(state));
         }
 
         rStartRep();
@@ -1106,10 +1135,19 @@
   $('rSpdR').oninput = e => $('rSpdV').textContent = (+e.target.value).toFixed(1) + 'x';
   $('rRepR').oninput = e => { $('rRepV').textContent = (+e.target.value).toFixed(1) + 's'; rStartRep(); };
 
-  function rSpeak(text, urgent) {
+  // REMOTE: do NOT cancel mid-speech unless higher priority
+  function rSpeak(text, urgent, prio = 1) {
     if (rMuted) return;
     if (!text) return;
-    speechSynthesis.cancel();
+
+    const synth = speechSynthesis;
+
+    // If currently speaking/pending, only interrupt if higher priority
+    if ((synth.speaking || synth.pending) && prio <= rSpeechActivePrio) return;
+
+    if (synth.speaking || synth.pending) synth.cancel();
+    rSpeechActivePrio = prio;
+
     const u = new SpeechSynthesisUtterance(text);
     u.volume = +$('rVolR').value;
     u.rate = +$('rSpdR').value;
@@ -1119,9 +1157,17 @@
       if (v) u.voice = v;
     }
     u.onstart = () => { $('rVoiceLine').textContent = '🔊 ' + text; $('rVoiceLine').className = 'vstatus talk'; };
-    u.onend = () => { $('rVoiceLine').textContent = '✓ ' + text; $('rVoiceLine').className = 'vstatus ok'; };
-    u.onerror = () => { $('rVoiceLine').textContent = '⚠'; $('rVoiceLine').className = 'vstatus err'; };
-    speechSynthesis.speak(u);
+    u.onend = () => {
+      $('rVoiceLine').textContent = '✓ ' + text;
+      $('rVoiceLine').className = 'vstatus ok';
+      rSpeechActivePrio = 0;
+    };
+    u.onerror = () => {
+      $('rVoiceLine').textContent = '⚠';
+      $('rVoiceLine').className = 'vstatus err';
+      rSpeechActivePrio = 0;
+    };
+    synth.speak(u);
   }
 
   function rGetPhrase(s, d) {
@@ -1133,17 +1179,20 @@
     return '';
   }
 
-  function rTestVoice() { rSpeak('Red behind. Yellow. Green. Ball loose. Ball is in the middle. Goal is scored.', false); }
+  function rTestVoice() {
+    speechSynthesis.cancel();
+    rSpeechActivePrio = 0;
+    rSpeak('Red behind. Yellow. Green. Ball loose. Ball is in the middle. Goal is scored.', false, 10);
+  }
 
   function rToggleMute() {
     rMuted = !rMuted;
     $('rMuteBtn').textContent = rMuted ? '🔇 Off' : '🔊 On';
     $('rMuteBtn').classList.toggle('act', !rMuted);
-    if (rMuted) { speechSynthesis.cancel(); rStopRep(); }
+    if (rMuted) { speechSynthesis.cancel(); rSpeechActivePrio = 0; rStopRep(); }
     else rStartRep();
   }
 
-  // Remote repetition: distance-based beep rate using setTimeout loop
   function rStartRep() {
     rStopRep();
     if (rMuted || rCurState === 'OFF' || rCurState === 'MIDDLE' || rCurState === 'GOAL') return;
@@ -1161,7 +1210,7 @@
           return;
         }
         if (rCurState === 'BALL LOOSE') {
-          rSpeak('Ball loose', true);
+          rSpeak('Ball loose', true, prioForState('BALL LOOSE'));
           const ms = Math.round(+$('rRepR').value * 1000);
           rRepTimer = setTimeout(tick, ms);
           return;
@@ -1171,7 +1220,7 @@
       }
 
       const p = rGetPhrase(rCurState, rLastDir);
-      if (p) rSpeak(p, rCurState === 'RED' || rCurState === 'BALL LOOSE');
+      if (p) rSpeak(p, rCurState === 'RED' || rCurState === 'BALL LOOSE', prioForState(rCurState));
       const ms = Math.round(+$('rRepR').value * 1000);
       rRepTimer = setTimeout(tick, ms);
     };
@@ -1219,9 +1268,14 @@
       detectedDir = '';
       updateDirDisplay();
     }
+    updateStateDirLine();
   }
 
-  function manualDir(v) { manualDirOverride = v; updateDirDisplay(); }
+  function manualDir(v) {
+    manualDirOverride = v;
+    updateDirDisplay();
+    updateStateDirLine();
+  }
   function getActiveDir() { return manualDirOverride || detectedDir; }
 
   function updateDirDisplay() {
@@ -1240,6 +1294,7 @@
       dv.className = 'dir-value none';
       $('dirCallout').classList.add('hidden');
     }
+    updateStateDirLine();
   }
 
   function loadVoices() {
@@ -1258,40 +1313,53 @@
     s.value = best;
   }
 
-  function speak(text, urgent = false) {
+  // HOST: do NOT cancel mid-speech unless higher priority
+  function speak(text, urgent = false, prio = 1) {
     if (muted || !voices.length) return;
     if (!text) return;
-    speechSynthesis.cancel();
+
+    const synth = speechSynthesis;
+
+    // If currently speaking/pending, only interrupt if higher priority
+    if ((synth.speaking || synth.pending) && prio <= speechActivePrio) return;
+
+    if (synth.speaking || synth.pending) synth.cancel();
+    speechActivePrio = prio;
+
     const u = new SpeechSynthesisUtterance(text);
     u.volume = +$('volR').value;
     u.rate = +$('spdR').value;
     u.pitch = urgent ? 1.15 : 1;
     const v = voices[+$('voiceSel').value];
     if (v) u.voice = v;
+
     u.onstart = () => { $('voiceLine').textContent = '🔊 ' + text; $('voiceLine').className = 'vstatus talk'; };
-    u.onend = () => { $('voiceLine').textContent = '✓'; $('voiceLine').className = 'vstatus ok'; };
-    speechSynthesis.speak(u);
+    u.onend = () => { $('voiceLine').textContent = '✓'; $('voiceLine').className = 'vstatus ok'; speechActivePrio = 0; };
+    u.onerror = () => { $('voiceLine').textContent = '⚠'; $('voiceLine').className = 'vstatus err'; speechActivePrio = 0; };
+
+    synth.speak(u);
   }
 
-  function testVoice() { speak('Red behind. Yellow. Green. Ball loose. Ball is in the middle. Goal is scored.'); }
+  function testVoice() {
+    speechSynthesis.cancel();
+    speechActivePrio = 0;
+    speak('Red behind. Yellow. Green. Ball loose. Ball is in the middle. Goal is scored.', false, 10);
+  }
 
   function toggleMute() {
     muted = !muted;
     $('muteBtn').textContent = muted ? '🔇 Off' : '🔊 On';
     $('muteBtn').classList.toggle('act', !muted);
-    if (muted) { speechSynthesis.cancel(); stopRep(); }
+    if (muted) { speechSynthesis.cancel(); speechActivePrio = 0; stopRep(); }
     else startRep();
   }
 
   function getPhrase(state) {
     if (state === 'BALL LOOSE') return 'Ball loose';
-
-    // Beep mode removes speech for RED/YELLOW/GREEN
     if (beepMode && (state === 'RED' || state === 'YELLOW' || state === 'GREEN')) return '';
-
     if (state === 'RED') {
       const d = getActiveDir();
-      if ($('dirChk').checked && d) return 'Red ' + d; // only when actually RED
+      if ($('dirChk').checked && d) return 'Red ' + d; // only when actually RED (state)
       return 'Red';
     }
     if (state === 'YELLOW') return 'Yellow';
@@ -1299,7 +1367,6 @@
     return '';
   }
 
-  // Host repetition: distance-based beep rate using setTimeout loop
   function startRep() {
     stopRep();
     if (muted || curState === 'OFF' || curState === 'MIDDLE' || curState === 'GOAL') return;
@@ -1318,7 +1385,7 @@
           return;
         }
         if (curState === 'BALL LOOSE') {
-          speak('Ball loose', true);
+          speak('Ball loose', true, prioForState('BALL LOOSE'));
           const ms = Math.round(+$('repR').value * 1000);
           repTimer = setTimeout(tick, ms);
           return;
@@ -1328,7 +1395,7 @@
       }
 
       const phrase = getPhrase(curState);
-      if (phrase) speak(phrase, curState === 'RED' || curState === 'BALL LOOSE');
+      if (phrase) speak(phrase, curState === 'RED' || curState === 'BALL LOOSE', prioForState(curState));
       const ms = Math.round(+$('repR').value * 1000);
       repTimer = setTimeout(tick, ms);
     };
@@ -1342,13 +1409,8 @@
     repTimer = setTimeout(tick, firstMs);
   }
 
-  function stopRep() {
-    if (repTimer) { clearTimeout(repTimer); repTimer = null; }
-  }
-
-  function restartRep() {
-    if (curState !== 'OFF' && curState !== 'MIDDLE' && curState !== 'GOAL') startRep();
-  }
+  function stopRep() { if (repTimer) { clearTimeout(repTimer); repTimer = null; } }
+  function restartRep() { if (curState !== 'OFF' && curState !== 'MIDDLE' && curState !== 'GOAL') startRep(); }
 
   $('startBtn').onclick = async () => {
     try {
@@ -1380,7 +1442,7 @@
       $('navPill').className = 'pill live';
       $('pillTxt').textContent = 'LIVE';
       log(`Capture: ${vidW}×${vidH}`, 'g');
-      speak('Screen shared.');
+      speak('Screen shared.', false, 1);
       initOCR();
     } catch (e) {
       log('Error: ' + e.message, 'e');
@@ -1484,6 +1546,7 @@
     $('stateVal').className = 'st-big off';
     $('stateVal').textContent = '—';
     $('stateDist').textContent = 'Waiting...';
+    $('stateDir').textContent = '';
     ['dbgRaw','dbgLines','dbgBracket','dbgNum','dbgConf','dbgStrat','dbgReg','dbgTime','dbgPipe','dbgSpecial','dbgHyst'].forEach(id => {
       $(id).textContent = '—';
       $(id).className = 'dbg-v';
@@ -1645,7 +1708,6 @@
     try {
       const w = ocrWorkers[wi];
 
-      // FIX: always restore distance whitelist before distance OCR
       await w.setParameters({
         tessedit_char_whitelist: DIST_WHITELIST,
         tessedit_pageseg_mode: '7'
@@ -1721,7 +1783,6 @@
     isBallLoose=false;
     $('dbgSpecial').textContent='—'; $('dbgSpecial').className='dbg-v';
 
-    // If no real digits exist, skip
     if (!/[0-9]/.test(raw)) {
       noDetectCount++;
       $('dbgNum').textContent = 'No digits (' + noDetectCount + ')';
@@ -1786,7 +1847,6 @@
 
       const w=ocrWorkers[wi];
 
-      // FIX: set direction whitelist for direction OCR
       await w.setParameters({
         tessedit_char_whitelist: DIR_WHITELIST,
         tessedit_pageseg_mode:'7'
@@ -1803,8 +1863,9 @@
           detectedDir=found;
           if(found)log('Dir: '+found,'g');
           updateDirDisplay();
-          // if we're repeating, reschedule (beep pan updates quickly)
-          if(curState==='RED') restartRep();
+          updateStateDirLine();
+          // direction changes should not cut off speech (no cancel), just update repeat pacing/pan
+          restartRep();
         }
       }
     } catch(e){ log('Dir err: '+e.message,'e'); }
@@ -1953,6 +2014,9 @@
     const dir = getActiveDir();
     broadcastState(state, dist, $('dirChk').checked ? dir : '');
 
+    // keep direction line always updated
+    updateStateDirLine();
+
     if (state === 'MIDDLE') {
       $('stateBox').className='state-hero purple';
       $('stateVal').className='st-big purple';
@@ -1962,7 +2026,7 @@
         log(curState+' → MIDDLE','w');
         curState='MIDDLE';
         stopRep();
-        if (!middleAnnounced) { speak('Ball is in the middle', false); middleAnnounced=true; }
+        if (!middleAnnounced) { speak('Ball is in the middle', false, prioForState('MIDDLE')); middleAnnounced=true; }
       }
       goalAnnounced=false;
       return;
@@ -1977,7 +2041,7 @@
         log(curState+' → GOAL','w');
         curState='GOAL';
         stopRep();
-        if (!goalAnnounced) { speak('Goal is scored', true); goalAnnounced=true; }
+        if (!goalAnnounced) { speak('Goal is scored', true, prioForState('GOAL')); goalAnnounced=true; }
       }
       middleAnnounced=false;
       return;
@@ -1991,7 +2055,7 @@
       if (curState !== 'BALL LOOSE') {
         log(curState+' → BALL LOOSE','w');
         curState='BALL LOOSE';
-        speak('Ball loose', true);
+        speak('Ball loose', true, prioForState('BALL LOOSE'));
         startRep();
       }
       return;
@@ -2008,7 +2072,6 @@
       curState = state;
 
       if (beepMode) {
-        // Beep for RED/YELLOW/GREEN with distance-based speed
         if (state === 'RED' || state === 'YELLOW' || state === 'GREEN') {
           const d = $('dirChk').checked ? getActiveDir() : '';
           const urgent = (state === 'RED');
@@ -2018,7 +2081,7 @@
         }
       } else {
         const p = getPhrase(state);
-        if (p) speak(p, state === 'RED');
+        if (p) speak(p, state === 'RED' || state === 'BALL LOOSE', prioForState(state));
       }
 
       startRep();
