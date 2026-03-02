@@ -1,1681 +1,1657 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ORION Distance Tracker v3 - High Performance</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ORION (Meta/Quest compatible relay + OCR + Voice/Beep)</title>
   <style>
-    *{margin:0;padding:0;box-sizing:border-box}
     :root{
-      --bg:#06060e;--card:#0a0a16;--card-h:#07070f;--brd:#161628;--brd2:#252545;
-      --t1:#e0e0f0;--t2:#8888aa;--t3:#555570;
-      --red:#ff3d50;--rg:rgba(255,61,80,.15);
-      --yel:#ffb800;--yg:rgba(255,184,0,.15);
-      --grn:#00e878;--gg:rgba(0,232,120,.15);--ga:#00e87833;
-      --blu:#00a0ff;--bg2:rgba(0,160,255,.15);
-      --pur:#b44dff;--pg:rgba(180,77,255,.15);
-      --org:#ff8c00;--og:rgba(255,140,0,.15);
-      --r:10px;--rs:6px
+      --bg:#06060e;--card:#0a0a16;--card2:#070711;--brd:#1b1b33;
+      --t1:#e8e8ff;--t2:#9a9ab5;--t3:#5b5b78;
+      --red:#ff3d50;--yel:#ffb800;--grn:#00e878;--blu:#00a0ff;
+      --rg:rgba(255,61,80,.15);--yg:rgba(255,184,0,.15);--gg:rgba(0,232,120,.15);--bg2:rgba(0,160,255,.15);
+      --r:12px;--rs:8px;
     }
-    body{background:var(--bg);color:var(--t1);font-family:'Inter','Segoe UI',system-ui,sans-serif;min-height:100vh;overflow-x:hidden}
-    .navbar{display:flex;align-items:center;justify-content:space-between;padding:10px 24px;background:var(--card);border-bottom:1px solid var(--brd);position:sticky;top:0;z-index:500}
-    .nav-brand{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:700;letter-spacing:3px}
-    .nav-logo{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--grn),var(--blu));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:#000}
-    .nav-pills{display:flex;align-items:center;gap:12px}
-    .pill{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600}
-    .pill.live{background:var(--gg);color:var(--grn)}.pill.off{background:rgba(255,255,255,.05);color:var(--t3)}
-    .pill .dot{width:7px;height:7px;border-radius:50%;background:currentColor;animation:pulse 1.5s infinite}
-    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-    .overlay{position:fixed;inset:0;background:rgba(4,4,10,.98);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;z-index:1000;padding:20px}
-    .overlay.hidden{display:none}
-    .hero-t{font-size:42px;font-weight:900;letter-spacing:8px;background:linear-gradient(135deg,var(--grn),var(--blu));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-    .hero-s{color:var(--t3);font-size:13px;letter-spacing:2px}
-    .start-btn{width:175px;height:175px;border-radius:50%;background:radial-gradient(circle at 40% 40%,#0c1a14,#060610);border:3px solid var(--grn);color:var(--grn);font-size:15px;font-weight:700;cursor:pointer;letter-spacing:2px;transition:all .3s;box-shadow:0 0 40px var(--ga),inset 0 0 30px var(--ga);position:relative}
-    .start-btn:hover{transform:scale(1.05);box-shadow:0 0 60px var(--ga),inset 0 0 40px var(--ga)}
-    .start-btn::after{content:'';position:absolute;inset:-8px;border-radius:50%;border:1px solid var(--ga);animation:ring 2s infinite}
-    @keyframes ring{0%,100%{transform:scale(1);opacity:.5}50%{transform:scale(1.08);opacity:0}}
-    .start-info{max-width:560px;text-align:center;color:var(--t2);font-size:14px;line-height:2}
-    .start-info b{color:var(--grn)}.start-info .r{color:var(--red)}.start-info .y{color:var(--yel)}
-    .ex-box{background:#0c0c18;padding:14px 28px;border-radius:var(--r);margin:10px auto;font-family:'Consolas',monospace;font-size:20px;border:1px solid var(--brd);display:inline-block}
-    .ex-box .br{color:#666}.ex-box .nm{color:var(--grn);font-weight:bold}.ex-box .na{color:var(--t2)}
-    .role-selector{display:flex;gap:16px;margin-top:10px;flex-wrap:wrap;justify-content:center}
-    .role-btn{padding:16px 32px;border-radius:var(--r);border:2px solid var(--brd);background:var(--card);color:var(--t2);font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;text-align:center;min-width:180px}
-    .role-btn:hover{border-color:var(--grn);color:var(--grn)}
-    .role-btn .role-icon{font-size:32px;margin-bottom:8px}
-    .role-btn .role-sub{font-size:10px;color:var(--t3);margin-top:4px;font-weight:400}
-
-    .app{display:grid;grid-template-columns:1fr 340px;gap:16px;padding:16px;max-width:1600px;margin:0 auto}
-    @media(max-width:900px){.app{grid-template-columns:1fr}}
-    .side{display:flex;flex-direction:column;gap:14px}
-
-    .card{background:var(--card);border:1px solid var(--brd);border-radius:var(--r);overflow:hidden;margin-bottom:14px}
-    .card:last-child{margin-bottom:0}
-    .card-h{padding:11px 16px;background:var(--card-h);border-bottom:1px solid var(--brd);font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;color:var(--t2)}
-    .card-b{padding:16px}
-
-    .mode-bar{display:flex;gap:6px;margin-bottom:12px}
-    .mode-btn{flex:1;padding:10px;background:rgba(255,255,255,.02);border:2px solid var(--brd);color:var(--t3);border-radius:var(--rs);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:8px}
-    .mode-btn .mdot{width:10px;height:10px;border-radius:50%;border:2px solid currentColor}
-    .mode-btn.act-dist{border-color:var(--grn);color:var(--grn);background:var(--ga)}
-    .mode-btn.act-dist .mdot{background:var(--grn)}
-    .mode-btn.act-dir{border-color:var(--blu);color:var(--blu);background:var(--bg2)}
-    .mode-btn.act-dir .mdot{background:var(--blu)}
-
-    .video-container{position:relative;width:100%;background:#000;overflow:hidden;border:2px solid var(--brd);border-radius:var(--rs)}
-    .video-container video{display:block;width:100%;height:100%}
-    .drag-overlay{position:absolute;inset:0;cursor:crosshair;z-index:10}
-    .sel-box{position:absolute;pointer-events:none;display:none;z-index:5;border-radius:2px}
-    .sel-box.show{display:block}
-    .sel-box.dragging{border-style:dashed!important}
-    .sel-box.dist-sel{border:2px solid var(--grn);background:rgba(0,232,120,.08);box-shadow:0 0 12px var(--ga)}
-    .sel-box.dir-sel{border:2px solid var(--blu);background:rgba(0,160,255,.08);box-shadow:0 0 12px rgba(0,160,255,.15)}
-    .sel-box::before{position:absolute;top:-20px;left:0;font-size:9px;padding:2px 8px;border-radius:3px;font-weight:700;letter-spacing:1px;white-space:nowrap}
-    .sel-box.dist-sel::before{content:'DISTANCE';background:var(--grn);color:#000}
-    .sel-box.dir-sel::before{content:'DIRECTION';background:var(--blu);color:#000}
-    .vid-hint{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);padding:6px 16px;background:rgba(0,0,0,.8);border-radius:20px;font-size:11px;color:var(--t3);white-space:nowrap;pointer-events:none;z-index:4}
-    .vid-hint b{color:var(--grn)}
-
-    .presets-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
-    .pre-btn{padding:7px 13px;background:rgba(255,255,255,.03);border:1px solid var(--brd);color:var(--t3);border-radius:20px;font-size:11px;cursor:pointer;transition:all .15s;font-weight:500}
-    .pre-btn:hover{border-color:var(--grn);color:var(--grn);background:var(--ga)}
-    .pre-btn.dng:hover{border-color:var(--red);color:var(--red);background:var(--rg)}
-
-    .cap-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
-    .cap-item{background:#05050c;border:1px solid var(--brd);border-radius:var(--rs);padding:10px}
-    .cap-lbl{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;font-weight:600}
-    .cap-item canvas{display:block;width:100%;height:70px;background:#030308;border-radius:4px;image-rendering:pixelated}
-
-    .res-display{background:#050510;border:2px solid var(--brd);border-radius:var(--r);padding:24px;text-align:center;transition:all .3s;position:relative;overflow:hidden}
-    .res-display::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .3s}
-    .res-display.red{border-color:var(--red)}.res-display.red::before{background:radial-gradient(ellipse at center,var(--rg),transparent 70%);opacity:1}
-    .res-display.yellow{border-color:var(--yel)}.res-display.yellow::before{background:radial-gradient(ellipse at center,var(--yg),transparent 70%);opacity:1}
-    .res-display.green{border-color:var(--grn)}.res-display.green::before{background:radial-gradient(ellipse at center,var(--gg),transparent 70%);opacity:1}
-    .res-display.purple{border-color:var(--pur)}.res-display.purple::before{background:radial-gradient(ellipse at center,var(--pg),transparent 70%);opacity:1}
-    .res-display.orange{border-color:var(--org)}.res-display.orange::before{background:radial-gradient(ellipse at center,var(--og),transparent 70%);opacity:1}
-    .res-num{font-size:56px;font-weight:900;font-family:'Consolas',monospace;line-height:1;position:relative;z-index:1;transition:color .15s}
-    .res-num.red{color:var(--red)}.res-num.yellow{color:var(--yel)}.res-num.green{color:var(--grn)}
-    .res-num.purple{color:var(--pur)}.res-num.orange{color:var(--org)}
-    .res-num.none{color:var(--t3);font-size:15px;font-weight:500}
-    .res-num.loose{color:var(--red);font-size:28px;animation:flash .7s infinite}
-    .res-num.middle{color:var(--pur);font-size:32px}
-    .res-num.goal{color:var(--org);font-size:36px}
-    @keyframes flash{0%,100%{opacity:1}50%{opacity:.4}}
-    .res-lbl{font-size:13px;font-weight:700;margin-top:8px;letter-spacing:4px;text-transform:uppercase;position:relative;z-index:1}
-    .res-lbl.red{color:var(--red)}.res-lbl.yellow{color:var(--yel)}.res-lbl.green{color:var(--grn)}.res-lbl.loose{color:var(--red);letter-spacing:6px}
-    .res-lbl.purple{color:var(--pur)}.res-lbl.orange{color:var(--org)}
-
-    .dbg{display:grid;gap:0;margin-top:14px;background:#06060e;border-radius:var(--rs);overflow:hidden;border:1px solid var(--brd)}
-    .dbg-r{display:flex;justify-content:space-between;align-items:center;padding:7px 12px;border-bottom:1px solid #0c0c18;font-size:11px;font-family:'Consolas',monospace}
-    .dbg-r:last-child{border-bottom:none}
-    .dbg-k{color:var(--t3);font-weight:500}.dbg-v{color:var(--t2);text-align:right;max-width:220px;word-break:break-all}
-    .dbg-v.ok{color:var(--grn)}.dbg-v.warn{color:var(--yel)}.dbg-v.bad{color:var(--red)}
-
-    .state-hero{text-align:center;padding:28px 20px;border-radius:var(--r);border:3px solid var(--brd);transition:all .3s;background:var(--card);position:relative;overflow:hidden}
-    .state-hero::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .3s}
-    .state-hero.red{border-color:var(--red)}.state-hero.red::before{background:radial-gradient(ellipse at center,var(--rg),transparent 70%);opacity:1}
-    .state-hero.yellow{border-color:var(--yel)}.state-hero.yellow::before{background:radial-gradient(ellipse at center,var(--yg),transparent 70%);opacity:1}
-    .state-hero.green{border-color:var(--grn)}.state-hero.green::before{background:radial-gradient(ellipse at center,var(--gg),transparent 70%);opacity:1}
-    .state-hero.purple{border-color:var(--pur)}.state-hero.purple::before{background:radial-gradient(ellipse at center,var(--pg),transparent 70%);opacity:1}
-    .state-hero.orange{border-color:var(--org)}.state-hero.orange::before{background:radial-gradient(ellipse at center,var(--og),transparent 70%);opacity:1}
-    .st-lbl{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:3px;font-weight:600;position:relative;z-index:1}
-    .st-big{font-size:44px;font-weight:900;font-family:'Consolas',monospace;margin:10px 0 6px;position:relative;z-index:1}
-    .st-big.red{color:var(--red)}.st-big.yellow{color:var(--yel)}.st-big.green{color:var(--grn)}.st-big.off{color:#1a1a30}
-    .st-big.loose{color:var(--red);font-size:28px;animation:flash .7s infinite}
-    .st-big.purple{color:var(--pur)}.st-big.orange{color:var(--org)}
-    .st-dist{font-size:18px;font-family:monospace;color:var(--t3);position:relative;z-index:1}
-    .st-dir{font-size:14px;font-family:monospace;color:var(--blu);margin-top:6px;letter-spacing:2px;position:relative;z-index:1;min-height:18px}
-
-    .thr-bar{display:flex;gap:4px;margin-top:16px;position:relative;z-index:1}
-    .thr-i{flex:1;padding:7px;border-radius:4px;text-align:center;font-size:10px;font-weight:700}
-    .thr-i.ri{background:var(--rg);color:var(--red)}.thr-i.yi{background:var(--yg);color:var(--yel)}.thr-i.gi{background:var(--gg);color:var(--grn)}
-
-    .srow{display:flex;align-items:center;gap:10px;margin-bottom:13px}
-    .srow label{font-size:11px;color:var(--t3);min-width:80px;font-weight:500}
-    .srow input[type=range]{flex:1;height:4px;-webkit-appearance:none;background:#1a1a30;border-radius:2px;outline:none}
-    .srow input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;background:var(--grn);border-radius:50%;cursor:pointer;box-shadow:0 0 6px var(--ga)}
-    .srow .sv{font-size:11px;color:var(--t3);min-width:45px;text-align:right;font-family:monospace;font-weight:600}
-    .srow select{flex:1;padding:8px 10px;background:#0c0c18;border:1px solid var(--brd);color:var(--t2);border-radius:var(--rs);font-size:11px;outline:none;cursor:pointer}
-
-    .tgl{display:flex;align-items:center;gap:10px;margin-bottom:12px;font-size:12px;color:var(--t2);cursor:pointer}
-    .tgl input[type=checkbox]{width:16px;height:16px;accent-color:var(--grn);cursor:pointer}
-
-    .btn-row{display:flex;gap:8px;margin-top:10px}
-    .btn{flex:1;padding:9px 12px;background:rgba(255,255,255,.03);border:1px solid var(--brd);color:var(--t3);border-radius:var(--rs);font-size:11px;cursor:pointer;transition:all .15s;font-weight:600}
-    .btn:hover{border-color:var(--grn);color:var(--grn)}.btn.act{border-color:var(--grn);color:var(--grn);background:var(--ga)}
-
-    .vstatus{margin-top:10px;padding:8px 12px;background:#06060e;border-radius:var(--rs);font-size:11px;text-align:center;font-family:monospace;min-height:28px}
-    .vstatus.ok{color:var(--grn)}.vstatus.err{color:var(--red)}.vstatus.talk{color:var(--yel)}
-
-    .dir-result{margin-top:12px;padding:14px;background:#06060e;border:1px solid var(--brd);border-radius:var(--rs);text-align:center}
-    .dir-detected{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px}
-    .dir-value{font-size:22px;font-weight:800;color:var(--blu);font-family:'Consolas',monospace;letter-spacing:2px}
-    .dir-value.none{color:var(--t3);font-size:13px;font-weight:400}
-    .dir-raw{margin-top:8px;font-size:10px;color:var(--t3);font-family:monospace;word-break:break-all}
-    .dir-callout{margin-top:10px;padding:8px;background:var(--rg);border:1px solid rgba(255,61,80,.3);border-radius:4px;font-size:12px;color:var(--red);font-weight:600;text-align:center}
-    .dir-manual{margin-top:12px}
-    .dir-manual select{width:100%;padding:8px 10px;background:#0c0c18;border:1px solid var(--brd);color:var(--t2);border-radius:var(--rs);font-size:11px;outline:none}
-
-    .badge{padding:4px 10px;border-radius:12px;font-size:10px;font-weight:700;letter-spacing:.5px}
-    .badge.load{background:#1a1500;color:var(--yel)}.badge.rdy{background:#001a0f;color:var(--grn)}.badge.fail{background:#1a0008;color:var(--red)}
-
-    .info-c{background:var(--ga);border:1px solid rgba(0,232,120,.2);border-radius:var(--rs);padding:12px;margin-top:14px;font-size:11px;color:var(--grn);line-height:1.8}
-    .info-c span{opacity:.7}
-
-    .log-c{background:#04040a;border:1px solid var(--brd);border-radius:var(--rs);padding:10px 12px;max-height:80px;overflow-y:auto;font-family:'Consolas',monospace;font-size:10px;margin:0 16px 16px}
-    .log-c div{padding:2px 0;color:var(--t3)}.log-c .lg{color:var(--grn)}.log-c .le{color:var(--red)}.log-c .lw{color:var(--yel)}
-
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--t1);font-family:system-ui,Segoe UI,Inter,Arial;min-height:100vh}
     .hidden{display:none!important}
-    ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#222240;border-radius:2px}
-
-    .remote-container{padding:20px;max-width:600px;margin:0 auto}
-    .remote-hero{text-align:center;padding:50px 30px;border-radius:16px;border:4px solid var(--brd);background:var(--card);position:relative;overflow:hidden;transition:all .4s;margin-bottom:20px}
-    .remote-hero::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .4s}
-    .remote-hero.red{border-color:var(--red)}.remote-hero.red::before{background:radial-gradient(ellipse at center,var(--rg),transparent 70%);opacity:1}
-    .remote-hero.yellow{border-color:var(--yel)}.remote-hero.yellow::before{background:radial-gradient(ellipse at center,var(--yg),transparent 70%);opacity:1}
-    .remote-hero.green{border-color:var(--grn)}.remote-hero.green::before{background:radial-gradient(ellipse at center,var(--gg),transparent 70%);opacity:1}
-    .remote-hero.purple{border-color:var(--pur)}.remote-hero.purple::before{background:radial-gradient(ellipse at center,var(--pg),transparent 70%);opacity:1}
-    .remote-hero.orange{border-color:var(--org)}.remote-hero.orange::before{background:radial-gradient(ellipse at center,var(--og),transparent 70%);opacity:1}
-    .remote-state{font-size:72px;font-weight:900;font-family:'Consolas',monospace;position:relative;z-index:1}
-    .remote-state.red{color:var(--red)}.remote-state.yellow{color:var(--yel)}.remote-state.green{color:var(--grn)}.remote-state.off{color:#1a1a30}
-    .remote-state.loose{color:var(--red);font-size:36px;animation:flash .7s infinite}
-    .remote-state.purple{color:var(--pur);font-size:42px}.remote-state.orange{color:var(--org);font-size:42px}
-    .remote-dist{font-size:28px;font-family:monospace;color:var(--t3);margin-top:10px;position:relative;z-index:1}
-    .remote-dir{font-size:16px;color:var(--blu);margin-top:8px;position:relative;z-index:1;font-weight:600;letter-spacing:2px}
-    .remote-time{font-size:10px;color:var(--t3);margin-top:12px;position:relative;z-index:1}
-
-    .conn-status{text-align:center;padding:10px;border-radius:var(--rs);font-size:11px;margin-bottom:16px;font-weight:600}
-    .conn-status.connected{background:var(--gg);color:var(--grn)}
-    .conn-status.waiting{background:var(--yg);color:var(--yel)}
-    .conn-status.disconnected{background:var(--rg);color:var(--red)}
-
-    .room-display{text-align:center;margin-bottom:16px;padding:12px;background:var(--card);border:1px solid var(--brd);border-radius:var(--rs)}
-    .room-display .room-label{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:2px;margin-bottom:4px}
-    .room-display .room-code{font-size:24px;font-weight:900;font-family:'Consolas',monospace;color:var(--grn);letter-spacing:6px}
-
-    .room-input-area{display:flex;gap:8px;margin-bottom:16px}
-    .room-input-area input{flex:1;padding:12px 16px;background:#0c0c18;border:2px solid var(--brd);color:var(--t1);border-radius:var(--rs);font-size:16px;font-family:'Consolas',monospace;text-align:center;letter-spacing:4px;text-transform:uppercase;outline:none}
-    .room-input-area input:focus{border-color:var(--grn)}
-    .room-input-area input::placeholder{color:var(--t3);letter-spacing:2px;font-size:13px}
-    .room-input-area button{padding:12px 24px;background:var(--ga);border:2px solid var(--grn);color:var(--grn);border-radius:var(--rs);font-size:13px;font-weight:700;cursor:pointer;letter-spacing:1px}
-
-    .server-status{text-align:center;padding:6px 12px;font-size:10px;color:var(--t3);font-family:monospace}
-    .server-status.ok{color:var(--grn)}.server-status.err{color:var(--red)}.server-status.warn{color:var(--yel)}
-
-    .latency-display{font-size:10px;color:var(--t3);text-align:center;margin-top:8px;font-family:monospace}
-    .latency-display b{color:var(--grn)}
-    .latency-display b.slow{color:var(--yel)}
-    .latency-display b.bad{color:var(--red)}
-    .fps-display{font-size:10px;color:var(--t3);font-family:monospace}
-    .fps-display b{color:var(--grn)}
-
-    .thr-slider-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-    .thr-slider-row label{font-size:11px;min-width:70px;font-weight:600}
-    .thr-slider-row label.rl{color:var(--red)}
-    .thr-slider-row label.yl{color:var(--yel)}
-    .thr-slider-row input[type=range]{flex:1;height:4px;-webkit-appearance:none;background:#1a1a30;border-radius:2px;outline:none}
-    .thr-slider-row input[type=range].red-range::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;background:var(--red);border-radius:50%;cursor:pointer;box-shadow:0 0 6px rgba(255,61,80,.4)}
-    .thr-slider-row input[type=range].yel-range::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;background:var(--yel);border-radius:50%;cursor:pointer;box-shadow:0 0 6px rgba(255,184,0,.4)}
-    .thr-slider-row .sv{font-size:12px;min-width:40px;text-align:right;font-family:'Consolas',monospace;font-weight:700}
-    .thr-slider-row .sv.rv{color:var(--red)}
-    .thr-slider-row .sv.yv{color:var(--yel)}
-
-    .thr-visual{display:flex;height:8px;border-radius:4px;overflow:hidden;margin:8px 0 4px;gap:1px}
-    .thr-visual .seg{transition:flex .3s}
-    .thr-visual .seg.rs{background:var(--red)}.thr-visual .seg.ys{background:var(--yel)}.thr-visual .seg.gs{background:var(--grn)}
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;z-index:999;padding:22px}
+    .panel{width:min(920px,100%);background:var(--card);border:1px solid var(--brd);border-radius:var(--r);padding:18px}
+    .title{font-weight:900;letter-spacing:6px;font-size:34px;text-align:center}
+    .sub{margin-top:8px;text-align:center;color:var(--t3);letter-spacing:2px;font-size:12px}
+    .row{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px;justify-content:center}
+    .btn{cursor:pointer;border:1px solid var(--brd);background:rgba(255,255,255,.03);color:var(--t2);padding:12px 16px;border-radius:999px;font-weight:700}
+    .btn:hover{border-color:var(--grn);color:var(--grn)}
+    .btn.danger:hover{border-color:var(--red);color:var(--red)}
+    .btn.act{border-color:var(--grn);color:var(--grn);background:rgba(0,232,120,.10)}
+    .input{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--brd);background:#0c0c18;color:var(--t1);font-size:16px;letter-spacing:4px;text-transform:uppercase;text-align:center;outline:none}
+    .status{margin-top:10px;text-align:center;font-family:ui-monospace,Consolas,monospace;font-size:11px;color:var(--t3)}
+    .status.ok{color:var(--grn)} .status.warn{color:var(--yel)} .status.bad{color:var(--red)}
+    .nav{position:sticky;top:0;z-index:50;background:var(--card);border-bottom:1px solid var(--brd);padding:10px 16px;display:flex;justify-content:space-between;align-items:center}
+    .nav .brand{display:flex;align-items:center;gap:10px;font-weight:900;letter-spacing:3px}
+    .pill{padding:4px 10px;border-radius:999px;border:1px solid var(--brd);font-size:11px;color:var(--t3);font-family:ui-monospace,Consolas,monospace}
+    .pill.live{border-color:rgba(0,232,120,.25);color:var(--grn);background:rgba(0,232,120,.10)}
+    .pill.conn{border-color:rgba(0,160,255,.25);color:var(--blu);background:rgba(0,160,255,.10)}
+    .app{max-width:1400px;margin:0 auto;padding:14px;display:grid;grid-template-columns:1fr 360px;gap:14px}
+    @media(max-width:920px){.app{grid-template-columns:1fr}}
+    .card{background:var(--card);border:1px solid var(--brd);border-radius:var(--r);overflow:hidden}
+    .ch{padding:10px 14px;background:var(--card2);border-bottom:1px solid var(--brd);color:var(--t2);font-weight:900;letter-spacing:1px;font-size:12px;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center}
+    .cb{padding:14px}
+    .videoWrap{position:relative;border:1px solid var(--brd);border-radius:var(--rs);overflow:hidden;background:#000}
+    video{width:100%;height:auto;display:block}
+    .drag{position:absolute;inset:0;cursor:crosshair}
+    .box{position:absolute;border:2px solid var(--grn);background:rgba(0,232,120,.08);display:none}
+    .box.show{display:block}
+    .box.dir{border-color:var(--blu);background:rgba(0,160,255,.08)}
+    .hint{position:absolute;left:50%;transform:translateX(-50%);bottom:10px;background:rgba(0,0,0,.75);padding:6px 12px;border-radius:999px;font-size:11px;color:var(--t3)}
+    .modeRow{display:flex;gap:8px;margin-bottom:10px}
+    .mode{flex:1;padding:10px 12px;border-radius:12px;border:1px solid var(--brd);background:rgba(255,255,255,.03);color:var(--t3);cursor:pointer;font-weight:800}
+    .mode.onD{border-color:rgba(0,232,120,.25);color:var(--grn);background:rgba(0,232,120,.10)}
+    .mode.onR{border-color:rgba(0,160,255,.25);color:var(--blu);background:rgba(0,160,255,.10)}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    canvas{width:100%;height:70px;background:#05050d;border:1px solid var(--brd);border-radius:10px;image-rendering:pixelated}
+    .hero{border:2px solid var(--brd);border-radius:var(--r);padding:18px;text-align:center;position:relative;overflow:hidden}
+    .hero.red{border-color:var(--red);background:var(--rg)}
+    .hero.yellow{border-color:var(--yel);background:var(--yg)}
+    .hero.green{border-color:var(--grn);background:var(--gg)}
+    .hero.blue{border-color:var(--blu);background:var(--bg2)}
+    .hState{font-size:44px;font-family:ui-monospace,Consolas,monospace;font-weight:900}
+    .hDist{margin-top:8px;color:var(--t2);font-family:ui-monospace,Consolas,monospace;font-size:18px}
+    .hDir{margin-top:6px;color:var(--blu);font-family:ui-monospace,Consolas,monospace;font-size:14px;letter-spacing:2px;min-height:18px}
+    .srow{display:flex;align-items:center;gap:10px;margin:10px 0}
+    .srow label{min-width:88px;color:var(--t3);font-size:11px;font-weight:700}
+    .srow input[type=range]{flex:1}
+    .srow select{flex:1;padding:9px 10px;border-radius:10px;border:1px solid var(--brd);background:#0c0c18;color:var(--t2);font-size:11px}
+    .tgl{display:flex;gap:10px;align-items:center;color:var(--t2);font-size:12px;margin-top:10px}
+    .tgl input{width:16px;height:16px;accent-color:var(--grn)}
+    .vline{margin-top:10px;padding:8px 10px;background:#070712;border:1px solid var(--brd);border-radius:10px;font-family:ui-monospace,Consolas,monospace;font-size:11px;color:var(--t3);min-height:30px;text-align:center}
+    .vline.talk{color:var(--yel)} .vline.ok{color:var(--grn)} .vline.bad{color:var(--red)}
+    .remoteWrap{max-width:700px;margin:0 auto;padding:16px}
   </style>
 </head>
 
 <body>
-  <div class="overlay" id="overlay">
-    <div class="hero-t">ORION</div>
-    <div class="hero-s">DISTANCE TRACKING SYSTEM</div>
-    <div class="role-selector">
-      <button class="role-btn" onclick="chooseRole('host')">
-        <div class="role-icon">🖥️</div>HOST
-        <div class="role-sub">Screen capture + OCR</div>
-      </button>
-      <button class="role-btn" onclick="chooseRole('remote')">
-        <div class="role-icon">📱</div>REMOTE
-        <div class="role-sub">View status from another device</div>
-      </button>
-    </div>
-  </div>
-
-  <div class="overlay hidden" id="hostSetup">
-    <div class="hero-t">ORION</div>
-    <div class="hero-s">HOST MODE</div>
-    <div class="room-display">
-      <div class="room-label">Your Room Code</div>
-      <div class="room-code" id="hostRoomCode">——</div>
-    </div>
-    <div class="server-status warn" id="hostServerStatus">Connecting to relay...</div>
-    <div class="remote-clients" id="hostClientCount"></div>
-    <button class="start-btn" id="startBtn">SHARE<br>SCREEN</button>
-    <div class="start-info">
-      Share the room code with your teammate.<br>
-      They open <b>this same URL</b> and join as <b>REMOTE</b>.<br><br>
-      <div class="ex-box"><span class="na">EnemyPlayer </span><span class="br">(</span><span class="nm">428</span><span class="br">)</span></div><br>
-      <span class="r">RED ≤500</span> · <span class="y">YEL 501-600</span> · <b>GRN >600</b><br>
-      <b>?</b> → <span class="r">BALL LOOSE</span> · <b>middle</b> → ⚽ · <b>goal</b> → 🥅<br>
-      Flickering borders → snaps to safer color
-    </div>
-  </div>
-
-  <div class="overlay hidden" id="remoteSetup">
-    <div class="hero-t">ORION</div>
-    <div class="hero-s">REMOTE MODE</div>
-    <div style="max-width:400px;width:100%">
-      <div class="room-input-area">
-        <input type="text" id="remoteRoomInput" placeholder="ROOM CODE" maxlength="6" autocomplete="off">
-        <button onclick="joinRoom()">JOIN</button>
+  <!-- ROLE OVERLAY -->
+  <div class="overlay" id="roleOverlay">
+    <div class="panel">
+      <div class="title">ORION</div>
+      <div class="sub">DISTANCE TRACKING + META/QUEST RELAY FIX</div>
+      <div class="row">
+        <button class="btn" onclick="chooseRole('host')">HOST</button>
+        <button class="btn" onclick="chooseRole('remote')">REMOTE</button>
       </div>
-      <div class="server-status warn" id="remoteServerStatus">Connecting to relay...</div>
-      <div style="text-align:center;color:var(--t3);font-size:12px;margin-top:8px">
-        Enter the room code shown on the host device
+      <div class="status" style="margin-top:14px">
+        Tip: On Meta/Quest, some networks block non-443 ports. This build uses multi-relay fallback (443-first).
       </div>
     </div>
   </div>
 
-  <nav class="navbar hidden" id="navbar">
-    <div class="nav-brand"><div class="nav-logo">O</div>ORION</div>
-    <div class="nav-pills">
-      <span class="fps-display" id="fpsDisplay"></span>
-      <span id="resLabel" style="font-size:11px;color:var(--t3);font-family:monospace">—</span>
-      <div class="pill off" id="navPill"><span class="dot"></span><span id="pillTxt">OFFLINE</span></div>
-    </div>
-  </nav>
-
-  <div class="app hidden" id="mainUI">
-    <div class="main-col">
-      <div class="card">
-        <div class="card-h">
-          <span>📺 Screen Capture</span>
-          <span class="room-display" style="padding:4px 12px;margin:0;background:transparent;border:1px solid var(--grn);border-radius:12px">
-            <span style="font-size:9px;color:var(--t3)">ROOM </span>
-            <span style="font-size:12px;color:var(--grn);font-weight:700;font-family:monospace;letter-spacing:2px" id="hostRoomCodeSmall">——</span>
-          </span>
-        </div>
-        <div class="card-b">
-          <div class="mode-bar">
-            <button class="mode-btn act-dist" id="modeDistBtn" onclick="setMode('distance')"><span class="mdot"></span>📍 Distance</button>
-            <button class="mode-btn" id="modeDirBtn" onclick="setMode('direction')"><span class="mdot"></span>🧭 Direction</button>
-          </div>
-          <div class="video-container" id="videoContainer">
-            <video id="vid" playsinline muted></video>
-            <div class="drag-overlay" id="dragArea"></div>
-            <div class="sel-box dist-sel" id="distBox"></div>
-            <div class="sel-box dir-sel" id="dirBox"></div>
-            <div class="vid-hint" id="vidHint">Draw a <b>distance</b> box around <b>enemy name (number)</b></div>
-          </div>
-          <div class="presets-row">
-            <button class="pre-btn" onclick="setPreset('topLeft')">Top-Left</button>
-            <button class="pre-btn" onclick="setPreset('topCenter')">Top-Center</button>
-            <button class="pre-btn" onclick="setPreset('topRight')">Top-Right</button>
-            <button class="pre-btn" onclick="setPreset('center')">Center</button>
-            <button class="pre-btn" onclick="setPreset('bottom')">Bottom</button>
-            <button class="pre-btn dng" onclick="clearSel()">✕ Clear</button>
-          </div>
+  <!-- HOST SETUP -->
+  <div class="overlay hidden" id="hostOverlay">
+    <div class="panel">
+      <div class="title">HOST</div>
+      <div class="sub">Share this room code</div>
+      <div class="row" style="margin-top:14px">
+        <div style="width:min(520px,100%)">
+          <div class="status">ROOM CODE</div>
+          <div class="title" id="hostRoomCode" style="letter-spacing:12px">-----</div>
+          <div class="status" id="hostRelayStatus">Relay: connecting…</div>
         </div>
       </div>
+      <div class="row">
+        <button class="btn act" id="shareBtn">SHARE SCREEN</button>
+      </div>
+      <div class="status">Draw a box around enemy name (number). Optional direction box for LEFT/RIGHT/etc.</div>
+    </div>
+  </div>
 
-      <div class="card">
-        <div class="card-h"><span>🔍 OCR Engine</span><span class="badge load" id="ocrBadge">LOADING</span></div>
-        <div class="card-b">
-          <div class="cap-grid">
-            <div class="cap-item"><div class="cap-lbl">📷 Captured</div><canvas id="rawCvs"></canvas></div>
-            <div class="cap-item"><div class="cap-lbl">⚙️ Processed</div><canvas id="procCvs"></canvas></div>
-          </div>
-          <div class="res-display" id="resultBox">
-            <div class="res-num none" id="resultNum">Select a region to begin</div>
-            <div class="res-lbl" id="resultLbl"></div>
-          </div>
-          <div class="dbg">
-            <div class="dbg-r"><span class="dbg-k">Raw OCR</span><span class="dbg-v" id="dbgRaw">—</span></div>
-            <div class="dbg-r"><span class="dbg-k">Lines</span><span class="dbg-v" id="dbgLines">—</span></div>
-            <div class="dbg-r"><span class="dbg-k">Bracket</span><span class="dbg-v" id="dbgBracket">—</span></div>
-            <div class="dbg-r"><span class="dbg-k">Number</span><span class="dbg-v" id="dbgNum">—</span></div>
-            <div class="dbg-r"><span class="dbg-k">Confidence</span><span class="dbg-v" id="dbgConf">—</span></div>
-            <div class="dbg-r"><span class="dbg-k">Strategy</span><span class="dbg-v" id="dbgStrat">—</span></div>
-            <div class="dbg-r"><span class="dbg-k">Region</span><span class="dbg-v" id="dbgReg">—</span></div>
-            <div class="dbg-r"><span class="dbg-k">OCR Time</span><span class="dbg-v" id="dbgTime">—</span></div>
-            <div class="dbg-r"><span class="dbg-k">Pipeline</span><span class="dbg-v" id="dbgPipe">—</span></div>
-            <div class="dbg-r"><span class="dbg-k">Special</span><span class="dbg-v" id="dbgSpecial">—</span></div>
-            <div class="dbg-r"><span class="dbg-k">Hysteresis</span><span class="dbg-v" id="dbgHyst">—</span></div>
-          </div>
-          <div class="info-c">
-            <span>✓</span> Finds numbers inside ( ) or [ ] brackets<br>
-            <span>✓</span> Any <b>?</b> → <b>BALL LOOSE</b><br>
-            <span>✓</span> <b>middle</b> → ⚽ BALL IN MIDDLE (once)<br>
-            <span>✓</span> <b>goal</b> → 🥅 GOAL SCORED (once)<br>
-            <span>✓</span> No digits in OCR → stays silent<br>
-            <span>✓</span> Dual-worker pipeline · Instant WebSocket sync
-          </div>
+  <!-- REMOTE SETUP -->
+  <div class="overlay hidden" id="remoteOverlay">
+    <div class="panel">
+      <div class="title">REMOTE</div>
+      <div class="sub">Enter room code</div>
+      <div class="row" style="width:100%">
+        <div style="width:min(520px,100%)">
+          <input class="input" id="roomIn" maxlength="6" placeholder="ROOM" />
+          <button class="btn act" style="width:100%;margin-top:10px" onclick="joinRoom()">JOIN</button>
+          <div class="status" id="remoteRelayStatus">Relay: ready</div>
         </div>
+      </div>
+      <div class="status">On Meta/Quest: press JOIN once (unlocks audio + starts relay fallback).</div>
+    </div>
+  </div>
+
+  <!-- HOST NAV + UI -->
+  <div class="hidden" id="hostUI">
+    <div class="nav">
+      <div class="brand">ORION <span class="pill" id="hostRoomPill">ROOM -----</span></div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span class="pill conn" id="relayPill">Relay: …</span>
+        <span class="pill live" id="livePill">LIVE</span>
       </div>
     </div>
 
-    <div class="side">
-      <div class="state-hero" id="stateBox">
-        <div class="st-lbl">Current State</div>
-        <div class="st-big off" id="stateVal">—</div>
-        <div class="st-dist" id="stateDist">Waiting...</div>
-        <div class="st-dir" id="stateDir"></div>
-
-        <div class="thr-bar" id="thrBar">
-          <div class="thr-i ri" id="thrRedLabel">RED ≤500</div>
-          <div class="thr-i yi" id="thrYelLabel">YEL 501-600</div>
-          <div class="thr-i gi" id="thrGrnLabel">GRN >600</div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-h"><span>🎯 Thresholds</span></div>
-        <div class="card-b">
-          <div class="thr-slider-row">
-            <label class="rl">🔴 Red ≤</label>
-            <input type="range" class="red-range" id="redThrR" min="100" max="2000" step="10" value="500">
-            <span class="sv rv" id="redThrV">500</span>
+    <div class="app">
+      <div>
+        <div class="card">
+          <div class="ch">
+            <span>Screen</span>
+            <span class="pill" id="capInfo">—</span>
           </div>
-          <div class="thr-slider-row" id="yelThrRow">
-            <label class="yl">🟡 Yellow ≤</label>
-            <input type="range" class="yel-range" id="yelThrR" min="100" max="2500" step="10" value="600">
-            <span class="sv yv" id="yelThrV">600</span>
-          </div>
-          <label class="tgl" style="margin-top:8px"><input type="checkbox" id="skipYellowChk" onchange="toggleSkipYellow()"> Skip Yellow (Red/Green only)</label>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-h"><span>🔊 Voice Alerts</span></div>
-        <div class="card-b">
-          <div class="srow"><label>Volume</label><input type="range" id="volR" min="0" max="1" step="0.1" value="0.8"><span class="sv" id="volV">80%</span></div>
-          <div class="srow"><label>Speed</label><input type="range" id="spdR" min="0.7" max="1.5" step="0.1" value="1"><span class="sv" id="spdV">1.0x</span></div>
-          <div class="srow"><label>Interval</label><input type="range" id="repR" min="1" max="5" step="0.5" value="2"><span class="sv" id="repV">2.0s</span></div>
-          <div class="srow"><label>Voice</label><select id="voiceSel"></select></div>
-
-          <label class="tgl" style="margin-top:8px">
-            <input type="checkbox" id="beepChk" onchange="toggleBeepMode()">
-            Directional Beep Mode (no voice for RED / YELLOW / GREEN)
-          </label>
-
-          <div class="btn-row">
-            <button class="btn" onclick="testVoice()">🎙 Test</button>
-            <button class="btn act" id="muteBtn" onclick="toggleMute()">🔊 On</button>
-          </div>
-          <div class="vstatus" id="voiceLine"></div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-h"><span>🧭 Direction Callout</span></div>
-        <div class="card-b">
-          <label class="tgl"><input type="checkbox" id="dirChk" onchange="toggleDir()"> Enable auto-direction on RED</label>
-          <div id="dirUI" class="hidden">
-            <div style="font-size:11px;color:var(--t3);margin-bottom:10px;line-height:1.7">
-              Switch to <b style="color:var(--blu)">🧭 Direction Box</b> and draw around the direction text.
+          <div class="cb">
+            <div class="modeRow">
+              <button class="mode onD" id="modeDist" onclick="setMode('distance')">Distance Box</button>
+              <button class="mode" id="modeDir" onclick="setMode('direction')">Direction Box</button>
             </div>
-            <div class="dir-result" id="dirResult">
-              <div class="dir-detected">Detected Direction</div>
-              <div class="dir-value none" id="dirValue">No direction box set</div>
-              <div class="dir-raw" id="dirRawText"></div>
+            <div class="videoWrap" id="videoWrap">
+              <video id="vid" playsinline muted></video>
+              <div class="drag" id="drag"></div>
+              <div class="box show" id="distBox"></div>
+              <div class="box dir" id="dirBox"></div>
+              <div class="hint" id="hint">Draw DISTANCE box</div>
             </div>
-            <div class="dir-callout hidden" id="dirCallout">Callout: Red behind</div>
-            <div class="dir-manual">
-              <div style="font-size:10px;color:var(--t3);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px">Manual override</div>
-              <select id="dirManual" onchange="manualDir(this.value)">
-                <option value="">— Auto from OCR —</option>
-                <option value="behind">Behind</option>
-                <option value="in front">In Front</option>
+
+            <div class="row" style="justify-content:flex-start;margin-top:10px">
+              <button class="btn" onclick="clearBoxes()">CLEAR</button>
+              <button class="btn" onclick="setPreset('top')">PRESET TOP</button>
+              <button class="btn" onclick="setPreset('topRight')">PRESET TOP-R</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:14px">
+          <div class="ch"><span>OCR</span><span class="pill" id="ocrStatus">idle</span></div>
+          <div class="cb">
+            <div class="grid2">
+              <div>
+                <div class="status">Captured</div>
+                <canvas id="rawCvs"></canvas>
+              </div>
+              <div>
+                <div class="status">Processed</div>
+                <canvas id="procCvs"></canvas>
+              </div>
+            </div>
+            <div class="status" id="ocrDbg" style="margin-top:10px">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="hero" id="hero">
+          <div class="status">CURRENT</div>
+          <div class="hState" id="hState">—</div>
+          <div class="hDist" id="hDist">Waiting…</div>
+          <div class="hDir" id="hDir"></div>
+        </div>
+
+        <div class="card" style="margin-top:14px">
+          <div class="ch"><span>Thresholds</span></div>
+          <div class="cb">
+            <div class="srow"><label>Red ≤</label><input type="range" id="redR" min="100" max="2000" step="10" value="500"><span class="pill" id="redV">500</span></div>
+            <div class="srow" id="yelRow"><label>Yellow ≤</label><input type="range" id="yelR" min="100" max="2500" step="10" value="600"><span class="pill" id="yelV">600</span></div>
+            <div class="tgl"><input type="checkbox" id="skipY" onchange="toggleSkipYellow()"><span>Skip Yellow (Red/Green only)</span></div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:14px">
+          <div class="ch"><span>Voice / Beep</span></div>
+          <div class="cb">
+            <div class="srow"><label>Volume</label><input type="range" id="vol" min="0" max="1" step="0.05" value="0.8"><span class="pill" id="volV">80%</span></div>
+            <div class="srow"><label>Speed</label><input type="range" id="spd" min="0.7" max="1.5" step="0.1" value="1"><span class="pill" id="spdV">1.0x</span></div>
+            <div class="srow"><label>Base Int</label><input type="range" id="rep" min="1" max="5" step="0.5" value="2"><span class="pill" id="repV">2.0s</span></div>
+            <div class="srow"><label>Voice</label><select id="voiceSel"></select></div>
+
+            <div class="tgl"><input type="checkbox" id="beepMode" onchange="toggleBeepMode()"><span>Directional Beep Mode (no voice for colors)</span></div>
+
+            <div class="row" style="justify-content:flex-start">
+              <button class="btn" onclick="testVoice()">TEST</button>
+              <button class="btn act" id="muteBtn" onclick="toggleMute()">ON</button>
+            </div>
+            <div class="vline" id="voiceLine">—</div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:14px">
+          <div class="ch"><span>Direction</span></div>
+          <div class="cb">
+            <div class="tgl"><input type="checkbox" id="dirEnable" onchange="toggleDirEnable()"><span>Enable Direction OCR</span></div>
+            <div class="srow"><label>Manual</label>
+              <select id="dirManual" onchange="setManualDir(this.value)">
+                <option value="">Auto</option>
                 <option value="left">Left</option>
                 <option value="right">Right</option>
+                <option value="behind">Behind</option>
+                <option value="in front">In Front</option>
                 <option value="above">Above</option>
                 <option value="below">Below</option>
               </select>
             </div>
+            <div class="status" id="dirDbg">Draw direction box around direction text.</div>
           </div>
         </div>
-      </div>
 
-      <div class="card">
-        <div class="card-h"><span>⚙️ OCR Settings</span></div>
-        <div class="card-b">
-          <div class="srow"><label>Threshold</label><input type="range" id="thrR" min="20" max="235" value="128"><span class="sv" id="thrV">128</span></div>
-          <div class="srow"><label>Scale</label><input type="range" id="sclR" min="1" max="6" step="1" value="3"><span class="sv" id="sclV">3x</span></div>
-          <label class="tgl"><input type="checkbox" id="invChk"> Invert (light text on dark bg)</label>
-          <label class="tgl"><input type="checkbox" id="autoChk" checked> Auto-detect threshold</label>
+        <div class="card" style="margin-top:14px">
+          <div class="ch"><span>Background</span></div>
+          <div class="cb">
+            <div class="status">
+              Best-effort: keep-alive audio + wake lock. Some OS/browsers still stop audio when fully backgrounded/locked.
+            </div>
+          </div>
         </div>
+
       </div>
     </div>
   </div>
 
+  <!-- REMOTE UI -->
   <div class="hidden" id="remoteUI">
-    <nav class="navbar">
-      <div class="nav-brand"><div class="nav-logo">O</div>ORION <span style="font-size:10px;color:var(--t3);letter-spacing:1px;margin-left:8px">REMOTE</span></div>
-      <div class="nav-pills">
-        <div class="pill" id="remotePill"><span class="dot"></span><span id="remotePillTxt">CONNECTING</span></div>
+    <div class="nav">
+      <div class="brand">ORION <span class="pill" id="remoteRoomPill">ROOM -----</span></div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span class="pill conn" id="remoteRelayPill">Relay: …</span>
+        <span class="pill" id="delayPill">Delay: —</span>
       </div>
-    </nav>
+    </div>
 
-    <div class="remote-container">
-      <div class="conn-status waiting" id="connStatus">Connecting to host...</div>
-      <div class="room-display">
-        <div class="room-label">Connected Room</div>
-        <div class="room-code" id="remoteRoomDisplay">——</div>
-      </div>
-
-      <div class="latency-display" id="latencyDisplay"></div>
-
-      <div class="remote-hero" id="remoteHero">
-        <div class="remote-state off" id="remoteState">WAITING</div>
-        <div class="remote-dist" id="remoteDist">—</div>
-        <div class="remote-dir" id="remoteDir"></div>
-        <div class="remote-time" id="remoteTime"></div>
+    <div class="remoteWrap">
+      <div class="hero" id="rHero">
+        <div class="status">REMOTE</div>
+        <div class="hState" id="rState">WAITING</div>
+        <div class="hDist" id="rDist">—</div>
+        <div class="hDir" id="rDir"></div>
+        <div class="status" id="rTime">—</div>
       </div>
 
-      <!-- Remote Thresholds -->
-      <div class="card">
-        <div class="card-h"><span>🎯 Thresholds (Remote)</span></div>
-        <div class="card-b">
-          <div class="thr-slider-row">
-            <label class="rl">🔴 Red ≤</label>
-            <input type="range" class="red-range" id="rRedThrR" min="100" max="2000" step="10" value="500">
-            <span class="sv rv" id="rRedThrV">500</span>
-          </div>
-          <div class="thr-slider-row" id="rYelThrRow">
-            <label class="yl">🟡 Yellow ≤</label>
-            <input type="range" class="yel-range" id="rYelThrR" min="100" max="2500" step="10" value="600">
-            <span class="sv yv" id="rYelThrV">600</span>
-          </div>
-          <label class="tgl" style="margin-top:8px">
-            <input type="checkbox" id="rSkipYellowChk" onchange="rToggleSkipYellow()">
-            Skip Yellow (Red/Green only)
-          </label>
+      <div class="card" style="margin-top:14px">
+        <div class="ch"><span>Thresholds (Remote)</span></div>
+        <div class="cb">
+          <div class="srow"><label>Red ≤</label><input type="range" id="rRedR" min="100" max="2000" step="10" value="500"><span class="pill" id="rRedV">500</span></div>
+          <div class="srow" id="rYelRow"><label>Yellow ≤</label><input type="range" id="rYelR" min="100" max="2500" step="10" value="600"><span class="pill" id="rYelV">600</span></div>
+          <div class="tgl"><input type="checkbox" id="rSkipY" onchange="rToggleSkipYellow()"><span>Skip Yellow (Red/Green only)</span></div>
+          <div class="status">Remote thresholds re-color the display locally (does not affect host).</div>
         </div>
       </div>
 
-      <div class="card">
-        <div class="card-h"><span>🔊 Voice Alerts</span></div>
-        <div class="card-b">
-          <div class="srow"><label>Volume</label><input type="range" id="rVolR" min="0" max="1" step="0.1" value="0.8"><span class="sv" id="rVolV">80%</span></div>
-          <div class="srow"><label>Speed</label><input type="range" id="rSpdR" min="0.7" max="1.5" step="0.1" value="1"><span class="sv" id="rSpdV">1.0x</span></div>
-          <div class="srow"><label>Interval</label><input type="range" id="rRepR" min="1" max="5" step="0.5" value="2"><span class="sv" id="rRepV">2.0s</span></div>
+      <div class="card" style="margin-top:14px">
+        <div class="ch"><span>Voice / Beep (Remote)</span></div>
+        <div class="cb">
+          <div class="srow"><label>Volume</label><input type="range" id="rVol" min="0" max="1" step="0.05" value="0.8"><span class="pill" id="rVolV">80%</span></div>
+          <div class="srow"><label>Speed</label><input type="range" id="rSpd" min="0.7" max="1.5" step="0.1" value="1"><span class="pill" id="rSpdV">1.0x</span></div>
+          <div class="srow"><label>Base Int</label><input type="range" id="rRep" min="1" max="5" step="0.5" value="2"><span class="pill" id="rRepV">2.0s</span></div>
           <div class="srow"><label>Voice</label><select id="rVoiceSel"></select></div>
 
-          <label class="tgl" style="margin-top:8px">
-            <input type="checkbox" id="rBeepChk" onchange="rToggleBeepMode()">
-            Directional Beep Mode (no voice for RED / YELLOW / GREEN)
-          </label>
+          <div class="tgl"><input type="checkbox" id="rBeepMode" onchange="rToggleBeepMode()"><span>Directional Beep Mode (no voice for colors)</span></div>
 
-          <div class="btn-row">
-            <button class="btn" onclick="rTestVoice()">🎙 Test</button>
-            <button class="btn act" id="rMuteBtn" onclick="rToggleMute()">🔊 On</button>
+          <div class="row" style="justify-content:flex-start">
+            <button class="btn" onclick="rTestVoice()">TEST</button>
+            <button class="btn act" id="rMuteBtn" onclick="rToggleMute()">ON</button>
           </div>
-          <div class="vstatus" id="rVoiceLine"></div>
+          <div class="vline" id="rVoiceLine">—</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px">
+        <div class="ch"><span>Meta/Quest Fix</span></div>
+        <div class="cb">
+          <div class="status">
+            If it won’t connect on Quest, it’s usually blocked ports. This build tries relays in order, starting with 443.
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="log-c hidden" id="logBox"></div>
-  <canvas id="workCvs" style="display:none"></canvas>
-  <canvas id="workCvs2" style="display:none"></canvas>
-
 <script>
-  const $ = id => document.getElementById(id);
-
-  const vid = $('vid'), rawCvs = $('rawCvs'), procCvs = $('procCvs'), workCvs = $('workCvs'), workCvs2 = $('workCvs2');
-  const rawCtx = rawCvs.getContext('2d'), procCtx = procCvs.getContext('2d');
-  const workCtx = workCvs.getContext('2d', { willReadFrequently: true });
-  const workCtx2 = workCvs2.getContext('2d', { willReadFrequently: true });
-  const distBox = $('distBox'), dirBox = $('dirBox'), videoContainer = $('videoContainer');
-
-  let role = null, roomCode = '', running = false;
-
-  // host voice
-  let muted = false, voices = [];
-  let speechActivePrio = 0;
-
-  // remote voice
-  let rMuted = false, rVoices = [];
-  let rSpeechActivePrio = 0;
-
-  // regions + state (host)
-  let distRegion = null, dirRegion = null;
-  let curState = 'OFF', lastNum = null;
-  let repTimer = null;
-
-  let vidW = 0, vidH = 0;
-  let lastGoodNum = null, lastGoodTime = 0, noDetectCount = 0;
-  let drawMode = 'distance', detectedDir = '', manualDirOverride = '';
-  let recentReadings = []; const MAX_READINGS = 3;
-
-  let RED_MAX = 500, YEL_MAX = 600;
-  let skipYellow = false;
-
-  let isMiddle = false, isGoal = false;
-  let middleAnnounced = false, goalAnnounced = false;
-
-  // hysteresis (host)
-  let stateHistory = [];
-  const HYST_WINDOW = 4;
-
-  // beep mode
-  let beepMode = false;
-  let rBeepMode = false;
-  let beepCtx = null;
-
-  // OCR
-  let ocrReady = false;
-  const DIST_WHITELIST = '0123456789()[]?ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz _-.|';
-  const DIR_WHITELIST  = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz ';
-  let ocrWorkers = [];
-  let ocrWorkerBusy = [false, false];
-  let ocrWorkerReady = [false, false];
-  let ocrFrameCount = 0, ocrFpsLastTime = Date.now(), ocrFps = 0;
-
-  // remote state + repeat
-  let rCurState = 'OFF', rRepTimer = null, rLastDir = '', rLastDist = '';
-  let rMiddleAnnounced = false, rGoalAnnounced = false;
-
-  // remote ordering + clock-skew corrected delay
-  let rLastSeq = 0;
-  let rClockOffset = null;
-
-  // ===== Remote thresholds (local only) =====
-  let rRED_MAX = 500, rYEL_MAX = 600;
-  let rSkipYellow = false;
-  let rStateHistory = [];
-  const rHYST_WINDOW = 4;
-
-  // ===== Background keep-alive + wake lock =====
-  let keepAliveOsc = null;
-  let keepAliveGain = null;
-  let wakeLock = null;
-
-  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
-
-  function ensureBeepCtx() {
-    if (!beepCtx) beepCtx = new (window.AudioContext || window.webkitAudioContext)();
-    if (beepCtx.state === 'suspended') beepCtx.resume().catch(() => {});
-    return beepCtx;
-  }
-
-  function startAudioKeepAlive() {
-    const ctx = ensureBeepCtx();
-    if (keepAliveOsc) return;
-
-    keepAliveOsc = ctx.createOscillator();
-    keepAliveGain = ctx.createGain();
-
-    // Very low gain, very high freq (inaudible for most)
-    keepAliveOsc.type = 'sine';
-    keepAliveOsc.frequency.value = 19000;
-    keepAliveGain.gain.value = 0.000001;
-
-    keepAliveOsc.connect(keepAliveGain);
-    keepAliveGain.connect(ctx.destination);
-
-    try { keepAliveOsc.start(); } catch (e) {}
-  }
-
-  function stopAudioKeepAlive() {
-    try { if (keepAliveOsc) keepAliveOsc.stop(); } catch(e) {}
-    try { if (keepAliveOsc) keepAliveOsc.disconnect(); } catch(e) {}
-    try { if (keepAliveGain) keepAliveGain.disconnect(); } catch(e) {}
-    keepAliveOsc = null;
-    keepAliveGain = null;
-  }
-
-  function updateKeepAlive() {
-    const hostActive = (role === 'host' && running && !muted);
-    const remoteActive = (role === 'remote' && !$('remoteUI').classList.contains('hidden') && !rMuted);
-    if (hostActive || remoteActive) startAudioKeepAlive();
-    else stopAudioKeepAlive();
-  }
-
-  async function requestWakeLockIfNeeded() {
-    try {
-      if (!('wakeLock' in navigator)) return;
-      if (wakeLock) return;
-      wakeLock = await navigator.wakeLock.request('screen');
-      wakeLock.addEventListener('release', () => { wakeLock = null; });
-    } catch (e) {
-      wakeLock = null;
-    }
-  }
-
-  function releaseWakeLock() {
-    try { if (wakeLock) wakeLock.release(); } catch(e) {}
-    wakeLock = null;
-  }
-
-  function updateWakeLock() {
-    const shouldHold =
-      (role === 'host' && running) ||
-      (role === 'remote' && !$('remoteUI').classList.contains('hidden'));
-
-    if (document.hidden) return;
-    if (shouldHold) requestWakeLockIfNeeded();
-    else releaseWakeLock();
-  }
-
-  function resumeTTS() {
-    try { speechSynthesis.resume(); } catch(e) {}
-  }
-
-  document.addEventListener('visibilitychange', () => {
-    resumeTTS();
-    if (!document.hidden) updateWakeLock();
-  });
-  window.addEventListener('focus', resumeTTS);
-
-  // ===== speech unlock (mobile) =====
-  let audioUnlocked = false;
-  function unlockSpeech() {
-    if (audioUnlocked) return;
-    audioUnlocked = true;
-
-    try { ensureBeepCtx(); } catch (e) {}
-
-    // iOS/Safari: must speak during gesture to unlock
-    try {
-      const u = new SpeechSynthesisUtterance(' ');
-      u.volume = 0;
-      speechSynthesis.speak(u);
-      setTimeout(() => { try { speechSynthesis.cancel(); } catch(e) {} }, 50);
-    } catch (e) {}
-  }
-  document.addEventListener('pointerdown', unlockSpeech, { once: true });
-
-  // ===== priority =====
-  function prioForState(state) {
-    if (state === 'GOAL') return 6;
-    if (state === 'MIDDLE') return 5;
-    if (state === 'BALL LOOSE') return 5;
-    if (state === 'RED') return 4;
-    if (state === 'YELLOW') return 3;
-    if (state === 'GREEN') return 2;
-    return 1;
-  }
-
-  // ===== beep mapping =====
-  function dirToPan(dir) {
-    dir = (dir || '').toLowerCase();
-    if (dir === 'left') return -1;
-    if (dir === 'right') return 1;
-    return 0;
-  }
-  function dirToFreq(dir, urgent) {
-    dir = (dir || '').toLowerCase();
-    if (dir === 'above') return 950;
-    if (dir === 'below') return 380;
-    if (dir === 'behind') return 420;
-    if (dir === 'in front') return 720;
-    return urgent ? 820 : 660;
-  }
-
-  function beepIntervalForDistance(n, state, repSeconds, redMax = RED_MAX, yelMax = YEL_MAX, skipY = skipYellow) {
-    const repMult = clamp((repSeconds || 2) / 2, 0.25, 3);
-    if (typeof n !== 'number' || !isFinite(n)) return Math.round(900 * repMult);
-
-    let ms = 1200;
-
-    if (skipY) {
-      if (state === 'RED') {
-        const t = clamp(n / Math.max(1, redMax), 0, 1);
-        ms = 120 + t * 650;
-      } else if (state === 'GREEN') {
-        const span = 900;
-        const t = clamp((n - redMax) / span, 0, 1);
-        ms = 650 + t * 1650;
-      }
-    } else {
-      if (state === 'RED') {
-        const t = clamp(n / Math.max(1, redMax), 0, 1);
-        ms = 120 + t * 650;
-      } else if (state === 'YELLOW') {
-        const span = Math.max(1, yelMax - redMax);
-        const t = clamp((n - redMax) / span, 0, 1);
-        ms = 350 + t * 1150;
-      } else if (state === 'GREEN') {
-        const span = 1100;
-        const t = clamp((n - yelMax) / span, 0, 1);
-        ms = 750 + t * 1750;
-      }
-    }
-
-    ms = ms * repMult;
-    return Math.round(clamp(ms, 90, 3000));
-  }
-
-  function playDirectionalBeep(dir, volume, urgent, lineEl, intervalMs = 600) {
-    if (volume <= 0) return;
-
-    const ctx = ensureBeepCtx();
-    const now = ctx.currentTime;
-
-    const dur = clamp((intervalMs * 0.55) / 1000, 0.06, 0.18);
-    const attack = Math.min(0.012, dur * 0.25);
-    const release = Math.min(0.060, dur * 0.45);
-
-    const osc = ctx.createOscillator();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(dirToFreq(dir, urgent), now);
-
-    const gain = ctx.createGain();
-    const peak = Math.min(1, Math.max(0, volume)) * 0.35;
-    gain.gain.setValueAtTime(0, now);
-    gain.gain.linearRampToValueAtTime(peak, now + attack);
-    gain.gain.linearRampToValueAtTime(0, now + dur + release);
-
-    let outNode = gain;
-    if (ctx.createStereoPanner) {
-      const p = ctx.createStereoPanner();
-      p.pan.setValueAtTime(dirToPan(dir), now);
-      gain.connect(p);
-      outNode = p;
-    }
-
-    osc.connect(gain);
-    outNode.connect(ctx.destination);
-
-    osc.start(now);
-    osc.stop(now + dur + release + 0.02);
-
-    osc.onended = () => {
-      try { osc.disconnect(); } catch(e) {}
-      try { gain.disconnect(); } catch(e) {}
-      try { outNode.disconnect(); } catch(e) {}
-    };
-
-    if (lineEl) {
-      const d = (dir || 'center').toUpperCase();
-      lineEl.textContent = 'BEEP ' + d;
-      lineEl.className = 'vstatus talk';
-      setTimeout(() => {
-        if (lineEl.textContent.startsWith('BEEP')) {
-          lineEl.textContent = '✓';
-          lineEl.className = 'vstatus ok';
-        }
-      }, Math.min(300, intervalMs));
-    }
-  }
-
-  function toggleBeepMode() {
-    beepMode = $('beepChk').checked;
-    unlockSpeech();
-    speechSynthesis.cancel();
-    speechActivePrio = 0;
-    stopRep();
-    startRep();
-    updateKeepAlive();
-  }
-  function rToggleBeepMode() {
-    rBeepMode = $('rBeepChk').checked;
-    unlockSpeech();
-    speechSynthesis.cancel();
-    rSpeechActivePrio = 0;
-    rStopRep();
-    rStartRep();
-    updateKeepAlive();
-  }
-
-  // ===== Host direction UI =====
-  function manualDir(v) { manualDirOverride = v; updateDirDisplay(); }
-  function getActiveDir() { return manualDirOverride || detectedDir; }
-
-  function updateStateDirLine() {
-    const el = $('stateDir');
-    if (!el) return;
-    if (!$('dirChk').checked) { el.textContent = ''; return; }
-    const d = getActiveDir();
-    if (d) el.textContent = 'DIR: ' + d.toUpperCase();
-    else if (dirRegion) el.textContent = 'DIR: SCANNING';
-    else el.textContent = '';
-  }
-
-  function toggleDir() {
-    const on = $('dirChk').checked;
-    $('dirUI').classList.toggle('hidden', !on);
-    if (!on) {
-      dirRegion = null;
-      dirBox.classList.remove('show');
-      detectedDir = '';
-      updateDirDisplay();
-    }
-    updateStateDirLine();
-  }
-
-  function updateDirDisplay() {
-    const d = getActiveDir(), dv = $('dirValue');
-    if (d) {
-      dv.textContent = d.toUpperCase();
-      dv.className = 'dir-value';
-      $('dirCallout').textContent = 'Callout: Red ' + d;
-      $('dirCallout').classList.remove('hidden');
-    } else if (dirRegion) {
-      dv.textContent = 'Scanning...';
-      dv.className = 'dir-value none';
-      $('dirCallout').classList.add('hidden');
-    } else {
-      dv.textContent = 'No direction box set';
-      dv.className = 'dir-value none';
-      $('dirCallout').classList.add('hidden');
-    }
-    updateStateDirLine();
-  }
-
-  // ===== Host thresholds / hysteresis =====
-  function toggleSkipYellow() {
-    skipYellow = $('skipYellowChk').checked;
-    $('yelThrRow').style.display = skipYellow ? 'none' : 'flex';
-    stateHistory = [];
-  }
-
-  function getStateRaw(n) {
-    if (n <= RED_MAX) return 'RED';
-    if (skipYellow) return 'GREEN';
-    if (n <= YEL_MAX) return 'YELLOW';
-    return 'GREEN';
-  }
-
-  function getStateWithHysteresis(n) {
-    const raw = getStateRaw(n);
-    stateHistory.push(raw);
-    if (stateHistory.length > HYST_WINDOW) stateHistory.shift();
-    if (stateHistory.length < 2) return raw;
-
-    if (skipYellow) {
-      let weightRed = 0, weightGreen = 0;
-      for (let i = 0; i < stateHistory.length; i++) {
-        const weight = i + 1;
-        if (stateHistory[i] === 'RED') weightRed += weight; else weightGreen += weight;
-      }
-      const totalWeight = weightRed + weightGreen;
-      const redPct = (weightRed / totalWeight) * 100;
-      if (raw === 'RED' && redPct < 30) return 'GREEN';
-      if (raw === 'GREEN' && redPct > 50) return 'RED';
-      return raw;
-    }
-
-    let wr=0, wy=0, wg=0;
-    for (let i = 0; i < stateHistory.length; i++) {
-      const weight = i + 1;
-      const s = stateHistory[i];
-      if (s === 'RED') wr += weight;
-      else if (s === 'YELLOW') wy += weight;
-      else wg += weight;
-    }
-    const tot = wr + wy + wg;
-    const redPct = tot ? (wr / tot) * 100 : 0;
-    const yelPct = tot ? (wy / tot) * 100 : 0;
-    const grnPct = tot ? (wg / tot) * 100 : 0;
-
-    if (raw === 'RED') {
-      if (redPct < 30 && (yelPct > 60 || grnPct > 60)) return yelPct > grnPct ? 'YELLOW' : 'GREEN';
-      return 'RED';
-    }
-    if (raw === 'YELLOW') {
-      if (redPct > 20) return 'RED';
-      if (grnPct > 60) return 'GREEN';
-      return 'YELLOW';
-    }
-    if (raw === 'GREEN') {
-      if (grnPct < 30 && redPct > 50) return 'RED';
-      if (grnPct < 40 && yelPct > 50) return 'YELLOW';
-      return 'GREEN';
-    }
-    return raw;
-  }
-
-  function getState(n) { return getStateWithHysteresis(n); }
-
-  $('redThrR').oninput = e => {
-    let v = +e.target.value;
-    if (!skipYellow && v >= YEL_MAX) { v = YEL_MAX - 10; e.target.value = v; }
-    RED_MAX = v;
-    $('redThrV').textContent = RED_MAX;
-    stateHistory = [];
-  };
-  $('yelThrR').oninput = e => {
-    let v = +e.target.value;
-    if (v <= RED_MAX) { v = RED_MAX + 10; e.target.value = v; }
-    YEL_MAX = v;
-    $('yelThrV').textContent = YEL_MAX;
-    stateHistory = [];
-  };
-  $('redThrV').textContent = RED_MAX;
-  $('yelThrV').textContent = YEL_MAX;
-
-  // ===== Remote thresholds =====
-  function rUpdateThresholdUI() {
-    $('rRedThrV').textContent = rRED_MAX;
-    $('rYelThrV').textContent = rYEL_MAX;
-    $('rYelThrRow').style.display = rSkipYellow ? 'none' : 'flex';
-  }
-
-  function rToggleSkipYellow() {
-    rSkipYellow = $('rSkipYellowChk').checked;
-    rStateHistory = [];
-    rUpdateThresholdUI();
-    rRecalcAndRenderFromLastDistance();
-  }
-
-  function rGetStateRaw(n) {
-    if (n <= rRED_MAX) return 'RED';
-    if (rSkipYellow) return 'GREEN';
-    if (n <= rYEL_MAX) return 'YELLOW';
-    return 'GREEN';
-  }
-
-  function rGetStateWithHysteresis(n) {
-    const raw = rGetStateRaw(n);
-    rStateHistory.push(raw);
-    if (rStateHistory.length > rHYST_WINDOW) rStateHistory.shift();
-    if (rStateHistory.length < 2) return raw;
-
-    if (rSkipYellow) {
-      let weightRed = 0, weightGreen = 0;
-      for (let i = 0; i < rStateHistory.length; i++) {
-        const weight = i + 1;
-        if (rStateHistory[i] === 'RED') weightRed += weight; else weightGreen += weight;
-      }
-      const totalWeight = weightRed + weightGreen;
-      const redPct = (weightRed / totalWeight) * 100;
-      if (raw === 'RED' && redPct < 30) return 'GREEN';
-      if (raw === 'GREEN' && redPct > 50) return 'RED';
-      return raw;
-    }
-
-    let wr=0, wy=0, wg=0;
-    for (let i = 0; i < rStateHistory.length; i++) {
-      const weight = i + 1;
-      const s = rStateHistory[i];
-      if (s === 'RED') wr += weight;
-      else if (s === 'YELLOW') wy += weight;
-      else wg += weight;
-    }
-    const tot = wr + wy + wg;
-    const redPct = tot ? (wr / tot) * 100 : 0;
-    const yelPct = tot ? (wy / tot) * 100 : 0;
-    const grnPct = tot ? (wg / tot) * 100 : 0;
-
-    if (raw === 'RED') {
-      if (redPct < 30 && (yelPct > 60 || grnPct > 60)) return yelPct > grnPct ? 'YELLOW' : 'GREEN';
-      return 'RED';
-    }
-    if (raw === 'YELLOW') {
-      if (redPct > 20) return 'RED';
-      if (grnPct > 60) return 'GREEN';
-      return 'YELLOW';
-    }
-    if (raw === 'GREEN') {
-      if (grnPct < 30 && redPct > 50) return 'RED';
-      if (grnPct < 40 && yelPct > 50) return 'YELLOW';
-      return 'GREEN';
-    }
-    return raw;
-  }
-
-  function rGetState(n) { return rGetStateWithHysteresis(n); }
-
-  function rRecalcAndRenderFromLastDistance() {
-    const n = (typeof rLastDist === 'number') ? rLastDist : parseInt(rLastDist, 10);
-    if (!isFinite(n)) return;
-    // Use last direction and "pretend" incoming state is color so we recalc effectiveState
-    handleRemoteState({ state: 'GREEN', dist: n, dir: rLastDir });
-  }
-
-  $('rRedThrR').oninput = e => {
-    let v = +e.target.value;
-    if (!rSkipYellow && v >= rYEL_MAX) { v = rYEL_MAX - 10; e.target.value = v; }
-    rRED_MAX = v;
-    rStateHistory = [];
-    rUpdateThresholdUI();
-    rRecalcAndRenderFromLastDistance();
-  };
-  $('rYelThrR').oninput = e => {
-    let v = +e.target.value;
-    if (v <= rRED_MAX) { v = rRED_MAX + 10; e.target.value = v; }
-    rYEL_MAX = v;
-    rStateHistory = [];
-    rUpdateThresholdUI();
-    rRecalcAndRenderFromLastDistance();
-  };
-  rUpdateThresholdUI();
-
-  // ===== Voice loading =====
-  function loadVoices() {
-    voices = speechSynthesis.getVoices();
-    if (!voices.length) return;
-    const s = $('voiceSel');
-    s.innerHTML = '';
-    let best = 0;
-    voices.forEach((v, i) => {
-      const o = document.createElement('option');
-      o.value = i;
-      o.textContent = v.name.slice(0, 30) + ' (' + v.lang + ')';
-      s.appendChild(o);
-      if (/Google US|David|Samantha|Daniel/i.test(v.name)) best = i;
-    });
-    s.value = best;
-  }
-  function rLoadVoices() {
-    const all = speechSynthesis.getVoices();
-    if (!all.length) return;
-    rVoices = all;
-    const s = $('rVoiceSel'); if (!s) return;
-    s.innerHTML = '';
-    let best = 0;
-    rVoices.forEach((v, i) => {
-      const o = document.createElement('option');
-      o.value = i;
-      o.textContent = v.name.slice(0, 30) + ' (' + v.lang + ')';
-      s.appendChild(o);
-      if (/Google US|David|Samantha|Daniel/i.test(v.name)) best = i;
-    });
-    s.value = best;
-  }
-  speechSynthesis.onvoiceschanged = () => { loadVoices(); rLoadVoices(); };
-  setTimeout(() => { loadVoices(); rLoadVoices(); }, 300);
-
-  // ===== Host speak (doesn't cut off RED) =====
-  function speak(text, urgent = false, prio = 1) {
-    if (muted || !voices.length) return;
-    if (!text) return;
-
-    resumeTTS();
-
-    const synth = speechSynthesis;
-    if ((synth.speaking || synth.pending) && prio <= speechActivePrio) return;
-
-    if (synth.speaking || synth.pending) synth.cancel();
-    speechActivePrio = prio;
-
-    const u = new SpeechSynthesisUtterance(text);
-    u.volume = +$('volR').value;
-    u.rate = +$('spdR').value;
-    u.pitch = urgent ? 1.15 : 1;
-    const v = voices[+$('voiceSel').value];
-    if (v) u.voice = v;
-
-    u.onstart = () => { $('voiceLine').textContent = '🔊 ' + text; $('voiceLine').className = 'vstatus talk'; };
-    u.onend = () => { $('voiceLine').textContent = '✓'; $('voiceLine').className = 'vstatus ok'; speechActivePrio = 0; };
-    u.onerror = () => { $('voiceLine').textContent = '⚠'; $('voiceLine').className = 'vstatus err'; speechActivePrio = 0; };
-
-    synth.speak(u);
-  }
-
-  function testVoice() {
-    unlockSpeech();
-    speechSynthesis.cancel();
-    speechActivePrio = 0;
-    speak('Red behind. Yellow. Green. Ball loose. Ball is in the middle. Goal is scored.', false, 10);
-  }
-
-  function toggleMute() {
-    muted = !muted;
-    $('muteBtn').textContent = muted ? '🔇 Off' : '🔊 On';
-    $('muteBtn').classList.toggle('act', !muted);
-    if (muted) { speechSynthesis.cancel(); speechActivePrio = 0; stopRep(); }
-    else startRep();
-    updateKeepAlive();
-  }
-
-  function getPhrase(state) {
-    if (state === 'BALL LOOSE') return 'Ball loose';
-    if (beepMode && (state === 'RED' || state === 'YELLOW' || state === 'GREEN')) return '';
-    if (state === 'RED') {
-      const d = getActiveDir();
-      if ($('dirChk').checked && d) return 'Red ' + d;
-      return 'Red';
-    }
-    if (state === 'YELLOW') return 'Yellow';
-    if (state === 'GREEN') return 'Green';
-    return '';
-  }
-
-  // ===== Remote speak =====
-  function rSpeak(text, urgent, prio = 1) {
-    if (rMuted) return;
-    if (!text) return;
-
-    resumeTTS();
-
-    const synth = speechSynthesis;
-    if ((synth.speaking || synth.pending) && prio <= rSpeechActivePrio) return;
-
-    if (synth.speaking || synth.pending) synth.cancel();
-    rSpeechActivePrio = prio;
-
-    const u = new SpeechSynthesisUtterance(text);
-    u.volume = +$('rVolR').value;
-    u.rate = +$('rSpdR').value;
-    u.pitch = urgent ? 1.15 : 1;
-    if (rVoices.length) {
-      const v = rVoices[+$('rVoiceSel').value];
-      if (v) u.voice = v;
-    }
-
-    u.onstart = () => { $('rVoiceLine').textContent = '🔊 ' + text; $('rVoiceLine').className = 'vstatus talk'; };
-    u.onend = () => { $('rVoiceLine').textContent = '✓ ' + text; $('rVoiceLine').className = 'vstatus ok'; rSpeechActivePrio = 0; };
-    u.onerror = () => { $('rVoiceLine').textContent = '⚠'; $('rVoiceLine').className = 'vstatus err'; rSpeechActivePrio = 0; };
-
-    synth.speak(u);
-  }
-
-  function rGetPhrase(s, d) {
-    if (s === 'BALL LOOSE') return 'Ball loose';
-    if (rBeepMode && (s === 'RED' || s === 'YELLOW' || s === 'GREEN')) return '';
-    if (s === 'RED') return d ? 'Red ' + d : 'Red';
-    if (s === 'YELLOW') return 'Yellow';
-    if (s === 'GREEN') return 'Green';
-    return '';
-  }
-
-  function rTestVoice() {
-    unlockSpeech();
-    speechSynthesis.cancel();
-    rSpeechActivePrio = 0;
-    rSpeak('Red behind. Yellow. Green. Ball loose. Ball is in the middle. Goal is scored.', false, 10);
-  }
-
-  function rToggleMute() {
-    rMuted = !rMuted;
-    $('rMuteBtn').textContent = rMuted ? '🔇 Off' : '🔊 On';
-    $('rMuteBtn').classList.toggle('act', !rMuted);
-    if (rMuted) { speechSynthesis.cancel(); rSpeechActivePrio = 0; rStopRep(); }
-    else rStartRep();
-    updateKeepAlive();
-  }
-
-  // ===== Repeat loops =====
-  function startRep() {
-    stopRep();
-    if (muted || curState === 'OFF' || curState === 'MIDDLE' || curState === 'GOAL') return;
-
-    const tick = () => {
-      if (muted) { stopRep(); return; }
-      if (curState === 'OFF' || curState === 'MIDDLE' || curState === 'GOAL') { stopRep(); return; }
-
-      if (beepMode) {
-        if (curState === 'RED' || curState === 'YELLOW' || curState === 'GREEN') {
-          const dir = $('dirChk').checked ? getActiveDir() : '';
-          const urgent = (curState === 'RED');
-          const ms = beepIntervalForDistance(lastNum, curState, +$('repR').value, RED_MAX, YEL_MAX, skipYellow);
-          playDirectionalBeep(dir, +$('volR').value, urgent, $('voiceLine'), ms);
-          repTimer = setTimeout(tick, ms);
-          return;
-        }
-        const ms = Math.round(+$('repR').value * 1000);
-        repTimer = setTimeout(tick, ms);
-        return;
-      }
-
-      const phrase = getPhrase(curState);
-      if (phrase) speak(phrase, curState === 'RED', prioForState(curState));
-      const ms = Math.round(+$('repR').value * 1000);
-      repTimer = setTimeout(tick, ms);
-    };
-
-    repTimer = setTimeout(tick, 250);
-  }
-
-  function stopRep() { if (repTimer) { clearTimeout(repTimer); repTimer = null; } }
-  function restartRep() { startRep(); }
-
-  function rStartRep() {
-    rStopRep();
-    if (rMuted || rCurState === 'OFF' || rCurState === 'MIDDLE' || rCurState === 'GOAL') return;
-
-    const tick = () => {
-      if (rMuted) { rStopRep(); return; }
-      if (rCurState === 'OFF' || rCurState === 'MIDDLE' || rCurState === 'GOAL') { rStopRep(); return; }
-
-      const n = (typeof rLastDist === 'number') ? rLastDist : parseInt(rLastDist, 10);
-
-      if (rBeepMode) {
-        if (rCurState === 'RED' || rCurState === 'YELLOW' || rCurState === 'GREEN') {
-          const ms = beepIntervalForDistance(isFinite(n) ? n : null, rCurState, +$('rRepR').value, rRED_MAX, rYEL_MAX, rSkipYellow);
-          playDirectionalBeep(rLastDir || '', +$('rVolR').value, rCurState === 'RED', $('rVoiceLine'), ms);
-          rRepTimer = setTimeout(tick, ms);
-          return;
-        }
-        const ms = Math.round(+$('rRepR').value * 1000);
-        rRepTimer = setTimeout(tick, ms);
-        return;
-      }
-
-      const p = rGetPhrase(rCurState, rLastDir);
-      if (p) rSpeak(p, rCurState === 'RED', prioForState(rCurState));
-      const ms = Math.round(+$('rRepR').value * 1000);
-      rRepTimer = setTimeout(tick, ms);
-    };
-
-    rRepTimer = setTimeout(tick, 250);
-  }
-
-  function rStopRep() { if (rRepTimer) { clearTimeout(rRepTimer); rRepTimer = null; } }
-
-  // ===== Sliders =====
-  $('volR').oninput = e => $('volV').textContent = Math.round(e.target.value * 100) + '%';
-  $('spdR').oninput = e => $('spdV').textContent = (+e.target.value).toFixed(1) + 'x';
-  $('repR').oninput = e => $('repV').textContent = (+e.target.value).toFixed(1) + 's';
-  $('thrR').oninput = e => $('thrV').textContent = e.target.value;
-  $('sclR').oninput = e => $('sclV').textContent = e.target.value + 'x';
-
-  $('rVolR').oninput = e => $('rVolV').textContent = Math.round(e.target.value * 100) + '%';
-  $('rSpdR').oninput = e => $('rSpdV').textContent = (+e.target.value).toFixed(1) + 'x';
-  $('rRepR').oninput = e => { $('rRepV').textContent = (+e.target.value).toFixed(1) + 's'; rStartRep(); };
-
-  // ===== Logger =====
-  function log(msg, t = '') {
-    const ts = new Date().toLocaleTimeString();
-    const c = t === 'g' ? 'lg' : t === 'e' ? 'le' : t === 'w' ? 'lw' : '';
-    $('logBox').innerHTML = `<div class="${c}">${ts} ${msg}</div>` + $('logBox').innerHTML;
-  }
-
-  // ===== MQTT =====
-  let mqttWs = null, mqttConnected = false, mqttReconnectTimer = null;
-  let mqttClientId = 'orion-' + Math.random().toString(36).substr(2, 9);
-  let mqttPingInterval = null;
-
-  function mqttConnect(onConnect, onMessage) {
-    if (mqttWs) { try { mqttWs.close(); } catch (e) {} }
-    mqttConnected = false;
-
-    const url = 'wss://broker.hivemq.com:8884/mqtt';
-    try {
-      mqttWs = new WebSocket(url, 'mqtt');
-      mqttWs.binaryType = 'arraybuffer';
-    } catch (e) {
-      scheduleReconnect(onConnect, onMessage);
+/* =========================================================
+   META/QUEST RELAY FIX: Multi-endpoint MQTT-over-WebSocket
+   ========================================================= */
+
+const MQTT_ENDPOINTS = [
+  // 443-first (best chance on Quest + restrictive WiFi)
+  { name: "Eclipse 443", url: "wss://mqtt.eclipseprojects.io:443/mqtt", proto: "mqtt" },
+  { name: "Eclipse",     url: "wss://mqtt.eclipseprojects.io/mqtt",     proto: "mqtt" },
+  // common public brokers (often blocked on some networks due to port)
+  { name: "HiveMQ",      url: "wss://broker.hivemq.com:8884/mqtt",      proto: "mqtt" },
+  { name: "EMQX",        url: "wss://broker.emqx.io:8084/mqtt",         proto: "mqtt" }
+];
+
+let mqttWs = null;
+let mqttConnected = false;
+let mqttEndpointIndex = 0;
+let mqttConnectTimer = null;
+let mqttConnAckTimer = null;
+let mqttReconnectTimer = null;
+let mqttPingInterval = null;
+
+let mqttClientId = "orion-" + Math.random().toString(36).slice(2, 10);
+let roomCode = "";
+let role = null;
+
+function setRelayUI(text, cls) {
+  const hostEl = document.getElementById("hostRelayStatus");
+  const relayPill = document.getElementById("relayPill");
+  const remoteRelayStatus = document.getElementById("remoteRelayStatus");
+  const remoteRelayPill = document.getElementById("remoteRelayPill");
+  if (hostEl) { hostEl.textContent = text; hostEl.className = "status " + (cls||""); }
+  if (remoteRelayStatus) { remoteRelayStatus.textContent = text; remoteRelayStatus.className = "status " + (cls||""); }
+  if (relayPill) relayPill.textContent = text.replace("Relay: ","");
+  if (remoteRelayPill) remoteRelayPill.textContent = text.replace("Relay: ","");
+}
+
+function mqttClose() {
+  try { if (mqttWs) mqttWs.close(); } catch(e){}
+  mqttWs = null;
+  mqttConnected = false;
+  if (mqttPingInterval) { clearInterval(mqttPingInterval); mqttPingInterval = null; }
+  if (mqttConnAckTimer) { clearTimeout(mqttConnAckTimer); mqttConnAckTimer = null; }
+}
+
+function scheduleReconnect() {
+  if (mqttReconnectTimer) return;
+  mqttReconnectTimer = setTimeout(() => {
+    mqttReconnectTimer = null;
+    mqttConnect(); // continue fallback cycle
+  }, 1500);
+}
+
+// Minimal MQTT framing helpers
+function mqttEncodeRemainingLength(len) {
+  const out = [];
+  do {
+    let digit = len % 128;
+    len = Math.floor(len / 128);
+    if (len > 0) digit = digit | 0x80;
+    out.push(digit);
+  } while (len > 0);
+  return out;
+}
+
+function mqttConnect() {
+  mqttClose();
+  mqttConnected = false;
+
+  const ep = MQTT_ENDPOINTS[mqttEndpointIndex % MQTT_ENDPOINTS.length];
+  const url = ep.url;
+  setRelayUI(`Relay: connecting (${ep.name})…`, "warn");
+
+  let ws;
+  try {
+    ws = new WebSocket(url, ep.proto ? ep.proto : undefined);
+  } catch (e) {
+    try { ws = new WebSocket(url); }
+    catch (e2) {
+      mqttEndpointIndex++;
+      setRelayUI(`Relay: blocked (${ep.name}), trying next…`, "bad");
+      scheduleReconnect();
       return;
     }
-
-    mqttWs.onopen = () => {
-      const cid = mqttClientId, cl = cid.length, rl = 10 + 2 + cl;
-      const p = new Uint8Array(2 + rl);
-      let i = 0;
-      p[i++]=0x10;p[i++]=rl;p[i++]=0;p[i++]=4;p[i++]=77;p[i++]=81;p[i++]=84;p[i++]=84;
-      p[i++]=4;p[i++]=2;p[i++]=0;p[i++]=60;p[i++]=(cl>>8)&0xFF;p[i++]=cl&0xFF;
-      for(let c=0;c<cl;c++)p[i++]=cid.charCodeAt(c);
-      mqttWs.send(p.buffer);
-    };
-
-    mqttWs.onmessage = evt => {
-      const d = new Uint8Array(evt.data);
-      if(!d.length)return;
-      const t = d[0] >> 4;
-
-      if (t === 2) {
-        mqttConnected = true;
-        if (mqttPingInterval) clearInterval(mqttPingInterval);
-        mqttPingInterval = setInterval(() => {
-          if (mqttWs && mqttWs.readyState === 1) mqttWs.send(new Uint8Array([0xC0, 0]).buffer);
-        }, 25000);
-        if (onConnect) onConnect();
-      } else if (t === 3) {
-        let idx=1,r=0,m=1;
-        do{const b=d[idx++];r+=(b&127)*m;m*=128;if(!(b&128))break;}while(idx<d.length);
-        const tl=(d[idx]<<8)|d[idx+1];idx+=2;idx+=tl;
-        const pl=new TextDecoder().decode(d.slice(idx));
-        if(onMessage)onMessage(pl);
-      }
-    };
-
-    mqttWs.onclose = () => {
-      mqttConnected=false;
-      if(mqttPingInterval){clearInterval(mqttPingInterval);mqttPingInterval=null;}
-      scheduleReconnect(onConnect,onMessage);
-    };
   }
+  mqttWs = ws;
+  mqttWs.binaryType = "arraybuffer";
 
-  function scheduleReconnect(a, b) {
-    if (mqttReconnectTimer) return;
-    mqttReconnectTimer = setTimeout(() => {
-      mqttReconnectTimer = null;
-      mqttConnect(a, b);
-    }, 2000);
-  }
+  // timeout if no open/connack
+  if (mqttConnectTimer) clearTimeout(mqttConnectTimer);
+  mqttConnectTimer = setTimeout(() => {
+    mqttConnectTimer = null;
+    setRelayUI(`Relay: timeout (${ep.name}), trying next…`, "bad");
+    mqttEndpointIndex++;
+    mqttClose();
+    scheduleReconnect();
+  }, 6000);
 
-  function mqttSubscribe(topic) {
-    if (!mqttWs || !mqttConnected) return;
-    const tb=new TextEncoder().encode(topic),tl=tb.length,rl=2+2+tl+1;
-    const p=new Uint8Array(2+rl);let i=0;
-    p[i++]=0x82;p[i++]=rl;p[i++]=0;p[i++]=1;p[i++]=(tl>>8)&0xFF;p[i++]=tl&0xFF;
-    for(let c=0;c<tl;c++)p[i++]=tb[c];p[i++]=0;
-    mqttWs.send(p.buffer);
-  }
+  mqttWs.onopen = () => {
+    if (mqttConnectTimer) { clearTimeout(mqttConnectTimer); mqttConnectTimer = null; }
 
-  function mqttPublish(topic, payload) {
-    if (!mqttWs || !mqttConnected) return;
-    const tb=new TextEncoder().encode(topic),pb=new TextEncoder().encode(payload),tl=tb.length,pl=pb.length,rl=2+tl+pl;
-    const rb=[];let r=rl;do{let b=r%128;r=Math.floor(r/128);if(r>0)b|=128;rb.push(b);}while(r>0);
-    const p=new Uint8Array(1+rb.length+2+tl+pl);let i=0;
-    p[i++]=0x30;for(const b of rb)p[i++]=b;p[i++]=(tl>>8)&0xFF;p[i++]=tl&0xFF;
-    for(let c=0;c<tl;c++)p[i++]=tb[c];for(let c=0;c<pl;c++)p[i++]=pb[c];
-    mqttWs.send(p.buffer);
-  }
+    // CONNECT packet
+    const cid = mqttClientId;
+    const cl = cid.length;
+    const rl = 10 + 2 + cl; // variable header (10) + payload (2 + clientId)
+    const packet = new Uint8Array(2 + rl);
+    let i = 0;
+    packet[i++] = 0x10;     // CONNECT
+    packet[i++] = rl;
 
-  function getMqttTopic(code) { return 'orion/room/' + code.toLowerCase(); }
+    // protocol name "MQTT"
+    packet[i++] = 0x00; packet[i++] = 0x04;
+    packet[i++] = 0x4D; packet[i++] = 0x51; packet[i++] = 0x54; packet[i++] = 0x54;
+    packet[i++] = 0x04;     // protocol level 4
+    packet[i++] = 0x02;     // clean session
+    packet[i++] = 0x00; packet[i++] = 60; // keepalive 60s
 
-  // ===== Local BroadcastChannel =====
-  let bc = null;
-  function initLocalBroadcast(code) {
-    try { bc = new BroadcastChannel('orion-room-' + code); } catch (e) {}
-    return bc;
-  }
+    packet[i++] = (cl >> 8) & 0xff;
+    packet[i++] = cl & 0xff;
+    for (let c = 0; c < cl; c++) packet[i++] = cid.charCodeAt(c);
 
-  // ===== Network throttling + sequencing =====
-  let netSeq = 0;
-  let lastNetSend = 0;
-  let lastNetSent = { s: '', d: null, r: '' };
-  const NET_MIN_MS = 200;
-  const NET_HEARTBEAT_MS = 1200;
+    mqttWs.send(packet.buffer);
 
-  function normDistForNet(d) {
-    if (typeof d === 'number' && isFinite(d)) return Math.round(d / 5) * 5;
-    return d;
-  }
+    // Must receive CONNACK soon
+    mqttConnAckTimer = setTimeout(() => {
+      mqttConnAckTimer = null;
+      setRelayUI(`Relay: no CONNACK (${ep.name}), trying next…`, "bad");
+      mqttEndpointIndex++;
+      mqttClose();
+      scheduleReconnect();
+    }, 4000);
+  };
 
-  function broadcastState(state, dist, dir) {
-    const now = Date.now();
-    const dQ = normDistForNet(dist);
-    const r = dir || '';
+  mqttWs.onmessage = (evt) => {
+    const data = new Uint8Array(evt.data);
+    if (!data.length) return;
 
-    const changed = (state !== lastNetSent.s || dQ !== lastNetSent.d || r !== lastNetSent.r);
-    const minGap = changed ? NET_MIN_MS : NET_HEARTBEAT_MS;
-    if (now - lastNetSend < minGap) return;
+    const type = data[0] >> 4;
 
-    lastNetSend = now;
-    lastNetSent = { s: state, d: dQ, r };
+    // CONNACK
+    if (type === 2) {
+      if (mqttConnAckTimer) { clearTimeout(mqttConnAckTimer); mqttConnAckTimer = null; }
+      mqttConnected = true;
+      setRelayUI(`Relay: connected (${ep.name})`, "ok");
 
-    const q = ++netSeq;
-    const payload = JSON.stringify({ s: state, d: dQ, r, t: now, q });
+      if (mqttPingInterval) clearInterval(mqttPingInterval);
+      mqttPingInterval = setInterval(() => {
+        if (mqttWs && mqttWs.readyState === 1) mqttWs.send(new Uint8Array([0xC0, 0x00]).buffer); // PINGREQ
+      }, 25000);
 
-    if (mqttConnected) mqttPublish(getMqttTopic(roomCode), payload);
-    if (bc) { try { bc.postMessage({ s: state, d: dQ, r, t: now, q }); } catch (e) {} }
-  }
+      // subscribe to room topic
+      mqttSubscribe(getTopic(roomCode));
 
-  // ===== Roles / rooms =====
-  function genRoom() {
-    const c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let r = '';
-    for (let i = 0; i < 5; i++) r += c[Math.floor(Math.random() * c.length)];
-    return r;
-  }
-
-  function chooseRole(r) {
-    role = r;
-    $('overlay').classList.add('hidden');
-
-    if (r === 'host') {
-      roomCode = genRoom();
-      $('hostRoomCode').textContent = roomCode;
-      $('hostRoomCodeSmall').textContent = roomCode;
-
-      $('hostSetup').classList.remove('hidden');
-      initLocalBroadcast(roomCode);
-
-      mqttConnect(() => {
-        $('hostServerStatus').textContent = '✓ Connected';
-        $('hostServerStatus').className = 'server-status ok';
-        mqttSubscribe(getMqttTopic(roomCode));
-      }, () => {});
-    } else {
-      $('remoteSetup').classList.remove('hidden');
-      $('remoteServerStatus').textContent = 'Ready';
-      $('remoteServerStatus').className = 'server-status ok';
-      rLoadVoices();
-    }
-
-    updateWakeLock();
-    updateKeepAlive();
-  }
-
-  function joinRoom() {
-    unlockSpeech();
-
-    const code = $('remoteRoomInput').value.trim().toUpperCase();
-    if (code.length < 3) { alert('Enter room code'); return; }
-
-    roomCode = code;
-    $('remoteRoomDisplay').textContent = code;
-    $('remoteSetup').classList.add('hidden');
-    $('remoteUI').classList.remove('hidden');
-
-    $('connStatus').textContent = 'Connecting...';
-    $('connStatus').className = 'conn-status waiting';
-
-    rLastSeq = 0;
-    rClockOffset = null;
-
-    mqttConnect(() => {
-      mqttSubscribe(getMqttTopic(code));
-      $('connStatus').textContent = '✓ Waiting for host...';
-      $('connStatus').className = 'conn-status waiting';
-      $('remotePill').className = 'pill live';
-      $('remotePillTxt').textContent = 'CONNECTED';
-    }, (msg) => {
-      try {
-        const d = JSON.parse(msg);
-        if (d.s === undefined) return;
-
-        if (typeof d.q === 'number') {
-          if (d.q <= rLastSeq) return;
-          rLastSeq = d.q;
-        }
-
-        if (typeof d.t === 'number') {
-          if (rClockOffset === null) rClockOffset = Date.now() - d.t;
-          const age = Date.now() - (d.t + rClockOffset);
-          const l = Math.max(0, Math.round(age));
-          const c = l < 120 ? '' : l > 800 ? 'bad' : 'slow';
-          $('latencyDisplay').innerHTML = 'Delay: <b class="' + c + '">' + l + 'ms</b>';
-        }
-
-        if (!$('connStatus').classList.contains('connected')) {
-          $('connStatus').textContent = '✓ LIVE';
-          $('connStatus').className = 'conn-status connected';
-          $('remotePill').className = 'pill live';
-          $('remotePillTxt').textContent = 'LIVE';
-        }
-
-        handleRemoteState({ state: d.s, dist: d.d, dir: d.r });
-      } catch (e) {}
-    });
-
-    const lbc = initLocalBroadcast(code);
-    if (lbc) {
-      lbc.onmessage = e => {
-        const d = e.data;
-        if (!d || d.s === undefined) return;
-        if (typeof d.q === 'number') {
-          if (d.q <= rLastSeq) return;
-          rLastSeq = d.q;
-        }
-        handleRemoteState({ state: d.s, dist: d.d, dir: d.r });
-      };
-    }
-
-    rLoadVoices();
-
-    updateWakeLock();
-    updateKeepAlive();
-  }
-
-  // ===== Remote render =====
-  function handleRemoteState(data) {
-    const { state: rawState, dist, dir } = data;
-
-    rLastDir = dir || '';
-    rLastDist = dist || '';
-
-    let effectiveState = rawState;
-    const n = (typeof dist === 'number') ? dist : parseInt(dist, 10);
-
-    if ((rawState === 'RED' || rawState === 'YELLOW' || rawState === 'GREEN') && isFinite(n)) {
-      effectiveState = rGetState(n);
-    } else {
-      rStateHistory = [];
-    }
-
-    const hero = $('remoteHero'), stEl = $('remoteState'), distEl = $('remoteDist'), dirEl = $('remoteDir'), timeEl = $('remoteTime');
-    hero.className = 'remote-hero';
-
-    if (effectiveState === 'MIDDLE') {
-      hero.classList.add('purple');
-      stEl.textContent = '⚽ MIDDLE';
-      stEl.className = 'remote-state purple';
-      distEl.textContent = 'Ball in middle';
-    } else if (effectiveState === 'GOAL') {
-      hero.classList.add('orange');
-      stEl.textContent = '🥅 GOAL';
-      stEl.className = 'remote-state orange';
-      distEl.textContent = 'Goal scored!';
-    } else if (effectiveState === 'BALL LOOSE') {
-      hero.classList.add('red');
-      stEl.textContent = 'BALL LOOSE';
-      stEl.className = 'remote-state loose';
-      distEl.textContent = '? — No Lock';
-    } else if (effectiveState === 'RED') {
-      hero.classList.add('red');
-      stEl.textContent = 'RED';
-      stEl.className = 'remote-state red';
-      distEl.textContent = dist;
-    } else if (effectiveState === 'YELLOW') {
-      hero.classList.add('yellow');
-      stEl.textContent = 'YELLOW';
-      stEl.className = 'remote-state yellow';
-      distEl.textContent = dist;
-    } else if (effectiveState === 'GREEN') {
-      hero.classList.add('green');
-      stEl.textContent = 'GREEN';
-      stEl.className = 'remote-state green';
-      distEl.textContent = dist;
-    } else {
-      stEl.textContent = 'WAITING';
-      stEl.className = 'remote-state off';
-      distEl.textContent = '—';
-    }
-
-    dirEl.textContent = dir ? ('↗ ' + dir.toUpperCase()) : '';
-    timeEl.textContent = 'Updated: ' + new Date().toLocaleTimeString();
-
-    if (effectiveState !== rCurState) {
-      rCurState = effectiveState;
-
-      if (effectiveState === 'MIDDLE') {
-        if (!rMiddleAnnounced) { rSpeak('Ball is in the middle', false, prioForState('MIDDLE')); rMiddleAnnounced = true; }
-        rGoalAnnounced = false;
-        rStopRep();
-      } else if (effectiveState === 'GOAL') {
-        if (!rGoalAnnounced) { rSpeak('Goal is scored', true, prioForState('GOAL')); rGoalAnnounced = true; }
-        rMiddleAnnounced = false;
-        rStopRep();
-      } else {
-        rMiddleAnnounced = false;
-        rGoalAnnounced = false;
-
-        if (rBeepMode) {
-          if (effectiveState === 'RED' || effectiveState === 'YELLOW' || effectiveState === 'GREEN') {
-            const ms = beepIntervalForDistance(isFinite(n) ? n : null, effectiveState, +$('rRepR').value, rRED_MAX, rYEL_MAX, rSkipYellow);
-            playDirectionalBeep(dir || '', +$('rVolR').value, effectiveState === 'RED', $('rVoiceLine'), ms);
-          }
-        } else {
-          const phrase = rGetPhrase(effectiveState, dir);
-          if (phrase) rSpeak(phrase, effectiveState === 'RED', prioForState(effectiveState));
-        }
-
-        rStartRep();
-      }
-    }
-  }
-
-  // ===== Host apply state =====
-  function applyState(state, dist) {
-    const dir = getActiveDir();
-    broadcastState(state, dist, $('dirChk').checked ? dir : '');
-    updateStateDirLine();
-
-    const sl = (state || '').toLowerCase();
-    $('stateBox').className = 'state-hero ' + (sl === 'ball loose' ? 'red' : sl);
-    $('stateVal').className = 'st-big ' + (sl === 'ball loose' ? 'loose' : sl);
-    $('stateVal').textContent = state;
-    $('stateDist').textContent = String(dist);
-
-    if (beepMode) return;
-
-    // speak on state changes only
-    if (state !== curState) {
-      curState = state;
-      const p = getPhrase(state);
-      if (p) speak(p, state === 'RED', prioForState(state));
-      startRep();
-    }
-  }
-
-  // ===== OCR + capture setup (minimal for background/voice requirement) =====
-  // NOTE: Your existing OCR pipeline is large; this file focuses on requested UI/voice/network features.
-  // If you need the full OCR pipeline exactly as before, tell me and I will merge it 1:1 into this file.
-
-  // ===== Screen share starter (keeps wake lock + keepAlive) =====
-  $('startBtn').onclick = async () => {
-    try {
-      unlockSpeech();
-
-      const stream = await navigator.mediaDevices.getDisplayMedia({ video: { cursor: 'never' }, audio: false });
-      vid.srcObject = stream;
-      await vid.play();
-      await new Promise(r => vid.readyState >= 1 ? r() : vid.onloadedmetadata = r);
-
-      vidW = vid.videoWidth;
-      vidH = vid.videoHeight;
-      $('resLabel').textContent = vidW + '×' + vidH;
-      videoContainer.style.aspectRatio = `${vidW}/${vidH}`;
-
-      stream.getVideoTracks()[0].onended = () => {
-        running = false;
-        $('hostSetup').classList.remove('hidden');
-        $('navbar').classList.add('hidden');
-        $('mainUI').classList.add('hidden');
-        $('logBox').classList.add('hidden');
-        $('navPill').className = 'pill off';
-        $('pillTxt').textContent = 'OFFLINE';
-        curState = 'OFF';
-        stopRep();
-        releaseWakeLock();
-        stopAudioKeepAlive();
-      };
-
-      running = true;
-      $('hostSetup').classList.add('hidden');
-      $('navbar').classList.remove('hidden');
-      $('mainUI').classList.remove('hidden');
-      $('logBox').classList.remove('hidden');
-      $('navPill').className = 'pill live';
-      $('pillTxt').textContent = 'LIVE';
-
+      // ensure background helpers
       updateWakeLock();
       updateKeepAlive();
 
-      speak('Screen shared.', false, 1);
+      return;
+    }
 
-      // If you want OCR enabled, paste your OCR init/pipeline here.
-      log('Screen capture started (OCR not included in this minimal merge).', 'w');
-    } catch (e) {
-      log('Error: ' + e.message, 'e');
+    // PUBLISH
+    if (type === 3) {
+      let idx = 1;
+      // remaining length (var int)
+      let mul = 1, rem = 0, enc;
+      do {
+        enc = data[idx++];
+        rem += (enc & 127) * mul;
+        mul *= 128;
+      } while ((enc & 128) !== 0 && idx < data.length);
+
+      const topicLen = (data[idx] << 8) | data[idx + 1];
+      idx += 2;
+      const topic = new TextDecoder().decode(data.slice(idx, idx + topicLen));
+      idx += topicLen;
+
+      // payload is rest (QoS 0)
+      const payload = new TextDecoder().decode(data.slice(idx));
+      onRelayMessage(topic, payload);
+      return;
     }
   };
 
-  // ===== Background-friendly safety resumes =====
-  setInterval(() => {
-    resumeTTS();
-    updateKeepAlive();
-  }, 2000);
+  mqttWs.onerror = () => {
+    // often happens on Quest when port blocked
+    setRelayUI(`Relay: error (${ep.name}), trying next…`, "bad");
+  };
 
-  log('ORION ready');
+  mqttWs.onclose = () => {
+    mqttConnected = false;
+    if (mqttConnAckTimer) { clearTimeout(mqttConnAckTimer); mqttConnAckTimer = null; }
+    if (mqttPingInterval) { clearInterval(mqttPingInterval); mqttPingInterval = null; }
+
+    // Try next endpoint if we never connected OR if we got disconnected
+    mqttEndpointIndex++;
+    setRelayUI(`Relay: disconnected, retrying…`, "warn");
+    scheduleReconnect();
+  };
+}
+
+function mqttSubscribe(topic) {
+  if (!mqttWs || mqttWs.readyState !== 1) return;
+  const tb = new TextEncoder().encode(topic);
+  const tl = tb.length;
+
+  // SUBSCRIBE QoS0: fixed header 0x82, remaining length = 2(msgid)+2+tl+1
+  const rl = 2 + 2 + tl + 1;
+  const packet = new Uint8Array(2 + rl);
+  let i = 0;
+  packet[i++] = 0x82;
+  packet[i++] = rl;
+  packet[i++] = 0x00; packet[i++] = 0x01; // msg id
+  packet[i++] = (tl >> 8) & 0xff; packet[i++] = tl & 0xff;
+  packet.set(tb, i); i += tl;
+  packet[i++] = 0x00; // QoS 0
+  mqttWs.send(packet.buffer);
+}
+
+function mqttPublish(topic, payload) {
+  if (!mqttWs || !mqttConnected || mqttWs.readyState !== 1) return;
+  const tb = new TextEncoder().encode(topic);
+  const pb = new TextEncoder().encode(payload);
+  const tl = tb.length, pl = pb.length;
+
+  const rl = 2 + tl + pl;
+  const rem = mqttEncodeRemainingLength(rl);
+
+  const packet = new Uint8Array(1 + rem.length + 2 + tl + pl);
+  let i = 0;
+  packet[i++] = 0x30; // PUBLISH QoS0
+  for (const b of rem) packet[i++] = b;
+  packet[i++] = (tl >> 8) & 0xff; packet[i++] = tl & 0xff;
+  packet.set(tb, i); i += tl;
+  packet.set(pb, i); i += pl;
+
+  mqttWs.send(packet.buffer);
+}
+
+function getTopic(code) {
+  return "orion/room/" + (code || "").toLowerCase();
+}
+
+/* ==========================================
+   Background audio keep-alive + wake lock
+   ========================================== */
+
+let beepCtx = null;
+let keepAliveOsc = null, keepAliveGain = null;
+let wakeLock = null;
+
+function ensureBeepCtx() {
+  if (!beepCtx) beepCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (beepCtx.state === "suspended") beepCtx.resume().catch(()=>{});
+  return beepCtx;
+}
+
+function startAudioKeepAlive() {
+  const ctx = ensureBeepCtx();
+  if (keepAliveOsc) return;
+  keepAliveOsc = ctx.createOscillator();
+  keepAliveGain = ctx.createGain();
+  keepAliveOsc.type = "sine";
+  keepAliveOsc.frequency.value = 19000;
+  keepAliveGain.gain.value = 0.000001; // extremely low
+  keepAliveOsc.connect(keepAliveGain);
+  keepAliveGain.connect(ctx.destination);
+  try { keepAliveOsc.start(); } catch(e){}
+}
+function stopAudioKeepAlive() {
+  try { if (keepAliveOsc) keepAliveOsc.stop(); } catch(e){}
+  try { if (keepAliveOsc) keepAliveOsc.disconnect(); } catch(e){}
+  try { if (keepAliveGain) keepAliveGain.disconnect(); } catch(e){}
+  keepAliveOsc = null; keepAliveGain = null;
+}
+function updateKeepAlive() {
+  const hostActive = (role === "host" && running && !muted);
+  const remoteActive = (role === "remote" && !document.getElementById("remoteUI").classList.contains("hidden") && !rMuted);
+  if (hostActive || remoteActive) startAudioKeepAlive();
+  else stopAudioKeepAlive();
+}
+
+async function requestWakeLockIfNeeded() {
+  try {
+    if (!("wakeLock" in navigator)) return;
+    if (wakeLock) return;
+    wakeLock = await navigator.wakeLock.request("screen");
+    wakeLock.addEventListener("release", () => wakeLock = null);
+  } catch(e) { wakeLock = null; }
+}
+function releaseWakeLock() { try { if (wakeLock) wakeLock.release(); } catch(e){} wakeLock = null; }
+function updateWakeLock() {
+  const shouldHold =
+    (role === "host" && running) ||
+    (role === "remote" && !document.getElementById("remoteUI").classList.contains("hidden"));
+  if (document.hidden) return;
+  if (shouldHold) requestWakeLockIfNeeded();
+  else releaseWakeLock();
+}
+
+function resumeTTS() { try { speechSynthesis.resume(); } catch(e){} }
+document.addEventListener("visibilitychange", () => { resumeTTS(); if (!document.hidden) updateWakeLock(); });
+window.addEventListener("focus", resumeTTS);
+
+/* =========================
+   Audio unlock (Quest too)
+   ========================= */
+let audioUnlocked = false;
+function unlockSpeech() {
+  if (audioUnlocked) return;
+  audioUnlocked = true;
+  try { ensureBeepCtx(); } catch(e){}
+  try {
+    const u = new SpeechSynthesisUtterance(" ");
+    u.volume = 0;
+    speechSynthesis.speak(u);
+    setTimeout(() => { try { speechSynthesis.cancel(); } catch(e){} }, 50);
+  } catch(e){}
+}
+document.addEventListener("pointerdown", unlockSpeech, { once: true });
+
+/* =========================
+   App: host + remote
+   ========================= */
+
+const vid = document.getElementById("vid");
+const rawCvs = document.getElementById("rawCvs");
+const procCvs = document.getElementById("procCvs");
+const rawCtx = rawCvs.getContext("2d");
+const procCtx = procCvs.getContext("2d");
+const workCvs = document.createElement("canvas");
+const workCtx = workCvs.getContext("2d", { willReadFrequently: true });
+
+let running = false;
+let drawMode = "distance";
+let distRegion = null;
+let dirRegion = null;
+
+let RED_MAX = 500, YEL_MAX = 600;
+let skipYellow = false;
+let stateHistory = [];
+const HYST_WINDOW = 4;
+
+let lastNum = null;
+let curState = "OFF";
+
+let detectedDir = "";
+let manualDir = "";
+const DIR_KEYWORDS = {
+  behind:"behind", back:"behind", rear:"behind",
+  front:"in front", ahead:"in front", forward:"in front",
+  left:"left", right:"right",
+  above:"above", up:"above", top:"above",
+  below:"below", down:"below", bottom:"below", under:"below"
+};
+
+let muted = false;
+let beepMode = false;
+let voices = [];
+let speechActivePrio = 0;
+let repTimer = null;
+
+// Remote
+let rMuted = false;
+let rBeepMode = false;
+let rVoices = [];
+let rSpeechActivePrio = 0;
+let rCurState = "OFF";
+let rLastDist = null;
+let rLastDir = "";
+let rRepTimer = null;
+
+// Remote thresholds local
+let rRED_MAX = 500, rYEL_MAX = 600;
+let rSkipYellow = false;
+let rStateHistory = [];
+const rHYST_WINDOW = 4;
+
+// Ordering + delay
+let rLastSeq = 0;
+let rClockOffset = null;
+
+// Net throttling
+let netSeq = 0;
+let lastNetSend = 0;
+let lastNetSent = { s:"", d:null, r:"" };
+const NET_MIN_MS = 200;
+const NET_HEARTBEAT_MS = 1200;
+
+function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+
+function prioForState(s){
+  if (s==="GOAL") return 6;
+  if (s==="MIDDLE") return 5;
+  if (s==="BALL LOOSE") return 5;
+  if (s==="RED") return 4;
+  if (s==="YELLOW") return 3;
+  if (s==="GREEN") return 2;
+  return 1;
+}
+
+function chooseRole(r){
+  role = r;
+  document.getElementById("roleOverlay").classList.add("hidden");
+
+  if (r==="host"){
+    roomCode = genRoom();
+    document.getElementById("hostRoomCode").textContent = roomCode;
+    document.getElementById("hostRoomPill").textContent = "ROOM " + roomCode;
+    document.getElementById("hostOverlay").classList.remove("hidden");
+
+    mqttConnect();
+  } else {
+    document.getElementById("remoteOverlay").classList.remove("hidden");
+    document.getElementById("remoteRelayStatus").textContent = "Relay: ready";
+  }
+
+  updateWakeLock();
+  updateKeepAlive();
+}
+
+function genRoom(){
+  const c="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let r="";
+  for(let i=0;i<5;i++) r+=c[Math.floor(Math.random()*c.length)];
+  return r;
+}
+
+/* ==============
+   HOST UI logic
+   ============== */
+
+document.getElementById("shareBtn").addEventListener("click", async () => {
+  unlockSpeech();
+  try {
+    const stream = await navigator.mediaDevices.getDisplayMedia({ video: { cursor:"never" }, audio:false });
+    vid.srcObject = stream;
+    await vid.play();
+    await new Promise(res => vid.readyState>=1 ? res() : (vid.onloadedmetadata=res));
+    running = true;
+
+    document.getElementById("hostOverlay").classList.add("hidden");
+    document.getElementById("hostUI").classList.remove("hidden");
+    document.getElementById("capInfo").textContent = `${vid.videoWidth}×${vid.videoHeight}`;
+
+    updateWakeLock();
+    updateKeepAlive();
+
+    stream.getVideoTracks()[0].onended = () => {
+      running = false;
+      document.getElementById("hostOverlay").classList.remove("hidden");
+      document.getElementById("hostUI").classList.add("hidden");
+      stopRep();
+      releaseWakeLock();
+      stopAudioKeepAlive();
+    };
+
+    await initOCR();
+    ocrLoop();
+  } catch(e) {
+    alert(e.message);
+  }
+});
+
+function setMode(m){
+  drawMode = m;
+  document.getElementById("modeDist").className = "mode" + (m==="distance" ? " onD" : "");
+  document.getElementById("modeDir").className  = "mode" + (m==="direction" ? " onR" : "");
+  document.getElementById("hint").textContent = m==="distance" ? "Draw DISTANCE box" : "Draw DIRECTION box";
+}
+
+function clearBoxes(){
+  distRegion = null;
+  dirRegion = null;
+  document.getElementById("distBox").classList.remove("show");
+  document.getElementById("dirBox").classList.remove("show");
+  detectedDir = "";
+  updateDirUI();
+}
+
+function setPreset(name){
+  // basic presets: tweak if needed
+  if (!vid.videoWidth) return;
+  if (name==="top"){
+    distRegion = { x:0.30, y:0.02, w:0.40, h:0.08 };
+  } else if (name==="topRight"){
+    distRegion = { x:0.62, y:0.02, w:0.35, h:0.08 };
+  }
+  applyRegionBox("distBox", distRegion);
+}
+
+function applyRegionBox(id, reg){
+  if (!reg) return;
+  const el = document.getElementById(id);
+  el.style.left = (reg.x*100)+"%";
+  el.style.top  = (reg.y*100)+"%";
+  el.style.width = (reg.w*100)+"%";
+  el.style.height = (reg.h*100)+"%";
+  el.classList.add("show");
+}
+
+// draw selection
+let dragging=false, sx=0, sy=0, activeEl=null;
+const wrap = document.getElementById("videoWrap");
+const dragEl = document.getElementById("drag");
+
+function relPos(e){
+  const r = wrap.getBoundingClientRect();
+  return {
+    x: clamp((e.clientX-r.left)/r.width, 0, 1),
+    y: clamp((e.clientY-r.top)/r.height, 0, 1),
+  };
+}
+
+dragEl.addEventListener("mousedown",(e)=>{
+  dragging=true;
+  const p=relPos(e);
+  sx=p.x; sy=p.y;
+  activeEl = (drawMode==="direction") ? document.getElementById("dirBox") : document.getElementById("distBox");
+  activeEl.style.left = (sx*100)+"%";
+  activeEl.style.top = (sy*100)+"%";
+  activeEl.style.width = "0%";
+  activeEl.style.height = "0%";
+  activeEl.classList.add("show");
+});
+document.addEventListener("mousemove",(e)=>{
+  if(!dragging||!activeEl) return;
+  const p=relPos(e);
+  const x=Math.min(sx,p.x), y=Math.min(sy,p.y), w=Math.abs(p.x-sx), h=Math.abs(p.y-sy);
+  activeEl.style.left=(x*100)+"%";
+  activeEl.style.top=(y*100)+"%";
+  activeEl.style.width=(w*100)+"%";
+  activeEl.style.height=(h*100)+"%";
+});
+document.addEventListener("mouseup",(e)=>{
+  if(!dragging||!activeEl) return;
+  dragging=false;
+  const p=relPos(e);
+  const x=Math.min(sx,p.x), y=Math.min(sy,p.y), w=Math.abs(p.x-sx), h=Math.abs(p.y-sy);
+  activeEl=null;
+  if(w<0.005||h<0.003){
+    if(drawMode==="distance"){ distRegion=null; document.getElementById("distBox").classList.remove("show"); }
+    else { dirRegion=null; document.getElementById("dirBox").classList.remove("show"); detectedDir=""; updateDirUI(); }
+    return;
+  }
+  const reg={x,y,w,h};
+  if(drawMode==="distance"){ distRegion=reg; applyRegionBox("distBox", reg); stateHistory=[]; }
+  else { dirRegion=reg; applyRegionBox("dirBox", reg); updateDirUI(); }
+});
+
+document.getElementById("redR").addEventListener("input",(e)=>{
+  let v=+e.target.value;
+  if(!skipYellow && v>=YEL_MAX){ v=YEL_MAX-10; e.target.value=v; }
+  RED_MAX=v; document.getElementById("redV").textContent=v; stateHistory=[];
+});
+document.getElementById("yelR").addEventListener("input",(e)=>{
+  let v=+e.target.value;
+  if(v<=RED_MAX){ v=RED_MAX+10; e.target.value=v; }
+  YEL_MAX=v; document.getElementById("yelV").textContent=v; stateHistory=[];
+});
+document.getElementById("skipY").addEventListener("change", toggleSkipYellow);
+function toggleSkipYellow(){
+  skipYellow = document.getElementById("skipY").checked;
+  document.getElementById("yelRow").classList.toggle("hidden", skipYellow);
+  stateHistory=[];
+}
+
+document.getElementById("vol").addEventListener("input",(e)=>document.getElementById("volV").textContent=Math.round(+e.target.value*100)+"%");
+document.getElementById("spd").addEventListener("input",(e)=>document.getElementById("spdV").textContent=(+e.target.value).toFixed(1)+"x");
+document.getElementById("rep").addEventListener("input",(e)=>document.getElementById("repV").textContent=(+e.target.value).toFixed(1)+"s");
+
+document.getElementById("beepMode").addEventListener("change", toggleBeepMode);
+function toggleBeepMode(){
+  beepMode = document.getElementById("beepMode").checked;
+  speechSynthesis.cancel(); speechActivePrio=0;
+  stopRep(); startRep();
+  updateKeepAlive();
+}
+
+function toggleMute(){
+  muted=!muted;
+  document.getElementById("muteBtn").textContent = muted ? "OFF" : "ON";
+  document.getElementById("muteBtn").classList.toggle("act", !muted);
+  if(muted){ speechSynthesis.cancel(); speechActivePrio=0; stopRep(); }
+  else startRep();
+  updateKeepAlive();
+}
+
+function toggleDirEnable(){
+  const on = document.getElementById("dirEnable").checked;
+  if(!on){
+    dirRegion=null;
+    detectedDir="";
+    document.getElementById("dirBox").classList.remove("show");
+  }
+  updateDirUI();
+}
+
+function setManualDir(v){
+  manualDir=v;
+  updateDirUI();
+}
+
+function getDir(){
+  return manualDir || detectedDir || "";
+}
+
+function updateDirUI(){
+  const d = getDir();
+  document.getElementById("dirDbg").textContent = d ? ("DIR: " + d.toUpperCase()) : (dirRegion ? "DIR: SCANNING" : "Draw direction box around direction text.");
+  document.getElementById("hDir").textContent = (document.getElementById("dirEnable").checked && (d||dirRegion)) ? ("DIR: " + (d?d.toUpperCase():"SCANNING")) : "";
+}
+
+/* ==============
+   OCR (Tesseract)
+   ============== */
+let tWorker = null;
+let ocrBusy = false;
+
+async function initOCR(){
+  if (window.Tesseract === undefined){
+    document.getElementById("ocrStatus").textContent="loading…";
+    await new Promise((res, rej)=>{
+      const s=document.createElement("script");
+      s.src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";
+      s.onload=res; s.onerror=()=>rej(new Error("Failed to load Tesseract"));
+      document.head.appendChild(s);
+    });
+  }
+  document.getElementById("ocrStatus").textContent="init…";
+  tWorker = await Tesseract.createWorker("eng", 1, { logger:()=>{} });
+  await tWorker.setParameters({
+    tessedit_pageseg_mode: "7",
+    tessedit_char_whitelist: "0123456789()[]?ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz _-."
+  });
+  document.getElementById("ocrStatus").textContent="ready";
+}
+
+function captureRegion(reg, maxW=320, maxH=90){
+  if(!reg || !vid.videoWidth) return null;
+  const vw=vid.videoWidth, vh=vid.videoHeight;
+  const px=Math.max(0,Math.floor(reg.x*vw));
+  const py=Math.max(0,Math.floor(reg.y*vh));
+  const pw=Math.max(1,Math.floor(reg.w*vw));
+  const ph=Math.max(1,Math.floor(reg.h*vh));
+
+  // scale to reasonable OCR size
+  const scale=Math.min(maxW/pw, maxH/ph, 3);
+  const w=Math.max(1,Math.floor(pw*scale));
+  const h=Math.max(1,Math.floor(ph*scale));
+
+  workCvs.width=w; workCvs.height=h;
+  workCtx.imageSmoothingEnabled=true;
+  workCtx.drawImage(vid, px, py, pw, ph, 0, 0, w, h);
+  const img=workCtx.getImageData(0,0,w,h);
+
+  // simple binarize with optional invert? (assume bright text)
+  // auto threshold: average
+  let sum=0;
+  for(let i=0;i<img.data.length;i+=4){
+    const g=0.299*img.data[i]+0.587*img.data[i+1]+0.114*img.data[i+2];
+    sum+=g;
+  }
+  const thr=sum/(img.data.length/4);
+  for(let i=0;i<img.data.length;i+=4){
+    const g=0.299*img.data[i]+0.587*img.data[i+1]+0.114*img.data[i+2];
+    const v = g>thr ? 255 : 0;
+    img.data[i]=img.data[i+1]=img.data[i+2]=v;
+  }
+  workCtx.putImageData(img,0,0);
+
+  // preview
+  rawCvs.width=Math.min(pw,200); rawCvs.height=Math.min(ph,70);
+  rawCtx.imageSmoothingEnabled=false;
+  rawCtx.drawImage(vid, px, py, pw, ph, 0,0, rawCvs.width, rawCvs.height);
+
+  procCvs.width=Math.min(w,200); procCvs.height=Math.min(h,70);
+  procCtx.imageSmoothingEnabled=false;
+  procCtx.drawImage(workCvs,0,0, procCvs.width, procCvs.height);
+
+  return workCvs;
+}
+
+function parseDistanceText(raw){
+  const t = (raw||"").trim();
+  if(!t) return { special:null, num:null, raw:t };
+
+  if (t.includes("?")) return { special:"BALL LOOSE", num:null, raw:t };
+
+  // bracket patterns
+  let m = t.match(/\((\d{2,4})\)/) || t.match(/\[(\d{2,4})\]/);
+  if(m) return { special:null, num:parseInt(m[1],10), raw:t };
+
+  // first 2-4 digits
+  m = t.match(/\d{2,4}/);
+  if(m) return { special:null, num:parseInt(m[0],10), raw:t };
+
+  return { special:null, num:null, raw:t };
+}
+
+function getStateRaw(n){
+  if(n<=RED_MAX) return "RED";
+  if(skipYellow) return "GREEN";
+  if(n<=YEL_MAX) return "YELLOW";
+  return "GREEN";
+}
+
+function getStateHyst(n){
+  const raw=getStateRaw(n);
+  stateHistory.push(raw);
+  if(stateHistory.length>HYST_WINDOW) stateHistory.shift();
+  if(stateHistory.length<2) return raw;
+
+  // weighted majority (simple)
+  const w = {RED:0,YELLOW:0,GREEN:0};
+  for(let i=0;i<stateHistory.length;i++){
+    const weight=i+1;
+    w[stateHistory[i]] += weight;
+  }
+  let best="RED", bestV=-1;
+  for(const k of Object.keys(w)){ if(w[k]>bestV){ bestV=w[k]; best=k; } }
+  return best;
+}
+
+function setHero(state, dist, dir){
+  const hero=document.getElementById("hero");
+  hero.className="hero " + (state==="RED"?"red":state==="YELLOW"?"yellow":state==="GREEN"?"green":"blue");
+  document.getElementById("hState").textContent=state;
+  document.getElementById("hDist").textContent=(dist!==null && dist!==undefined)?String(dist):"—";
+  document.getElementById("hDir").textContent = (document.getElementById("dirEnable").checked && (dir||dirRegion)) ? ("DIR: " + (dir?dir.toUpperCase():"SCANNING")) : "";
+}
+
+let dirOcrCooldown=0;
+
+async function ocrLoop(){
+  if(!running || !tWorker) return;
+
+  // distance OCR
+  if(distRegion && !ocrBusy){
+    ocrBusy=true;
+    try{
+      const cv = captureRegion(distRegion, 340, 90);
+      if(cv){
+        // distance parameters
+        await tWorker.setParameters({
+          tessedit_pageseg_mode:"7",
+          tessedit_char_whitelist:"0123456789()[]?ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz _-."
+        });
+        const res = await tWorker.recognize(cv);
+        const raw = (res.data.text||"").trim();
+        const parsed = parseDistanceText(raw);
+        document.getElementById("ocrDbg").textContent = raw ? (`OCR: "${raw.replace(/\s+/g," ").slice(0,80)}"`) : "OCR: (empty)";
+
+        if(parsed.special){
+          curState = parsed.special;
+          lastNum = null;
+          setHero("BALL LOOSE","? ", getDir());
+          speakIfNeeded("BALL LOOSE");
+          broadcastState("BALL LOOSE","?", getDir());
+        } else if(parsed.num!==null){
+          lastNum = parsed.num;
+          const st = getStateHyst(parsed.num);
+          curState = st;
+          setHero(st, parsed.num, getDir());
+          speakIfNeeded(st);
+          broadcastState(st, parsed.num, getDir());
+        }
+      }
+    }catch(e){
+      document.getElementById("ocrDbg").textContent="OCR error: "+e.message;
+    }
+    ocrBusy=false;
+  }
+
+  // direction OCR (optional)
+  const dirOn = document.getElementById("dirEnable").checked;
+  if(dirOn && dirRegion && Date.now()-dirOcrCooldown>350 && !ocrBusy){
+    dirOcrCooldown = Date.now();
+    ocrBusy=true;
+    try{
+      const cv = captureRegion(dirRegion, 240, 70);
+      if(cv){
+        await tWorker.setParameters({
+          tessedit_pageseg_mode:"7",
+          tessedit_char_whitelist:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz "
+        });
+        const res = await tWorker.recognize(cv);
+        const raw=(res.data.text||"").trim().toLowerCase();
+        let found="";
+        for(const k of Object.keys(DIR_KEYWORDS)){
+          if(raw.includes(k)){ found=DIR_KEYWORDS[k]; break; }
+        }
+        if(!manualDir && found!==detectedDir){
+          detectedDir=found;
+          updateDirUI();
+        }
+      }
+    }catch(e){}
+    ocrBusy=false;
+  }
+
+  // heartbeat so remote sees "connected" even when OCR is stable
+  heartbeatTick();
+
+  setTimeout(ocrLoop, 120);
+}
+
+/* =======================
+   Voice + beep (distance)
+   ======================= */
+
+function dirToFreq(dir, urgent){
+  dir=(dir||"").toLowerCase();
+  if(dir==="above")return 950;
+  if(dir==="below")return 380;
+  if(dir==="behind")return 420;
+  if(dir==="in front")return 720;
+  return urgent?820:660;
+}
+function dirToPan(dir){
+  dir=(dir||"").toLowerCase();
+  if(dir==="left")return -1;
+  if(dir==="right")return 1;
+  return 0;
+}
+
+function beepIntervalForDistance(n, state, baseSec, redMax, yelMax, skipY){
+  const repMult = clamp((baseSec||2)/2, 0.25, 3);
+  if(typeof n!=="number" || !isFinite(n)) return Math.round(900*repMult);
+  let ms=1200;
+
+  if(skipY){
+    if(state==="RED"){
+      const t=clamp(n/Math.max(1,redMax),0,1);
+      ms=120 + t*650;
+    } else if(state==="GREEN"){
+      const t=clamp((n-redMax)/900,0,1);
+      ms=650 + t*1650;
+    }
+  } else {
+    if(state==="RED"){
+      const t=clamp(n/Math.max(1,redMax),0,1);
+      ms=120 + t*650;
+    } else if(state==="YELLOW"){
+      const span=Math.max(1,yelMax-redMax);
+      const t=clamp((n-redMax)/span,0,1);
+      ms=350 + t*1150;
+    } else if(state==="GREEN"){
+      const t=clamp((n-yelMax)/1100,0,1);
+      ms=750 + t*1750;
+    }
+  }
+  return Math.round(clamp(ms*repMult, 90, 3000));
+}
+
+function playBeep(dir, volume, urgent, lineEl, intervalMs){
+  if(volume<=0) return;
+  const ctx=ensureBeepCtx();
+  const now=ctx.currentTime;
+
+  const dur = clamp((intervalMs*0.55)/1000, 0.06, 0.18);
+  const attack = Math.min(0.012, dur*0.25);
+  const release = Math.min(0.060, dur*0.45);
+
+  const osc=ctx.createOscillator();
+  osc.type="sine";
+  osc.frequency.setValueAtTime(dirToFreq(dir, urgent), now);
+
+  const gain=ctx.createGain();
+  const peak = clamp(volume,0,1)*0.35;
+  gain.gain.setValueAtTime(0, now);
+  gain.gain.linearRampToValueAtTime(peak, now+attack);
+  gain.gain.linearRampToValueAtTime(0, now+dur+release);
+
+  let out=gain;
+  if(ctx.createStereoPanner){
+    const p=ctx.createStereoPanner();
+    p.pan.setValueAtTime(dirToPan(dir), now);
+    gain.connect(p);
+    out=p;
+  }
+
+  osc.connect(gain);
+  out.connect(ctx.destination);
+  osc.start(now);
+  osc.stop(now + dur + release + 0.02);
+
+  if(lineEl){
+    const d=(dir||"center").toUpperCase();
+    lineEl.textContent = "BEEP " + d;
+    lineEl.className = "vline talk";
+    setTimeout(()=>{ lineEl.textContent="✓"; lineEl.className="vline ok"; }, Math.min(300, intervalMs));
+  }
+}
+
+function loadVoices(){
+  voices = speechSynthesis.getVoices();
+  const sel=document.getElementById("voiceSel");
+  if(!sel || !voices.length) return;
+  sel.innerHTML="";
+  let best=0;
+  voices.forEach((v,i)=>{
+    const o=document.createElement("option");
+    o.value=i;
+    o.textContent=(v.name.slice(0,28)+" ("+v.lang+")");
+    sel.appendChild(o);
+    if(/Google US|David|Samantha|Daniel/i.test(v.name)) best=i;
+  });
+  sel.value=best;
+}
+function loadRVoices(){
+  rVoices = speechSynthesis.getVoices();
+  const sel=document.getElementById("rVoiceSel");
+  if(!sel || !rVoices.length) return;
+  sel.innerHTML="";
+  let best=0;
+  rVoices.forEach((v,i)=>{
+    const o=document.createElement("option");
+    o.value=i;
+    o.textContent=(v.name.slice(0,28)+" ("+v.lang+")");
+    sel.appendChild(o);
+    if(/Google US|David|Samantha|Daniel/i.test(v.name)) best=i;
+  });
+  sel.value=best;
+}
+speechSynthesis.onvoiceschanged = ()=>{ loadVoices(); loadRVoices(); };
+setTimeout(()=>{ loadVoices(); loadRVoices(); }, 250);
+
+function speak(text, urgent, prio){
+  if(muted) return;
+  if(!text) return;
+  resumeTTS();
+
+  const synth=speechSynthesis;
+  if((synth.speaking || synth.pending) && prio <= speechActivePrio) return;
+
+  if(synth.speaking || synth.pending) synth.cancel();
+  speechActivePrio = prio;
+
+  const u=new SpeechSynthesisUtterance(text);
+  u.volume = +document.getElementById("vol").value;
+  u.rate   = +document.getElementById("spd").value;
+  u.pitch  = urgent ? 1.15 : 1.0;
+
+  const sel=document.getElementById("voiceSel");
+  if(sel && voices.length){
+    const v=voices[+sel.value];
+    if(v) u.voice=v;
+  }
+
+  const line=document.getElementById("voiceLine");
+  u.onstart=()=>{ line.textContent="🔊 "+text; line.className="vline talk"; };
+  u.onend=()=>{ line.textContent="✓"; line.className="vline ok"; speechActivePrio=0; };
+  u.onerror=()=>{ line.textContent="⚠"; line.className="vline bad"; speechActivePrio=0; };
+
+  synth.speak(u);
+}
+
+function speakIfNeeded(state){
+  // speak only on state change; repeat loop handles ongoing
+  if(state !== lastSpokenState){
+    lastSpokenState = state;
+    if(beepMode){
+      if(state==="RED"||state==="YELLOW"||state==="GREEN"){
+        const dir=getDir();
+        const ms=beepIntervalForDistance(lastNum, state, +document.getElementById("rep").value, RED_MAX, YEL_MAX, skipYellow);
+        playBeep(dir, +document.getElementById("vol").value, state==="RED", document.getElementById("voiceLine"), ms);
+      }
+    } else {
+      const phrase = (state==="RED")
+        ? (document.getElementById("dirEnable").checked && getDir() ? ("Red " + getDir()) : "Red")
+        : (state==="YELLOW"?"Yellow":state==="GREEN"?"Green":state==="BALL LOOSE"?"Ball loose":"");
+      if(phrase) speak(phrase, state==="RED" || state==="BALL LOOSE", prioForState(state));
+    }
+    startRep();
+  }
+}
+let lastSpokenState="";
+
+function startRep(){
+  stopRep();
+  if(muted) return;
+  if(curState==="OFF"||curState==="") return;
+
+  const tick=()=>{
+    if(muted){ stopRep(); return; }
+
+    if(beepMode){
+      if(curState==="RED"||curState==="YELLOW"||curState==="GREEN"){
+        const dir=getDir();
+        const ms=beepIntervalForDistance(lastNum, curState, +document.getElementById("rep").value, RED_MAX, YEL_MAX, skipYellow);
+        playBeep(dir, +document.getElementById("vol").value, curState==="RED", document.getElementById("voiceLine"), ms);
+        repTimer=setTimeout(tick, ms);
+        return;
+      }
+      repTimer=setTimeout(tick, Math.round(+document.getElementById("rep").value*1000));
+      return;
+    }
+
+    const phrase = (curState==="RED")
+      ? (document.getElementById("dirEnable").checked && getDir() ? ("Red " + getDir()) : "Red")
+      : (curState==="YELLOW"?"Yellow":curState==="GREEN"?"Green":curState==="BALL LOOSE"?"Ball loose":"");
+    if(phrase) speak(phrase, curState==="RED" || curState==="BALL LOOSE", prioForState(curState));
+    repTimer=setTimeout(tick, Math.round(+document.getElementById("rep").value*1000));
+  };
+
+  repTimer=setTimeout(tick, 300);
+}
+function stopRep(){ if(repTimer){ clearTimeout(repTimer); repTimer=null; } }
+
+function testVoice(){
+  unlockSpeech();
+  speechSynthesis.cancel();
+  speechActivePrio=0;
+  speak("Red behind. Yellow. Green. Ball loose.", false, 99);
+}
+
+/* =======================
+   Remote voice + repeat
+   ======================= */
+
+function rSpeak(text, urgent, prio){
+  if(rMuted) return;
+  if(!text) return;
+  resumeTTS();
+
+  const synth=speechSynthesis;
+  if((synth.speaking || synth.pending) && prio <= rSpeechActivePrio) return;
+
+  if(synth.speaking || synth.pending) synth.cancel();
+  rSpeechActivePrio = prio;
+
+  const u=new SpeechSynthesisUtterance(text);
+  u.volume = +document.getElementById("rVol").value;
+  u.rate   = +document.getElementById("rSpd").value;
+  u.pitch  = urgent ? 1.15 : 1.0;
+
+  const sel=document.getElementById("rVoiceSel");
+  if(sel && rVoices.length){
+    const v=rVoices[+sel.value];
+    if(v) u.voice=v;
+  }
+
+  const line=document.getElementById("rVoiceLine");
+  u.onstart=()=>{ line.textContent="🔊 "+text; line.className="vline talk"; };
+  u.onend=()=>{ line.textContent="✓"; line.className="vline ok"; rSpeechActivePrio=0; };
+  u.onerror=()=>{ line.textContent="⚠"; line.className="vline bad"; rSpeechActivePrio=0; };
+
+  synth.speak(u);
+}
+
+function rStartRep(){
+  rStopRep();
+  if(rMuted) return;
+  if(rCurState==="OFF") return;
+
+  const tick=()=>{
+    if(rMuted){ rStopRep(); return; }
+
+    const n = (typeof rLastDist==="number") ? rLastDist : parseInt(rLastDist,10);
+
+    if(rBeepMode){
+      if(rCurState==="RED"||rCurState==="YELLOW"||rCurState==="GREEN"){
+        const ms=beepIntervalForDistance(isFinite(n)?n:null, rCurState, +document.getElementById("rRep").value, rRED_MAX, rYEL_MAX, rSkipYellow);
+        playBeep(rLastDir, +document.getElementById("rVol").value, rCurState==="RED", document.getElementById("rVoiceLine"), ms);
+        rRepTimer=setTimeout(tick, ms);
+        return;
+      }
+      rRepTimer=setTimeout(tick, Math.round(+document.getElementById("rRep").value*1000));
+      return;
+    }
+
+    const phrase = (rCurState==="RED") ? (rLastDir ? ("Red " + rLastDir) : "Red")
+      : (rCurState==="YELLOW"?"Yellow":rCurState==="GREEN"?"Green":rCurState==="BALL LOOSE"?"Ball loose":"");
+    if(phrase) rSpeak(phrase, rCurState==="RED"||rCurState==="BALL LOOSE", prioForState(rCurState));
+    rRepTimer=setTimeout(tick, Math.round(+document.getElementById("rRep").value*1000));
+  };
+
+  rRepTimer=setTimeout(tick, 300);
+}
+function rStopRep(){ if(rRepTimer){ clearTimeout(rRepTimer); rRepTimer=null; } }
+
+function rTestVoice(){
+  unlockSpeech();
+  speechSynthesis.cancel();
+  rSpeechActivePrio=0;
+  rSpeak("Red left. Yellow. Green.", false, 99);
+}
+
+function rToggleMute(){
+  rMuted=!rMuted;
+  document.getElementById("rMuteBtn").textContent = rMuted ? "OFF" : "ON";
+  document.getElementById("rMuteBtn").classList.toggle("act", !rMuted);
+  if(rMuted){ speechSynthesis.cancel(); rSpeechActivePrio=0; rStopRep(); }
+  else rStartRep();
+  updateKeepAlive();
+}
+
+function rToggleBeepMode(){
+  rBeepMode = document.getElementById("rBeepMode").checked;
+  speechSynthesis.cancel(); rSpeechActivePrio=0;
+  rStopRep(); rStartRep();
+  updateKeepAlive();
+}
+
+/* =======================
+   Remote threshold logic
+   ======================= */
+function rToggleSkipYellow(){
+  rSkipYellow = document.getElementById("rSkipY").checked;
+  document.getElementById("rYelRow").classList.toggle("hidden", rSkipYellow);
+  rStateHistory=[];
+  recalcRemoteFromLast();
+}
+document.getElementById("rRedR").addEventListener("input",(e)=>{
+  let v=+e.target.value;
+  if(!rSkipYellow && v>=rYEL_MAX){ v=rYEL_MAX-10; e.target.value=v; }
+  rRED_MAX=v; document.getElementById("rRedV").textContent=v; rStateHistory=[]; recalcRemoteFromLast();
+});
+document.getElementById("rYelR").addEventListener("input",(e)=>{
+  let v=+e.target.value;
+  if(v<=rRED_MAX){ v=rRED_MAX+10; e.target.value=v; }
+  rYEL_MAX=v; document.getElementById("rYelV").textContent=v; rStateHistory=[]; recalcRemoteFromLast();
+});
+
+function rGetStateRaw(n){
+  if(n<=rRED_MAX) return "RED";
+  if(rSkipYellow) return "GREEN";
+  if(n<=rYEL_MAX) return "YELLOW";
+  return "GREEN";
+}
+function rGetStateHyst(n){
+  const raw=rGetStateRaw(n);
+  rStateHistory.push(raw);
+  if(rStateHistory.length>rHYST_WINDOW) rStateHistory.shift();
+  if(rStateHistory.length<2) return raw;
+  const w={RED:0,YELLOW:0,GREEN:0};
+  for(let i=0;i<rStateHistory.length;i++){
+    w[rStateHistory[i]] += (i+1);
+  }
+  let best="RED", bestV=-1;
+  for(const k of Object.keys(w)){ if(w[k]>bestV){ bestV=w[k]; best=k; } }
+  return best;
+}
+function recalcRemoteFromLast(){
+  const n = (typeof rLastDist==="number") ? rLastDist : parseInt(rLastDist,10);
+  if(!isFinite(n)) return;
+  // re-render with recalculated state
+  const effective = rGetStateHyst(n);
+  renderRemote(effective, rLastDist, rLastDir, true);
+}
+
+/* =======================
+   Networking (host->remote)
+   ======================= */
+function normDistForNet(d){
+  if(typeof d==="number" && isFinite(d)) return Math.round(d/5)*5;
+  return d;
+}
+
+function broadcastState(state, dist, dir){
+  const now=Date.now();
+  const dQ = normDistForNet(dist);
+  const r = dir || "";
+
+  const changed = (state!==lastNetSent.s || dQ!==lastNetSent.d || r!==lastNetSent.r);
+  const minGap = changed ? NET_MIN_MS : NET_HEARTBEAT_MS;
+  if(now - lastNetSend < minGap) return;
+
+  lastNetSend = now;
+  lastNetSent = { s:state, d:dQ, r };
+
+  const q = ++netSeq;
+  const payload = JSON.stringify({ s:state, d:dQ, r, t:now, q });
+  mqttPublish(getTopic(roomCode), payload);
+}
+
+// ensures remote sees updates even if OCR stable (and also helps "connected" feeling)
+function heartbeatTick(){
+  if(!mqttConnected || !roomCode) return;
+  const dir = getDir();
+  if(curState==="OFF"){
+    broadcastState("OFF","", dir);
+  } else if(curState==="BALL LOOSE"){
+    broadcastState("BALL LOOSE","?", dir);
+  } else if(lastNum!==null){
+    broadcastState(curState, lastNum, dir);
+  }
+}
+
+/* =======================
+   Remote receive
+   ======================= */
+function onRelayMessage(topic, payload){
+  try{
+    const d=JSON.parse(payload);
+    if(d.s===undefined) return;
+
+    // ordering
+    if(typeof d.q==="number"){
+      if(d.q <= rLastSeq) return;
+      rLastSeq = d.q;
+    }
+
+    // delay (clock-skew corrected)
+    if(typeof d.t==="number"){
+      if(rClockOffset===null) rClockOffset = Date.now() - d.t;
+      const age = Date.now() - (d.t + rClockOffset);
+      const l = Math.max(0, Math.round(age));
+      document.getElementById("delayPill").textContent = "Delay: " + l + "ms";
+    }
+
+    if(role==="remote"){
+      handleRemotePayload(d);
+    }
+  }catch(e){}
+}
+
+function handleRemotePayload(d){
+  // d.s can be OFF/RED/YELLOW/GREEN/BALL LOOSE/MIDDLE/GOAL
+  const rawState = d.s;
+  const dist = d.d;
+  const dir = d.r || "";
+
+  // for color states, remote re-colors based on remote thresholds
+  let effectiveState = rawState;
+  const n = (typeof dist==="number") ? dist : parseInt(dist,10);
+  if((rawState==="RED"||rawState==="YELLOW"||rawState==="GREEN") && isFinite(n)){
+    effectiveState = rGetStateHyst(n);
+  } else {
+    rStateHistory = [];
+  }
+
+  rLastDist = dist;
+  rLastDir = dir;
+
+  renderRemote(effectiveState, dist, dir, false);
+}
+
+function renderRemote(state, dist, dir, fromLocal){
+  const hero=document.getElementById("rHero");
+  hero.className="hero " + (state==="RED"?"red":state==="YELLOW"?"yellow":state==="GREEN"?"green":"blue");
+
+  document.getElementById("rState").textContent = state==="OFF" ? "WAITING" : state;
+  document.getElementById("rDist").textContent = (dist!==null && dist!==undefined && dist!=="") ? String(dist) : "—";
+  document.getElementById("rDir").textContent = dir ? ("DIR: " + dir.toUpperCase()) : "";
+  document.getElementById("rTime").textContent = "Updated: " + new Date().toLocaleTimeString();
+
+  if(state !== rCurState){
+    rCurState = state;
+
+    if(rBeepMode){
+      if(state==="RED"||state==="YELLOW"||state==="GREEN"){
+        const n=(typeof dist==="number") ? dist : parseInt(dist,10);
+        const ms=beepIntervalForDistance(isFinite(n)?n:null, state, +document.getElementById("rRep").value, rRED_MAX, rYEL_MAX, rSkipYellow);
+        playBeep(dir, +document.getElementById("rVol").value, state==="RED", document.getElementById("rVoiceLine"), ms);
+      }
+    } else {
+      const phrase = (state==="RED") ? (dir ? ("Red " + dir) : "Red")
+        : (state==="YELLOW"?"Yellow":state==="GREEN"?"Green":state==="BALL LOOSE"?"Ball loose":"");
+      if(phrase) rSpeak(phrase, state==="RED"||state==="BALL LOOSE", prioForState(state));
+    }
+    rStartRep();
+  }
+}
+
+/* =======================
+   Remote join flow
+   ======================= */
+function joinRoom(){
+  unlockSpeech();
+
+  const code = (document.getElementById("roomIn").value||"").trim().toUpperCase();
+  if(code.length<3){ alert("Enter room code"); return; }
+  roomCode = code;
+
+  document.getElementById("remoteRoomPill").textContent = "ROOM " + code;
+  document.getElementById("remoteOverlay").classList.add("hidden");
+  document.getElementById("remoteUI").classList.remove("hidden");
+
+  // init UI values
+  document.getElementById("rRedV").textContent = document.getElementById("rRedR").value;
+  document.getElementById("rYelV").textContent = document.getElementById("rYelR").value;
+
+  // connect relay if not connected
+  mqttConnect();
+
+  updateWakeLock();
+  updateKeepAlive();
+}
+
+/* =======================
+   Remote UI sliders
+   ======================= */
+document.getElementById("rVol").addEventListener("input",(e)=>document.getElementById("rVolV").textContent=Math.round(+e.target.value*100)+"%");
+document.getElementById("rSpd").addEventListener("input",(e)=>document.getElementById("rSpdV").textContent=(+e.target.value).toFixed(1)+"x");
+document.getElementById("rRep").addEventListener("input",(e)=>document.getElementById("rRepV").textContent=(+e.target.value).toFixed(1)+"s");
+
+/* =======================
+   Host UI sliders
+   ======================= */
+document.getElementById("vol").addEventListener("input",(e)=>document.getElementById("volV").textContent=Math.round(+e.target.value*100)+"%");
+document.getElementById("spd").addEventListener("input",(e)=>document.getElementById("spdV").textContent=(+e.target.value).toFixed(1)+"x");
+document.getElementById("rep").addEventListener("input",(e)=>document.getElementById("repV").textContent=(+e.target.value).toFixed(1)+"s");
+document.getElementById("redV").textContent = RED_MAX;
+document.getElementById("yelV").textContent = YEL_MAX;
+
+/* =======================
+   Remote relay status in nav
+   ======================= */
+setInterval(()=>{
+  document.getElementById("relayPill").textContent = mqttConnected ? "Relay: OK" : "Relay: …";
+  document.getElementById("remoteRelayPill").textContent = mqttConnected ? "Relay: OK" : "Relay: …";
+  updateWakeLock();
+  updateKeepAlive();
+}, 2000);
+
+/* =======================
+   Small helpers
+   ======================= */
+function toggleMuteBtnText(btnId, isMuted){
+  const b=document.getElementById(btnId);
+  b.textContent = isMuted ? "OFF" : "ON";
+  b.classList.toggle("act", !isMuted);
+}
+
+/* =======================
+   Remote init sliders text
+   ======================= */
+document.getElementById("rRedV").textContent = rRED_MAX;
+document.getElementById("rYelV").textContent = rYEL_MAX;
+
+/* =======================
+   Remote beep toggle binding
+   ======================= */
+document.getElementById("rBeepMode").addEventListener("change", rToggleBeepMode);
+
+/* =======================
+   Remote mute button
+   ======================= */
+document.getElementById("rMuteBtn").addEventListener("click", rToggleMute);
+
+/* =======================
+   Host mute button text
+   ======================= */
+toggleMuteBtnText("muteBtn", muted);
+
+/* =======================
+   Remote default UI
+   ======================= */
+document.getElementById("remoteRelayStatus").textContent = "Relay: ready";
 </script>
 </body>
 </html>
