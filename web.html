@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ORION Distance Tracker v3 - High Performance</title>
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
@@ -506,21 +506,62 @@
   let isMiddle = false, isGoal = false;
   let middleAnnounced = false, goalAnnounced = false;
   let stateHistory = [];
-  let lastStableState = null;
   const HYST_WINDOW = 4;
 
-  // ===== NEW: Beep mode (host + remote) =====
+  // ===== NEW: Beep mode (host + remote) + audio ctx =====
   let beepMode = false;
   let rBeepMode = false;
   let beepCtx = null;
+
+  // ===== FIX: whitelist constants so Direction OCR doesn't break Distance OCR =====
+  const DIST_WHITELIST = '0123456789()[]?ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz _-.|';
+  const DIR_WHITELIST  = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz ';
 
   function ensureBeepCtx() {
     if (!beepCtx) beepCtx = new (window.AudioContext || window.webkitAudioContext)();
     if (beepCtx.state === 'suspended') beepCtx.resume().catch(() => {});
     return beepCtx;
   }
-  // Try to unlock audio context on first user gesture
+  // unlock audio on first user gesture
   document.addEventListener('pointerdown', () => { try { ensureBeepCtx(); } catch(e){} }, { once: true });
+
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+
+  // interval depends on distance + current state
+  function beepIntervalForDistance(n, state, repSeconds, redMax = RED_MAX, yelMax = YEL_MAX, skipY = skipYellow) {
+    const repMult = clamp((repSeconds || 2) / 2, 0.25, 3);
+
+    if (typeof n !== 'number' || !isFinite(n)) return Math.round(900 * repMult);
+
+    let ms = 1200;
+
+    if (skipY) {
+      if (state === 'RED') {
+        const t = clamp(n / Math.max(1, redMax), 0, 1);
+        ms = 120 + t * 650;     // 120ms .. 770ms
+      } else if (state === 'GREEN') {
+        const span = 900;
+        const t = clamp((n - redMax) / span, 0, 1);
+        ms = 650 + t * 1650;    // 650ms .. 2300ms
+      }
+    } else {
+      if (state === 'RED') {
+        const t = clamp(n / Math.max(1, redMax), 0, 1);
+        ms = 120 + t * 650;     // 120ms .. 770ms
+      } else if (state === 'YELLOW') {
+        const span = Math.max(1, yelMax - redMax);
+        const t = clamp((n - redMax) / span, 0, 1);
+        ms = 350 + t * 1150;    // 350ms .. 1500ms
+      } else if (state === 'GREEN') {
+        const span = 1100;
+        const t = clamp((n - yelMax) / span, 0, 1);
+        ms = 750 + t * 1750;    // 750ms .. 2500ms
+      }
+    }
+
+    ms = ms * repMult;
+    return Math.round(clamp(ms, 90, 3000));
+  }
 
   function dirToPan(dir) {
     dir = (dir || '').toLowerCase();
@@ -536,10 +577,17 @@
     if (dir === 'in front') return 720;
     return urgent ? 820 : 660;
   }
-  function playDirectionalBeep(dir, volume, urgent, lineEl) {
+
+  // NOTE: intervalMs influences beep duration (shorter when faster).
+  function playDirectionalBeep(dir, volume, urgent, lineEl, intervalMs = 600) {
     if (volume <= 0) return;
+
     const ctx = ensureBeepCtx();
     const now = ctx.currentTime;
+
+    const dur = clamp((intervalMs * 0.55) / 1000, 0.06, 0.18);
+    const attack = Math.min(0.012, dur * 0.25);
+    const release = Math.min(0.060, dur * 0.45);
 
     const osc = ctx.createOscillator();
     osc.type = 'sine';
@@ -548,8 +596,8 @@
     const gain = ctx.createGain();
     const peak = Math.min(1, Math.max(0, volume)) * 0.35;
     gain.gain.setValueAtTime(0, now);
-    gain.gain.linearRampToValueAtTime(peak, now + 0.01);
-    gain.gain.linearRampToValueAtTime(0, now + 0.18);
+    gain.gain.linearRampToValueAtTime(peak, now + attack);
+    gain.gain.linearRampToValueAtTime(0, now + dur + release);
 
     let outNode = gain;
     if (ctx.createStereoPanner) {
@@ -563,7 +611,7 @@
     outNode.connect(ctx.destination);
 
     osc.start(now);
-    osc.stop(now + 0.20);
+    osc.stop(now + dur + release + 0.02);
 
     osc.onended = () => {
       try { osc.disconnect(); } catch(e) {}
@@ -580,7 +628,7 @@
           lineEl.textContent = '✓';
           lineEl.className = 'vstatus ok';
         }
-      }, 230);
+      }, Math.min(300, intervalMs));
     }
   }
 
@@ -599,10 +647,6 @@
     rStartRep();
   }
 
-  // ===== FIX: whitelist constants so Direction OCR doesn't break Distance OCR =====
-  const DIST_WHITELIST = '0123456789()[]?ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz _-.|';
-  const DIR_WHITELIST  = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz ';
-
   function toggleSkipYellow() {
     skipYellow = $('skipYellowChk').checked;
     $('yelThrRow').style.display = skipYellow ? 'none' : 'flex';
@@ -614,12 +658,14 @@
       applyState(st, lastNum);
     }
   }
+
   function getStateRaw(n) {
     if (n <= RED_MAX) return 'RED';
     if (skipYellow) return 'GREEN';
     if (n <= YEL_MAX) return 'YELLOW';
     return 'GREEN';
   }
+
   function getStateWithHysteresis(n) {
     const raw = getStateRaw(n);
     stateHistory.push(raw);
@@ -635,21 +681,12 @@
       let weightRed = 0, weightGreen = 0;
       for (let i = 0; i < stateHistory.length; i++) {
         const weight = i + 1;
-        if (stateHistory[i] === 'RED') weightRed += weight;
-        else weightGreen += weight;
+        if (stateHistory[i] === 'RED') weightRed += weight; else weightGreen += weight;
       }
       const totalWeight = weightRed + weightGreen;
       const redPct = (weightRed / totalWeight) * 100;
-      if (raw === 'RED' && redPct < 30) {
-        $('dbgHyst').textContent = `RED→GRN (R:${Math.round(redPct)}%)`;
-        $('dbgHyst').className = 'dbg-v ok';
-        return 'GREEN';
-      }
-      if (raw === 'GREEN' && redPct > 50) {
-        $('dbgHyst').textContent = `GRN→RED (R:${Math.round(redPct)}%)`;
-        $('dbgHyst').className = 'dbg-v bad';
-        return 'RED';
-      }
+      if (raw === 'RED' && redPct < 30) { $('dbgHyst').textContent = `RED→GRN (R:${Math.round(redPct)}%)`; $('dbgHyst').className = 'dbg-v ok'; return 'GREEN'; }
+      if (raw === 'GREEN' && redPct > 50) { $('dbgHyst').textContent = `GRN→RED (R:${Math.round(redPct)}%)`; $('dbgHyst').className = 'dbg-v bad'; return 'RED'; }
       $('dbgHyst').textContent = `${raw} (R:${Math.round(redPct)}%)`;
       $('dbgHyst').className = raw === 'RED' ? 'dbg-v bad' : 'dbg-v ok';
       return raw;
@@ -679,31 +716,15 @@
       return 'RED';
     }
     if (raw === 'YELLOW') {
-      if (redPct > 20) {
-        $('dbgHyst').textContent = `YEL→RED (R:${Math.round(redPct)}%)`;
-        $('dbgHyst').className = 'dbg-v bad';
-        return 'RED';
-      }
-      if (greenPct > 60) {
-        $('dbgHyst').textContent = `YEL→GRN (G:${Math.round(greenPct)}%)`;
-        $('dbgHyst').className = 'dbg-v ok';
-        return 'GREEN';
-      }
+      if (redPct > 20) { $('dbgHyst').textContent = `YEL→RED (R:${Math.round(redPct)}%)`; $('dbgHyst').className = 'dbg-v bad'; return 'RED'; }
+      if (greenPct > 60) { $('dbgHyst').textContent = `YEL→GRN (G:${Math.round(greenPct)}%)`; $('dbgHyst').className = 'dbg-v ok'; return 'GREEN'; }
       $('dbgHyst').textContent = `YELLOW (Y:${Math.round(yellowPct)}%)`;
       $('dbgHyst').className = 'dbg-v warn';
       return 'YELLOW';
     }
     if (raw === 'GREEN') {
-      if (greenPct < 30 && redPct > 50) {
-        $('dbgHyst').textContent = `GRN→RED (R:${Math.round(redPct)}%)`;
-        $('dbgHyst').className = 'dbg-v bad';
-        return 'RED';
-      }
-      if (greenPct < 40 && yellowPct > 50) {
-        $('dbgHyst').textContent = `GRN→YEL (Y:${Math.round(yellowPct)}%)`;
-        $('dbgHyst').className = 'dbg-v warn';
-        return 'YELLOW';
-      }
+      if (greenPct < 30 && redPct > 50) { $('dbgHyst').textContent = `GRN→RED (R:${Math.round(redPct)}%)`; $('dbgHyst').className = 'dbg-v bad'; return 'RED'; }
+      if (greenPct < 40 && yellowPct > 50) { $('dbgHyst').textContent = `GRN→YEL (Y:${Math.round(yellowPct)}%)`; $('dbgHyst').className = 'dbg-v warn'; return 'YELLOW'; }
       $('dbgHyst').textContent = `GREEN (${Math.round(greenPct)}%)`;
       $('dbgHyst').className = 'dbg-v ok';
       return 'GREEN';
@@ -713,11 +734,11 @@
   function getState(n) { return getStateWithHysteresis(n); }
 
   const DIR_KEYWORDS = {
-    behind: 'behind', back: 'behind', rear: 'behind',
-    front: 'in front', ahead: 'in front', forward: 'in front',
-    left: 'left', right: 'right',
-    above: 'above', up: 'above', top: 'above',
-    below: 'below', down: 'below', bottom: 'below', under: 'below'
+    behind:'behind', back:'behind', rear:'behind',
+    front:'in front', ahead:'in front', forward:'in front',
+    left:'left', right:'right',
+    above:'above', up:'above', top:'above',
+    below:'below', down:'below', bottom:'below', under:'below'
   };
 
   let ocrWorkers = [];
@@ -731,6 +752,7 @@
   function updateThresholdUI() {
     $('redThrV').textContent = RED_MAX;
     $('yelThrV').textContent = YEL_MAX;
+
     if (skipYellow) {
       $('thrRedLabel').textContent = 'RED ≤' + RED_MAX;
       $('thrYelLabel').style.display = 'none';
@@ -754,28 +776,29 @@
       $('thrSegG').style.flex = total - YEL_MAX;
     }
   }
+
   $('redThrR').oninput = e => {
     let v = +e.target.value;
     if (!skipYellow && v >= YEL_MAX) { v = YEL_MAX - 10; e.target.value = v; }
     RED_MAX = v; updateThresholdUI(); stateHistory = [];
-    if (lastNum !== null && !isBallLoose && !isMiddle && !isGoal) { const st = getState(lastNum); applyState(st, lastNum); }
+    if (lastNum !== null && !isBallLoose && !isMiddle && !isGoal) applyState(getState(lastNum), lastNum);
   };
   $('yelThrR').oninput = e => {
     let v = +e.target.value;
     if (v <= RED_MAX) { v = RED_MAX + 10; e.target.value = v; }
     YEL_MAX = v; updateThresholdUI(); stateHistory = [];
-    if (lastNum !== null && !isBallLoose && !isMiddle && !isGoal) { const st = getState(lastNum); applyState(st, lastNum); }
+    if (lastNum !== null && !isBallLoose && !isMiddle && !isGoal) applyState(getState(lastNum), lastNum);
   };
   function setThresholds(r, y) {
     RED_MAX = r; YEL_MAX = y;
     $('redThrR').value = r; $('yelThrR').value = y;
     updateThresholdUI(); stateHistory = [];
-    if (lastNum !== null && !isBallLoose && !isMiddle && !isGoal) { const st = getState(lastNum); applyState(st, lastNum); }
+    if (lastNum !== null && !isBallLoose && !isMiddle && !isGoal) applyState(getState(lastNum), lastNum);
   }
   updateThresholdUI();
 
-  const MIDDLE_WORDS = ['middle', 'middie', 'midd1e', 'm1ddle', 'rniddle', 'middl', 'mlddle', 'mid'];
-  const GOAL_WORDS = ['goal', 'goa1', 'g0al', 'goai', 'qoal', 'g0a1'];
+  const MIDDLE_WORDS = ['middle','middie','midd1e','m1ddle','rniddle','middl','mlddle','mid'];
+  const GOAL_WORDS = ['goal','goa1','g0al','goai','qoal','g0a1'];
 
   function detectMiddle(raw, lines) {
     const all = [raw, ...lines].map(s => s.toLowerCase());
@@ -788,6 +811,7 @@
     return false;
   }
 
+  // ===== MQTT relay (unchanged) =====
   let mqttWs = null, mqttConnected = false, mqttReconnectTimer = null;
   let mqttClientId = 'orion-' + Math.random().toString(36).substr(2, 9);
   let mqttTopic = '', mqttPingInterval = null;
@@ -928,6 +952,7 @@
     $('remoteUI').classList.remove('hidden');
     $('connStatus').textContent = 'Connecting...';
     $('connStatus').className = 'conn-status waiting';
+
     mqttConnect(() => {
       mqttSubscribe(getMqttTopic(code));
       $('connStatus').textContent = '✓ Waiting for host...';
@@ -953,6 +978,7 @@
         }
       } catch (e) { }
     });
+
     const lbc = initLocalBroadcast(code);
     if (lbc) {
       lbc.onmessage = e => {
@@ -975,7 +1001,9 @@
   function handleRemoteState(data) {
     const { state, dist, dir } = data;
     const hero = $('remoteHero'), stEl = $('remoteState'), distEl = $('remoteDist'), dirEl = $('remoteDir'), timeEl = $('remoteTime');
-    rLastDir = dir || ''; rLastDist = dist || '';
+    rLastDir = dir || '';
+    rLastDist = dist || '';
+
     hero.className = 'remote-hero';
 
     if (state === 'MIDDLE') {
@@ -1019,6 +1047,7 @@
 
     if (state !== rCurState) {
       rCurState = state;
+
       if (state === 'MIDDLE') {
         if (!rMiddleAnnounced) { rSpeak('Ball is in the middle', false); rMiddleAnnounced = true; }
         rGoalAnnounced = false;
@@ -1031,10 +1060,12 @@
         rMiddleAnnounced = false;
         rGoalAnnounced = false;
 
-        // NEW: beep mode behavior
+        // NEW: beep mode state-change behavior with distance-based speed
         if (rBeepMode) {
-          if (state === 'RED') {
-            playDirectionalBeep(dir || '', +$('rVolR').value, true, $('rVoiceLine'));
+          if (state === 'RED' || state === 'YELLOW' || state === 'GREEN') {
+            const n = parseInt(dist, 10);
+            const ms = beepIntervalForDistance(isFinite(n) ? n : null, state, +$('rRepR').value);
+            playDirectionalBeep(dir || '', +$('rVolR').value, state === 'RED', $('rVoiceLine'), ms);
           } else if (state === 'BALL LOOSE') {
             rSpeak('Ball loose', true);
           }
@@ -1042,6 +1073,7 @@
           const phrase = rGetPhrase(state, dir);
           if (phrase) rSpeak(phrase, state === 'RED' || state === 'BALL LOOSE');
         }
+
         rStartRep();
       }
     }
@@ -1063,6 +1095,7 @@
     });
     s.value = best;
   }
+
   speechSynthesis.onvoiceschanged = () => { loadVoices(); rLoadVoices(); };
   setTimeout(() => { loadVoices(); rLoadVoices(); }, 100);
   setTimeout(() => { loadVoices(); rLoadVoices(); }, 500);
@@ -1075,6 +1108,7 @@
 
   function rSpeak(text, urgent) {
     if (rMuted) return;
+    if (!text) return;
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
     u.volume = +$('rVolR').value;
@@ -1098,7 +1132,9 @@
     if (s === 'GREEN') return 'Green';
     return '';
   }
+
   function rTestVoice() { rSpeak('Red behind. Yellow. Green. Ball loose. Ball is in the middle. Goal is scored.', false); }
+
   function rToggleMute() {
     rMuted = !rMuted;
     $('rMuteBtn').textContent = rMuted ? '🔇 Off' : '🔊 On';
@@ -1107,29 +1143,51 @@
     else rStartRep();
   }
 
+  // Remote repetition: distance-based beep rate using setTimeout loop
   function rStartRep() {
     rStopRep();
     if (rMuted || rCurState === 'OFF' || rCurState === 'MIDDLE' || rCurState === 'GOAL') return;
-    if (rBeepMode && rCurState !== 'RED' && rCurState !== 'BALL LOOSE') return;
 
-    const ms = +$('rRepR').value * 1000;
-    rRepTimer = setInterval(() => {
+    const tick = () => {
       if (rMuted) { rStopRep(); return; }
+      if (rCurState === 'OFF' || rCurState === 'MIDDLE' || rCurState === 'GOAL') { rStopRep(); return; }
 
       if (rBeepMode) {
-        if (rCurState === 'RED') {
-          playDirectionalBeep(rLastDir || '', +$('rVolR').value, true, $('rVoiceLine'));
-        } else if (rCurState === 'BALL LOOSE') {
-          rSpeak('Ball loose', true);
+        if (rCurState === 'RED' || rCurState === 'YELLOW' || rCurState === 'GREEN') {
+          const n = parseInt(rLastDist, 10);
+          const ms = beepIntervalForDistance(isFinite(n) ? n : null, rCurState, +$('rRepR').value);
+          playDirectionalBeep(rLastDir || '', +$('rVolR').value, rCurState === 'RED', $('rVoiceLine'), ms);
+          rRepTimer = setTimeout(tick, ms);
+          return;
         }
+        if (rCurState === 'BALL LOOSE') {
+          rSpeak('Ball loose', true);
+          const ms = Math.round(+$('rRepR').value * 1000);
+          rRepTimer = setTimeout(tick, ms);
+          return;
+        }
+        rStopRep();
         return;
       }
 
       const p = rGetPhrase(rCurState, rLastDir);
       if (p) rSpeak(p, rCurState === 'RED' || rCurState === 'BALL LOOSE');
-    }, ms);
+      const ms = Math.round(+$('rRepR').value * 1000);
+      rRepTimer = setTimeout(tick, ms);
+    };
+
+    const firstMs = rBeepMode
+      ? ((rCurState === 'RED' || rCurState === 'YELLOW' || rCurState === 'GREEN')
+          ? beepIntervalForDistance(parseInt(rLastDist, 10), rCurState, +$('rRepR').value)
+          : Math.round(+$('rRepR').value * 1000))
+      : Math.round(+$('rRepR').value * 1000);
+
+    rRepTimer = setTimeout(tick, firstMs);
   }
-  function rStopRep() { if (rRepTimer) { clearInterval(rRepTimer); rRepTimer = null; } }
+
+  function rStopRep() {
+    if (rRepTimer) { clearTimeout(rRepTimer); rRepTimer = null; }
+  }
 
   $('volR').oninput = e => $('volV').textContent = Math.round(e.target.value * 100) + '%';
   $('spdR').oninput = e => $('spdV').textContent = (+e.target.value).toFixed(1) + 'x';
@@ -1221,18 +1279,14 @@
     muted = !muted;
     $('muteBtn').textContent = muted ? '🔇 Off' : '🔊 On';
     $('muteBtn').classList.toggle('act', !muted);
-    if (muted) {
-      speechSynthesis.cancel();
-      stopRep();
-    } else {
-      startRep();
-    }
+    if (muted) { speechSynthesis.cancel(); stopRep(); }
+    else startRep();
   }
 
   function getPhrase(state) {
     if (state === 'BALL LOOSE') return 'Ball loose';
 
-    // NEW: Beep mode removes speech for RED/YELLOW/GREEN only
+    // Beep mode removes speech for RED/YELLOW/GREEN
     if (beepMode && (state === 'RED' || state === 'YELLOW' || state === 'GREEN')) return '';
 
     if (state === 'RED') {
@@ -1245,33 +1299,56 @@
     return '';
   }
 
+  // Host repetition: distance-based beep rate using setTimeout loop
   function startRep() {
     stopRep();
     if (muted || curState === 'OFF' || curState === 'MIDDLE' || curState === 'GOAL') return;
 
-    // NEW: In beep mode only repeat for RED (and keep BALL LOOSE spoken)
-    if (beepMode && curState !== 'RED' && curState !== 'BALL LOOSE') return;
-
-    const ms = +$('repR').value * 1000;
-    repTimer = setInterval(() => {
+    const tick = () => {
       if (muted) { stopRep(); return; }
+      if (curState === 'OFF' || curState === 'MIDDLE' || curState === 'GOAL') { stopRep(); return; }
 
       if (beepMode) {
-        if (curState === 'RED') {
+        if (curState === 'RED' || curState === 'YELLOW' || curState === 'GREEN') {
           const dir = $('dirChk').checked ? getActiveDir() : '';
-          playDirectionalBeep(dir, +$('volR').value, true, $('voiceLine'));
-        } else if (curState === 'BALL LOOSE') {
-          speak('Ball loose', true);
+          const urgent = (curState === 'RED');
+          const ms = beepIntervalForDistance(lastNum, curState, +$('repR').value);
+          playDirectionalBeep(dir, +$('volR').value, urgent, $('voiceLine'), ms);
+          repTimer = setTimeout(tick, ms);
+          return;
         }
+        if (curState === 'BALL LOOSE') {
+          speak('Ball loose', true);
+          const ms = Math.round(+$('repR').value * 1000);
+          repTimer = setTimeout(tick, ms);
+          return;
+        }
+        stopRep();
         return;
       }
 
       const phrase = getPhrase(curState);
       if (phrase) speak(phrase, curState === 'RED' || curState === 'BALL LOOSE');
-    }, ms);
+      const ms = Math.round(+$('repR').value * 1000);
+      repTimer = setTimeout(tick, ms);
+    };
+
+    const firstMs = beepMode
+      ? ((curState === 'RED' || curState === 'YELLOW' || curState === 'GREEN')
+          ? beepIntervalForDistance(lastNum, curState, +$('repR').value)
+          : Math.round(+$('repR').value * 1000))
+      : Math.round(+$('repR').value * 1000);
+
+    repTimer = setTimeout(tick, firstMs);
   }
-  function stopRep() { if (repTimer) { clearInterval(repTimer); repTimer = null; } }
-  function restartRep() { if (curState !== 'OFF' && curState !== 'MIDDLE' && curState !== 'GOAL') startRep(); }
+
+  function stopRep() {
+    if (repTimer) { clearTimeout(repTimer); repTimer = null; }
+  }
+
+  function restartRep() {
+    if (curState !== 'OFF' && curState !== 'MIDDLE' && curState !== 'GOAL') startRep();
+  }
 
   $('startBtn').onclick = async () => {
     try {
@@ -1311,6 +1388,7 @@
   };
 
   let dragging = false, sx = 0, sy = 0, activeBox = null;
+
   function getPos(e) {
     const r = videoContainer.getBoundingClientRect();
     return {
@@ -1347,6 +1425,7 @@
     activeBox.classList.remove('dragging');
     const p = getPos(e);
     const x = Math.min(sx, p.x), y = Math.min(sy, p.y), w = Math.abs(p.x - sx), h = Math.abs(p.y - sy);
+
     if (w < 0.005 || h < 0.003) {
       activeBox.classList.remove('show');
       if (drawMode === 'distance') { distRegion = null; resetDistDisplay(); }
@@ -1354,7 +1433,9 @@
       activeBox = null;
       return;
     }
+
     const reg = { x, y, w, h };
+
     if (drawMode === 'distance') {
       distRegion = reg;
       recentReadings = [];
@@ -1600,30 +1681,22 @@
     }
 
     if (detectGoal(raw,lines)) {
-      $('dbgSpecial').textContent='GOAL';
-      $('dbgSpecial').className='dbg-v warn';
-      $('dbgStrat').textContent='goal-word';
-      $('dbgStrat').className='dbg-v ok';
+      $('dbgSpecial').textContent='GOAL'; $('dbgSpecial').className='dbg-v warn';
+      $('dbgStrat').textContent='goal-word'; $('dbgStrat').className='dbg-v ok';
       isGoal=true;isMiddle=false;isBallLoose=false;lastNum=null;
-      $('resultNum').textContent='🥅 GOAL';
-      $('resultNum').className='res-num goal';
-      $('resultLbl').textContent='GOAL SCORED';
-      $('resultLbl').className='res-lbl orange';
+      $('resultNum').textContent='🥅 GOAL'; $('resultNum').className='res-num goal';
+      $('resultLbl').textContent='GOAL SCORED'; $('resultLbl').className='res-lbl orange';
       $('resultBox').className='res-display orange';
       applyState('GOAL','goal');
       return;
     }
 
     if (detectMiddle(raw,lines)) {
-      $('dbgSpecial').textContent='MIDDLE';
-      $('dbgSpecial').className='dbg-v warn';
-      $('dbgStrat').textContent='middle-word';
-      $('dbgStrat').className='dbg-v ok';
+      $('dbgSpecial').textContent='MIDDLE'; $('dbgSpecial').className='dbg-v warn';
+      $('dbgStrat').textContent='middle-word'; $('dbgStrat').className='dbg-v ok';
       isMiddle=true;isGoal=false;isBallLoose=false;lastNum=null;
-      $('resultNum').textContent='⚽ MIDDLE';
-      $('resultNum').className='res-num middle';
-      $('resultLbl').textContent='BALL IN MIDDLE';
-      $('resultLbl').className='res-lbl purple';
+      $('resultNum').textContent='⚽ MIDDLE'; $('resultNum').className='res-num middle';
+      $('resultLbl').textContent='BALL IN MIDDLE'; $('resultLbl').className='res-lbl purple';
       $('resultBox').className='res-display purple';
       applyState('MIDDLE','middle');
       return;
@@ -1633,26 +1706,20 @@
     if(isGoal){isGoal=false;goalAnnounced=false;}
 
     if (hasQuestionMark(raw,lines)) {
-      $('dbgNum').textContent='?→LOOSE';
-      $('dbgNum').className='dbg-v bad';
-      $('dbgBracket').textContent='?';
-      $('dbgBracket').className='dbg-v bad';
-      $('dbgStrat').textContent='question-mark';
-      $('dbgStrat').className='dbg-v warn';
+      $('dbgNum').textContent='?→LOOSE'; $('dbgNum').className='dbg-v bad';
+      $('dbgBracket').textContent='?'; $('dbgBracket').className='dbg-v bad';
+      $('dbgStrat').textContent='question-mark'; $('dbgStrat').className='dbg-v warn';
       $('dbgSpecial').textContent='—';
       isBallLoose=true;lastNum=null;stateHistory=[];
-      $('resultNum').textContent='BALL LOOSE';
-      $('resultNum').className='res-num loose';
-      $('resultLbl').textContent='NO LOCK';
-      $('resultLbl').className='res-lbl loose';
+      $('resultNum').textContent='BALL LOOSE'; $('resultNum').className='res-num loose';
+      $('resultLbl').textContent='NO LOCK'; $('resultLbl').className='res-lbl loose';
       $('resultBox').className='res-display red';
       applyState('BALL LOOSE','?');
       return;
     }
 
     isBallLoose=false;
-    $('dbgSpecial').textContent='—';
-    $('dbgSpecial').className='dbg-v';
+    $('dbgSpecial').textContent='—'; $('dbgSpecial').className='dbg-v';
 
     // If no real digits exist, skip
     if (!/[0-9]/.test(raw)) {
@@ -1736,6 +1803,7 @@
           detectedDir=found;
           if(found)log('Dir: '+found,'g');
           updateDirDisplay();
+          // if we're repeating, reschedule (beep pan updates quickly)
           if(curState==='RED') restartRep();
         }
       }
@@ -1915,9 +1983,6 @@
       return;
     }
 
-    if(curState==='MIDDLE')middleAnnounced=false;
-    if(curState==='GOAL')goalAnnounced=false;
-
     if (state === 'BALL LOOSE') {
       $('stateBox').className='state-hero red';
       $('stateVal').className='st-big loose';
@@ -1942,11 +2007,14 @@
       log(curState+' → '+state+' ('+dist+')','w');
       curState = state;
 
-      // NEW: beep on RED only, no voice for R/Y/G when beepMode enabled
       if (beepMode) {
-        if (state === 'RED') {
+        // Beep for RED/YELLOW/GREEN with distance-based speed
+        if (state === 'RED' || state === 'YELLOW' || state === 'GREEN') {
           const d = $('dirChk').checked ? getActiveDir() : '';
-          playDirectionalBeep(d, +$('volR').value, true, $('voiceLine'));
+          const urgent = (state === 'RED');
+          const n = (typeof dist === 'number') ? dist : lastNum;
+          const ms = beepIntervalForDistance(n, state, +$('repR').value);
+          playDirectionalBeep(d, +$('volR').value, urgent, $('voiceLine'), ms);
         }
       } else {
         const p = getPhrase(state);
@@ -1959,7 +2027,10 @@
 
   setInterval(() => { if (speechSynthesis.paused) speechSynthesis.resume(); }, 5000);
   log('ORION v3 ready - High Performance Mode');
-  setTimeout(() => { if (lastNum !== null) { const st = getState(lastNum); applyState(st, lastNum); } }, 1000);
+
+  setTimeout(() => {
+    if (lastNum !== null) applyState(getState(lastNum), lastNum);
+  }, 1000);
 </script>
 
 </body>
