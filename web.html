@@ -195,11 +195,6 @@ body{background:var(--bg);color:var(--t1);font-family:'Inter','Segoe UI',system-
 .thr-visual{display:flex;height:8px;border-radius:4px;overflow:hidden;margin:8px 0 4px;gap:1px}
 .thr-visual .seg{transition:flex .3s}
 .thr-visual .seg.rs{background:var(--red)}.thr-visual .seg.ys{background:var(--yel)}.thr-visual .seg.gs{background:var(--grn)}
-.voice-priority{margin-top:8px;padding:8px 10px;background:#06060e;border:1px solid var(--brd);border-radius:var(--rs);font-size:10px;color:var(--t3);font-family:monospace}
-.voice-priority .vp-state{display:inline-block;padding:2px 6px;border-radius:3px;font-weight:700;margin-left:4px}
-.voice-priority .vp-state.speaking{background:var(--yg);color:var(--yel)}
-.voice-priority .vp-state.idle{background:rgba(255,255,255,.05);color:var(--t3)}
-.voice-priority .vp-state.queued{background:var(--bg2);color:var(--blu)}
 </style>
 </head>
 <body><div class="overlay" id="overlay">
@@ -306,7 +301,7 @@ Flickering borders → snaps to safer color
 <span>✓</span> Any <b>?</b> → <b>BALL LOOSE</b><br>
 <span>✓</span> <b>middle</b> → ⚽ BALL IN MIDDLE (once)<br>
 <span>✓</span> <b>goal</b> → 🥅 GOAL SCORED (once)<br>
-<span>✓</span> Priority voice: RED/YEL interrupt, all states speak fully<br>
+<span>✓</span> Hysteresis: RED↔YEL snaps RED, YEL↔GRN snaps YEL<br>
 <span>✓</span> Dual-worker pipeline · Instant WebSocket sync
 </div>
 </div>
@@ -367,7 +362,6 @@ Flickering borders → snaps to safer color
 <button class="btn act" id="muteBtn" onclick="toggleMute()">🔊 On</button>
 </div>
 <div class="vstatus" id="voiceLine"></div>
-<div class="voice-priority" id="voicePriority">Voice: <span class="vp-state idle" id="vpState">IDLE</span></div>
 </div>
 </div>
 <div class="card">
@@ -471,252 +465,6 @@ let stateHistory = [];
 let lastStableState = null;
 const HYST_WINDOW = 4;
 
-// ============================================
-// PRIORITY VOICE SYSTEM
-// ============================================
-// Priority levels: 3=CRITICAL (ball loose, goal), 2=HIGH (red, yellow), 1=NORMAL (green), 0=LOW (repeat)
-// Rules:
-// - Higher priority ALWAYS interrupts lower
-// - Same priority: let current finish, then speak new
-// - All state changes speak immediately on entry
-// - Repeats only fire if nothing is currently speaking
-
-let voiceIsSpeaking = false;
-let voiceCurrentPriority = 0;
-let voiceCurrentUtterance = null;
-let voiceQueue = []; // {text, priority, urgent}
-let voiceLastSpokenState = '';
-let voiceLastSpokenTime = 0;
-let voiceDebounceTimer = null;
-const VOICE_DEBOUNCE_MS = 150; // Wait 150ms before committing to a state change voice
-
-function getVoicePriority(state) {
-    if (state === 'BALL LOOSE' || state === 'GOAL' || state === 'MIDDLE') return 3;
-    if (state === 'RED') return 2;
-    if (state === 'YELLOW') return 2;
-    if (state === 'GREEN') return 1;
-    return 0;
-}
-
-function speak(text, urgent = false, priority = 1) {
-    if (muted || !voices.length) return;
-    
-    const now = Date.now();
-    
-    // If same text was just spoken within 400ms, skip (anti-stutter)
-    if (text === voiceLastSpokenState && now - voiceLastSpokenTime < 400) return;
-    
-    if (voiceIsSpeaking) {
-        // Higher priority interrupts immediately
-        if (priority > voiceCurrentPriority) {
-            speechSynthesis.cancel();
-            voiceIsSpeaking = false;
-            doSpeak(text, urgent, priority);
-        }
-        // Same or lower priority: queue it (replace any existing queued)
-        else {
-            voiceQueue = [{ text, urgent, priority }];
-            updateVoicePriorityUI('queued', text);
-        }
-    } else {
-        doSpeak(text, urgent, priority);
-    }
-}
-
-function doSpeak(text, urgent, priority) {
-    if (muted || !voices.length) return;
-    
-    // Cancel anything lingering
-    speechSynthesis.cancel();
-    
-    const u = new SpeechSynthesisUtterance(text);
-    u.volume = +$('volR').value;
-    u.rate = +$('spdR').value;
-    u.pitch = urgent ? 1.15 : 1;
-    const v = voices[+$('voiceSel').value];
-    if (v) u.voice = v;
-    
-    voiceIsSpeaking = true;
-    voiceCurrentPriority = priority;
-    voiceCurrentUtterance = u;
-    voiceLastSpokenState = text;
-    voiceLastSpokenTime = Date.now();
-    
-    u.onstart = () => {
-        $('voiceLine').textContent = '🔊 ' + text;
-        $('voiceLine').className = 'vstatus talk';
-        updateVoicePriorityUI('speaking', text);
-    };
-    
-    u.onend = () => {
-        voiceIsSpeaking = false;
-        voiceCurrentPriority = 0;
-        voiceCurrentUtterance = null;
-        $('voiceLine').textContent = '✓ ' + text;
-        $('voiceLine').className = 'vstatus ok';
-        updateVoicePriorityUI('idle', '');
-        
-        // Process queue
-        if (voiceQueue.length > 0) {
-            const next = voiceQueue.shift();
-            setTimeout(() => doSpeak(next.text, next.urgent, next.priority), 50);
-        }
-    };
-    
-    u.onerror = (e) => {
-        voiceIsSpeaking = false;
-        voiceCurrentPriority = 0;
-        voiceCurrentUtterance = null;
-        // Retry once on error
-        if (e.error !== 'canceled') {
-            setTimeout(() => {
-                if (!muted && voiceQueue.length === 0) {
-                    doSpeak(text, urgent, priority);
-                }
-            }, 100);
-        }
-        updateVoicePriorityUI('idle', '');
-    };
-    
-    speechSynthesis.speak(u);
-}
-
-function speakStateChange(state, text, urgent) {
-    const priority = getVoicePriority(state);
-    
-    // Clear any debounce
-    if (voiceDebounceTimer) {
-        clearTimeout(voiceDebounceTimer);
-        voiceDebounceTimer = null;
-    }
-    
-    // Critical states (ball loose, goal, middle) - speak IMMEDIATELY no debounce
-    if (priority >= 3) {
-        speak(text, urgent, priority);
-        return;
-    }
-    
-    // RED/YELLOW - tiny debounce to prevent flicker-stutter but still fast
-    if (priority >= 2) {
-        voiceDebounceTimer = setTimeout(() => {
-            speak(text, urgent, priority);
-            voiceDebounceTimer = null;
-        }, 80);
-        return;
-    }
-    
-    // GREEN - speak immediately, it's important info
-    speak(text, urgent, priority);
-}
-
-function speakRepeat(state, text, urgent) {
-    // Repeats are priority 0 - never interrupt anything
-    if (voiceIsSpeaking) return; // Don't even queue repeats
-    speak(text, urgent, 0);
-}
-
-function updateVoicePriorityUI(state, text) {
-    const el = $('vpState');
-    if (!el) return;
-    if (state === 'speaking') {
-        el.textContent = 'SPEAKING';
-        el.className = 'vp-state speaking';
-    } else if (state === 'queued') {
-        el.textContent = 'QUEUED';
-        el.className = 'vp-state queued';
-    } else {
-        el.textContent = 'IDLE';
-        el.className = 'vp-state idle';
-    }
-}
-
-// ============================================
-// REMOTE PRIORITY VOICE SYSTEM (mirror)
-// ============================================
-let rVoiceIsSpeaking = false;
-let rVoiceCurrentPriority = 0;
-let rVoiceQueue = [];
-let rVoiceLastSpokenState = '';
-let rVoiceLastSpokenTime = 0;
-let rVoiceDebounceTimer = null;
-
-function rSpeak(text, urgent, priority = 1) {
-    if (rMuted) return;
-    const now = Date.now();
-    if (text === rVoiceLastSpokenState && now - rVoiceLastSpokenTime < 400) return;
-    
-    if (rVoiceIsSpeaking) {
-        if (priority > rVoiceCurrentPriority) {
-            speechSynthesis.cancel();
-            rVoiceIsSpeaking = false;
-            rDoSpeak(text, urgent, priority);
-        } else {
-            rVoiceQueue = [{ text, urgent, priority }];
-        }
-    } else {
-        rDoSpeak(text, urgent, priority);
-    }
-}
-
-function rDoSpeak(text, urgent, priority) {
-    if (rMuted) return;
-    speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.volume = +$('rVolR').value;
-    u.rate = +$('rSpdR').value;
-    u.pitch = urgent ? 1.15 : 1;
-    if (rVoices.length) {
-        const v = rVoices[+$('rVoiceSel').value];
-        if (v) u.voice = v;
-    }
-    rVoiceIsSpeaking = true;
-    rVoiceCurrentPriority = priority;
-    rVoiceLastSpokenState = text;
-    rVoiceLastSpokenTime = Date.now();
-    
-    u.onstart = () => {
-        $('rVoiceLine').textContent = '🔊 ' + text;
-        $('rVoiceLine').className = 'vstatus talk';
-    };
-    u.onend = () => {
-        rVoiceIsSpeaking = false;
-        rVoiceCurrentPriority = 0;
-        $('rVoiceLine').textContent = '✓ ' + text;
-        $('rVoiceLine').className = 'vstatus ok';
-        if (rVoiceQueue.length > 0) {
-            const next = rVoiceQueue.shift();
-            setTimeout(() => rDoSpeak(next.text, next.urgent, next.priority), 50);
-        }
-    };
-    u.onerror = (e) => {
-        rVoiceIsSpeaking = false;
-        rVoiceCurrentPriority = 0;
-        if (e.error !== 'canceled') {
-            setTimeout(() => { if (!rMuted && rVoiceQueue.length === 0) rDoSpeak(text, urgent, priority); }, 100);
-        }
-    };
-    speechSynthesis.speak(u);
-}
-
-function rSpeakStateChange(state, text, urgent) {
-    const priority = getVoicePriority(state);
-    if (rVoiceDebounceTimer) { clearTimeout(rVoiceDebounceTimer); rVoiceDebounceTimer = null; }
-    if (priority >= 3) { rSpeak(text, urgent, priority); return; }
-    if (priority >= 2) {
-        rVoiceDebounceTimer = setTimeout(() => { rSpeak(text, urgent, priority); rVoiceDebounceTimer = null; }, 80);
-        return;
-    }
-    rSpeak(text, urgent, priority);
-}
-
-function rSpeakRepeat(state, text, urgent) {
-    if (rVoiceIsSpeaking) return;
-    rSpeak(text, urgent, 0);
-}
-
-// ============================================
-// SKIP YELLOW
-// ============================================
 function toggleSkipYellow() {
     skipYellow = $('skipYellowChk').checked;
     $('yelThrRow').style.display = skipYellow ? 'none' : 'flex';
@@ -740,7 +488,6 @@ function getStateWithHysteresis(n) {
     const raw = getStateRaw(n);
     stateHistory.push(raw);
     if (stateHistory.length > HYST_WINDOW) stateHistory.shift();
-
     if (stateHistory.length < 2) {
         $('dbgHyst').textContent = `Raw: ${raw}`;
         $('dbgHyst').className = 'dbg-v';
@@ -846,9 +593,6 @@ let ocrFrameCount = 0, ocrFpsLastTime = Date.now(), ocrFps = 0;
 let rMuted = false, rVoices = [], rCurState = 'OFF', rRepTimer = null, rLastDir = '', rLastDist = '';
 let rMiddleAnnounced = false, rGoalAnnounced = false;
 
-// ============================================
-// THRESHOLD SLIDERS
-// ============================================
 function updateThresholdUI() {
     $('redThrV').textContent = RED_MAX;
     $('yelThrV').textContent = YEL_MAX;
@@ -912,9 +656,6 @@ function setThresholds(r, y) {
 }
 updateThresholdUI();
 
-// ============================================
-// SPECIAL WORD DETECTION
-// ============================================
 const MIDDLE_WORDS = ['middle', 'middie', 'midd1e', 'm1ddle', 'rniddle', 'middl', 'mlddle', 'mid'];
 const GOAL_WORDS = ['goal', 'goa1', 'g0al', 'goai', 'qoal', 'g0a1'];
 
@@ -930,9 +671,6 @@ function detectGoal(raw, lines) {
     return false;
 }
 
-// ============================================
-// MQTT
-// ============================================
 let mqttWs = null, mqttConnected = false, mqttReconnectTimer = null;
 let mqttClientId = 'orion-' + Math.random().toString(36).substr(2, 9);
 let mqttTopic = '', mqttPingInterval = null;
@@ -1010,9 +748,6 @@ function initLocalBroadcast(code) { try { bc = new BroadcastChannel('orion-room-
 function localBroadcast(s, d, r) { if (bc) try { bc.postMessage({ s, d, r, t: Date.now() }); } catch (e) { } }
 function genRoom() { const c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let r = ''; for (let i = 0; i < 5; i++) r += c[Math.floor(Math.random() * c.length)]; return r; }
 
-// ============================================
-// ROLES
-// ============================================
 function chooseRole(r) {
     role = r; $('overlay').classList.add('hidden');
     if (r === 'host') {
@@ -1053,9 +788,6 @@ function joinRoom() {
     rLoadVoices(); log('Remote: ' + code, 'g');
 }
 
-// ============================================
-// REMOTE VIEW
-// ============================================
 function handleRemoteState(data) {
     const { state, dist, dir } = data;
     const hero = $('remoteHero'), stEl = $('remoteState'), distEl = $('remoteDist'), dirEl = $('remoteDir'), timeEl = $('remoteTime');
@@ -1074,15 +806,15 @@ function handleRemoteState(data) {
     if (state !== rCurState) {
         rCurState = state;
         if (state === 'MIDDLE') {
-            if (!rMiddleAnnounced) { rSpeakStateChange('MIDDLE', 'Ball is in the middle', false); rMiddleAnnounced = true; }
+            if (!rMiddleAnnounced) { rSpeak('Ball is in the middle', false); rMiddleAnnounced = true; }
             rGoalAnnounced = false; rStopRep();
         } else if (state === 'GOAL') {
-            if (!rGoalAnnounced) { rSpeakStateChange('GOAL', 'Goal is scored', true); rGoalAnnounced = true; }
+            if (!rGoalAnnounced) { rSpeak('Goal is scored', true); rGoalAnnounced = true; }
             rMiddleAnnounced = false; rStopRep();
         } else {
             rMiddleAnnounced = false; rGoalAnnounced = false;
             const phrase = rGetPhrase(state, dir);
-            if (phrase) rSpeakStateChange(state, phrase, state === 'RED' || state === 'BALL LOOSE');
+            if (phrase) rSpeak(phrase, state === 'RED' || state === 'BALL LOOSE');
             rStartRep();
         }
     }
@@ -1106,6 +838,23 @@ $('rVolR').oninput = e => $('rVolV').textContent = Math.round(e.target.value * 1
 $('rSpdR').oninput = e => $('rSpdV').textContent = (+e.target.value).toFixed(1) + 'x';
 $('rRepR').oninput = e => { $('rRepV').textContent = (+e.target.value).toFixed(1) + 's'; rStartRep(); };
 
+function rSpeak(text, urgent) {
+    if (rMuted) return;
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.volume = +$('rVolR').value;
+    u.rate = +$('rSpdR').value;
+    u.pitch = urgent ? 1.15 : 1;
+    if (rVoices.length) {
+        const v = rVoices[+$('rVoiceSel').value];
+        if (v) u.voice = v;
+    }
+    u.onstart = () => { $('rVoiceLine').textContent = '🔊 ' + text; $('rVoiceLine').className = 'vstatus talk'; };
+    u.onend = () => { $('rVoiceLine').textContent = '✓ ' + text; $('rVoiceLine').className = 'vstatus ok'; };
+    u.onerror = () => { $('rVoiceLine').textContent = '⚠'; $('rVoiceLine').className = 'vstatus err'; };
+    speechSynthesis.speak(u);
+}
+
 function rGetPhrase(s, d) {
     if (s === 'BALL LOOSE') return 'Ball loose';
     if (s === 'RED') return d ? 'Red ' + d : 'Red';
@@ -1114,13 +863,13 @@ function rGetPhrase(s, d) {
     return '';
 }
 
-function rTestVoice() { rSpeak('Red behind. Yellow. Green. Ball loose. Ball is in the middle. Goal is scored.', false, 1); }
+function rTestVoice() { rSpeak('Red behind. Yellow. Green. Ball loose. Ball is in the middle. Goal is scored.', false); }
 
 function rToggleMute() {
     rMuted = !rMuted;
     $('rMuteBtn').textContent = rMuted ? '🔇 Off' : '🔊 On';
     $('rMuteBtn').classList.toggle('act', !rMuted);
-    if (rMuted) { speechSynthesis.cancel(); rVoiceIsSpeaking = false; rVoiceQueue = []; rStopRep(); } else rStartRep();
+    if (rMuted) { speechSynthesis.cancel(); rStopRep(); } else rStartRep();
 }
 
 function rStartRep() {
@@ -1130,15 +879,12 @@ function rStartRep() {
     rRepTimer = setInterval(() => {
         if (rMuted) { rStopRep(); return; }
         const p = rGetPhrase(rCurState, rLastDir);
-        if (p) rSpeakRepeat(rCurState, p, rCurState === 'RED' || rCurState === 'BALL LOOSE');
+        if (p) rSpeak(p, rCurState === 'RED' || rCurState === 'BALL LOOSE');
     }, ms);
 }
 
 function rStopRep() { if (rRepTimer) { clearInterval(rRepTimer); rRepTimer = null; } }
 
-// ============================================
-// HOST CONTROLS
-// ============================================
 $('volR').oninput = e => $('volV').textContent = Math.round(e.target.value * 100) + '%';
 $('spdR').oninput = e => $('spdV').textContent = (+e.target.value).toFixed(1) + 'x';
 $('repR').oninput = e => { $('repV').textContent = (+e.target.value).toFixed(1) + 's'; restartRep(); };
@@ -1181,13 +927,27 @@ function loadVoices() {
     s.value = best;
 }
 
-function testVoice() { speak('Red behind. Yellow. Green. Ball loose. Ball is in the middle. Goal is scored.', false, 1); }
+function speak(text, urgent = false) {
+    if (muted || !voices.length) return;
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.volume = +$('volR').value;
+    u.rate = +$('spdR').value;
+    u.pitch = urgent ? 1.15 : 1;
+    const v = voices[+$('voiceSel').value];
+    if (v) u.voice = v;
+    u.onstart = () => { $('voiceLine').textContent = '🔊 ' + text; $('voiceLine').className = 'vstatus talk'; };
+    u.onend = () => { $('voiceLine').textContent = '✓'; $('voiceLine').className = 'vstatus ok'; };
+    speechSynthesis.speak(u);
+}
+
+function testVoice() { speak('Red behind. Yellow. Green. Ball loose. Ball is in the middle. Goal is scored.'); }
 
 function toggleMute() {
     muted = !muted;
     $('muteBtn').textContent = muted ? '🔇 Off' : '🔊 On';
     $('muteBtn').classList.toggle('act', !muted);
-    if (muted) { speechSynthesis.cancel(); voiceIsSpeaking = false; voiceQueue = []; stopRep(); }
+    if (muted) { speechSynthesis.cancel(); stopRep(); }
 }
 
 function getPhrase(state) {
@@ -1203,18 +963,14 @@ function startRep() {
     if (muted || curState === 'OFF' || curState === 'MIDDLE' || curState === 'GOAL') return;
     const ms = +$('repR').value * 1000;
     repTimer = setInterval(() => {
-        if (!muted && curState !== 'OFF' && curState !== 'MIDDLE' && curState !== 'GOAL') {
-            speakRepeat(curState, getPhrase(curState), curState === 'RED' || curState === 'BALL LOOSE');
-        }
+        if (!muted && curState !== 'OFF' && curState !== 'MIDDLE' && curState !== 'GOAL')
+            speak(getPhrase(curState), curState === 'RED' || curState === 'BALL LOOSE');
     }, ms);
 }
 
 function stopRep() { if (repTimer) { clearInterval(repTimer); repTimer = null; } }
 function restartRep() { if (curState !== 'OFF' && curState !== 'MIDDLE' && curState !== 'GOAL') startRep(); }
 
-// ============================================
-// CAPTURE
-// ============================================
 $('startBtn').onclick = async () => {
     try {
         const stream = await navigator.mediaDevices.getDisplayMedia({ video: { cursor: 'never' }, audio: false });
@@ -1232,14 +988,11 @@ $('startBtn').onclick = async () => {
         $('mainUI').classList.remove('hidden'); $('logBox').classList.remove('hidden');
         $('navPill').className = 'pill live'; $('pillTxt').textContent = 'LIVE';
         log(`Capture: ${vidW}×${vidH}`, 'g');
-        speak('Screen shared.', false, 1);
+        speak('Screen shared.');
         initOCR();
     } catch (e) { log('Error: ' + e.message, 'e'); }
 };
 
-// ============================================
-// SELECTION
-// ============================================
 let dragging = false, sx = 0, sy = 0, activeBox = null;
 function getPos(e) { const r = videoContainer.getBoundingClientRect(); return { x: Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)), y: Math.max(0, Math.min(1, (e.clientY - r.top) / r.height)) }; }
 
@@ -1301,9 +1054,6 @@ function setPreset(name) {
     isMiddle = false; isGoal = false; middleAnnounced = false; goalAnnounced = false; stateHistory = [];
 }
 
-// ============================================
-// OCR
-// ============================================
 async function initOCR() {
     const b = $('ocrBadge'); b.textContent = 'LOADING'; b.className = 'badge load';
     try {
@@ -1547,7 +1297,7 @@ function applyState(state, dist) {
         $('stateVal').textContent='⚽ MIDDLE'; $('stateDist').textContent='Ball in middle';
         if (curState !== 'MIDDLE') {
             log(curState+' → MIDDLE','w'); curState='MIDDLE'; stopRep();
-            if (!middleAnnounced) { speakStateChange('MIDDLE','Ball is in the middle',false); middleAnnounced=true; }
+            if (!middleAnnounced) { speak('Ball is in the middle', false); middleAnnounced=true; }
         }
         goalAnnounced=false; return;
     }
@@ -1556,7 +1306,7 @@ function applyState(state, dist) {
         $('stateVal').textContent='🥅 GOAL'; $('stateDist').textContent='Goal scored!';
         if (curState !== 'GOAL') {
             log(curState+' → GOAL','w'); curState='GOAL'; stopRep();
-            if (!goalAnnounced) { speakStateChange('GOAL','Goal is scored',true); goalAnnounced=true; }
+            if (!goalAnnounced) { speak('Goal is scored', true); goalAnnounced=true; }
         }
         middleAnnounced=false; return;
     }
@@ -1568,7 +1318,7 @@ function applyState(state, dist) {
         $('stateVal').textContent='BALL LOOSE'; $('stateDist').textContent='? — No Lock';
         if (curState !== 'BALL LOOSE') {
             log(curState+' → BALL LOOSE','w'); curState='BALL LOOSE';
-            speakStateChange('BALL LOOSE','Ball loose',true); startRep();
+            speak('Ball loose', true); startRep();
         }
         return;
     }
@@ -1579,15 +1329,20 @@ function applyState(state, dist) {
     
     if (state !== curState) {
         log(curState+' → '+state+' ('+dist+')','w'); curState=state;
-        speakStateChange(state, getPhrase(state), state === 'RED');
+        speak(getPhrase(state), state === 'RED');
         startRep();
     }
 }
 
-// Keep speech synthesis alive
-setInterval(() => { if (speechSynthesis.paused) speechSynthesis.resume(); }, 3000);
+setInterval(() => { if (speechSynthesis.paused) speechSynthesis.resume(); }, 5000);
+log('ORION v3 ready - High Performance Mode');
 
-log('ORION v3 ready - Priority Voice System');
+setTimeout(() => {
+    if (lastNum !== null) {
+        const st = getState(lastNum);
+        applyState(st, lastNum);
+    }
+}, 1000);
 </script>
 </body>
 </html>
