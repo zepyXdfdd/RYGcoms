@@ -4,7 +4,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ORION Distance Tracker v3 - High Performance</title>
 <style>
-/* [Keep all your existing CSS exactly as is] */
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
 --bg:#06060e;--card:#0a0a16;--card-h:#07070f;--brd:#161628;--brd2:#252545;
@@ -313,7 +312,7 @@ Flickering borders → snaps to safer color
 <div class="st-lbl">Current State</div>
 <div class="st-big off" id="stateVal">—</div>
 <div class="st-dist" id="stateDist">Waiting...</div>
-<div class="thr-bar">
+<div class="thr-bar" id="thrBar">
 <div class="thr-i ri" id="thrRedLabel">RED ≤500</div>
 <div class="thr-i yi" id="thrYelLabel">YEL 501-600</div>
 <div class="thr-i gi" id="thrGrnLabel">GRN >600</div>
@@ -327,11 +326,12 @@ Flickering borders → snaps to safer color
 <input type="range" class="red-range" id="redThrR" min="100" max="2000" step="10" value="500">
 <span class="sv rv" id="redThrV">500</span>
 </div>
-<div class="thr-slider-row">
+<div class="thr-slider-row" id="yelThrRow">
 <label class="yl">🟡 Yellow ≤</label>
 <input type="range" class="yel-range" id="yelThrR" min="100" max="2500" step="10" value="600">
 <span class="sv yv" id="yelThrV">600</span>
 </div>
+<label class="tgl" style="margin-top:8px"><input type="checkbox" id="skipYellowChk" onchange="toggleSkipYellow()"> Skip Yellow (Red/Green only)</label>
 <div class="thr-visual">
 <div class="seg rs" id="thrSegR" style="flex:500"></div>
 <div class="seg ys" id="thrSegY" style="flex:100"></div>
@@ -441,10 +441,6 @@ Flickering borders → snaps to safer color
 <canvas id="workCvs2" style="display:none"></canvas>
 
 <script>
-// ============================================
-// OPTIMIZED VERSION - HIGH FPS & ACCURATE COLORS
-// ============================================
-
 const $ = id => document.getElementById(id);
 const vid = $('vid'), rawCvs = $('rawCvs'), procCvs = $('procCvs'), workCvs = $('workCvs'), workCvs2 = $('workCvs2');
 const rawCtx = rawCvs.getContext('2d'), procCtx = procCvs.getContext('2d');
@@ -457,23 +453,33 @@ let distRegion = null, dirRegion = null, curState = 'OFF', lastNum = null, repTi
 let vidW = 0, vidH = 0, lastGoodNum = null, lastGoodTime = 0, noDetectCount = 0;
 let drawMode = 'distance', detectedDir = '', manualDirOverride = '', isBallLoose = false;
 let recentReadings = [];
-const MAX_READINGS = 3; // Reduced for faster response
+const MAX_READINGS = 3;
 
 let RED_MAX = 500, YEL_MAX = 600;
+let skipYellow = false;
 
-// Special event tracking
 let isMiddle = false, isGoal = false;
 let middleAnnounced = false, goalAnnounced = false;
 
-// ============================================
-// IMPROVED HYSTERESIS WITH WEIGHTED AVERAGE
-// ============================================
 let stateHistory = [];
 let lastStableState = null;
-const HYST_WINDOW = 4; // Smaller window for faster response
+const HYST_WINDOW = 4;
+
+function toggleSkipYellow() {
+    skipYellow = $('skipYellowChk').checked;
+    $('yelThrRow').style.display = skipYellow ? 'none' : 'flex';
+    $('thrYelLabel').style.display = skipYellow ? 'none' : '';
+    updateThresholdUI();
+    stateHistory = [];
+    if (lastNum !== null && !isBallLoose && !isMiddle && !isGoal) {
+        const st = getState(lastNum);
+        applyState(st, lastNum);
+    }
+}
 
 function getStateRaw(n) {
     if (n <= RED_MAX) return 'RED';
+    if (skipYellow) return 'GREEN';
     if (n <= YEL_MAX) return 'YELLOW';
     return 'GREEN';
 }
@@ -481,21 +487,44 @@ function getStateRaw(n) {
 function getStateWithHysteresis(n) {
     const raw = getStateRaw(n);
     
-    // Add to history
     stateHistory.push(raw);
     if (stateHistory.length > HYST_WINDOW) stateHistory.shift();
 
-    // Need minimum readings
     if (stateHistory.length < 2) {
         $('dbgHyst').textContent = `Raw: ${raw}`;
         $('dbgHyst').className = 'dbg-v';
         return raw;
     }
 
-    // Count with weighting (newer readings count more)
+    if (skipYellow) {
+        let weightRed = 0, weightGreen = 0;
+        for (let i = 0; i < stateHistory.length; i++) {
+            const weight = i + 1;
+            if (stateHistory[i] === 'RED') weightRed += weight;
+            else weightGreen += weight;
+        }
+        const totalWeight = weightRed + weightGreen;
+        const redPct = (weightRed / totalWeight) * 100;
+
+        if (raw === 'RED' && redPct < 30) {
+            $('dbgHyst').textContent = `RED→GRN (R:${Math.round(redPct)}%)`;
+            $('dbgHyst').className = 'dbg-v ok';
+            return 'GREEN';
+        }
+        if (raw === 'GREEN' && redPct > 50) {
+            $('dbgHyst').textContent = `GRN→RED (R:${Math.round(redPct)}%)`;
+            $('dbgHyst').className = 'dbg-v bad';
+            return 'RED';
+        }
+
+        $('dbgHyst').textContent = `${raw} (R:${Math.round(redPct)}%)`;
+        $('dbgHyst').className = raw === 'RED' ? 'dbg-v bad' : 'dbg-v ok';
+        return raw;
+    }
+
     let weightRed = 0, weightYellow = 0, weightGreen = 0;
     for (let i = 0; i < stateHistory.length; i++) {
-        const weight = i + 1; // Later readings have higher weight
+        const weight = i + 1;
         const s = stateHistory[i];
         if (s === 'RED') weightRed += weight;
         else if (s === 'YELLOW') weightYellow += weight;
@@ -504,14 +533,11 @@ function getStateWithHysteresis(n) {
 
     const totalWeight = weightRed + weightYellow + weightGreen;
     
-    // Calculate percentages
     const redPct = (weightRed / totalWeight) * 100;
     const yellowPct = (weightYellow / totalWeight) * 100;
     const greenPct = (weightGreen / totalWeight) * 100;
 
-    // Enhanced hysteresis rules
     if (raw === 'RED') {
-        // If we're seeing RED, be very sure before changing
         if (redPct < 30 && (yellowPct > 60 || greenPct > 60)) {
             $('dbgHyst').textContent = `RED→${yellowPct > greenPct ? 'YEL' : 'GRN'} (R:${Math.round(redPct)}%)`;
             $('dbgHyst').className = 'dbg-v warn';
@@ -523,13 +549,11 @@ function getStateWithHysteresis(n) {
     }
     
     if (raw === 'YELLOW') {
-        // Check for RED flicker - snap to RED if significant red presence
         if (redPct > 20) {
             $('dbgHyst').textContent = `YEL→RED (R:${Math.round(redPct)}%)`;
             $('dbgHyst').className = 'dbg-v bad';
             return 'RED';
         }
-        // Check for GREEN drift
         if (greenPct > 60) {
             $('dbgHyst').textContent = `YEL→GRN (G:${Math.round(greenPct)}%)`;
             $('dbgHyst').className = 'dbg-v ok';
@@ -541,7 +565,6 @@ function getStateWithHysteresis(n) {
     }
     
     if (raw === 'GREEN') {
-        // Don't downgrade from green unless very sure
         if (greenPct < 30 && redPct > 50) {
             $('dbgHyst').textContent = `GRN→RED (R:${Math.round(redPct)}%)`;
             $('dbgHyst').className = 'dbg-v bad';
@@ -564,7 +587,6 @@ function getState(n) {
     return getStateWithHysteresis(n); 
 }
 
-// DIRECTION KEYWORDS
 const DIR_KEYWORDS = {
     behind: 'behind', back: 'behind', rear: 'behind',
     front: 'in front', ahead: 'in front', forward: 'in front',
@@ -573,36 +595,46 @@ const DIR_KEYWORDS = {
     below: 'below', down: 'below', bottom: 'below', under: 'below'
 };
 
-// OCR Workers
 let ocrWorkers = [];
 let ocrWorkerBusy = [false, false];
 let ocrWorkerReady = [false, false];
 let ocrInitCount = 0;
 let ocrFrameCount = 0, ocrFpsLastTime = Date.now(), ocrFps = 0;
 
-// Remote state
 let rMuted = false, rVoices = [], rCurState = 'OFF', rRepTimer = null, rLastDir = '', rLastDist = '';
 let rMiddleAnnounced = false, rGoalAnnounced = false;
 
-// ============================================
-// THRESHOLD SLIDERS
-// ============================================
 function updateThresholdUI() {
     $('redThrV').textContent = RED_MAX;
     $('yelThrV').textContent = YEL_MAX;
-    $('thrRedLabel').textContent = 'RED ≤' + RED_MAX;
-    $('thrYelLabel').textContent = 'YEL ' + (RED_MAX + 1) + '-' + YEL_MAX;
-    $('thrGrnLabel').textContent = 'GRN >' + YEL_MAX;
-    $('thrMidLabel').textContent = RED_MAX + ' | ' + YEL_MAX;
-    const total = Math.max(YEL_MAX + 400, 1000);
-    $('thrSegR').style.flex = RED_MAX;
-    $('thrSegY').style.flex = YEL_MAX - RED_MAX;
-    $('thrSegG').style.flex = total - YEL_MAX;
+    
+    if (skipYellow) {
+        $('thrRedLabel').textContent = 'RED ≤' + RED_MAX;
+        $('thrYelLabel').style.display = 'none';
+        $('thrGrnLabel').textContent = 'GRN >' + RED_MAX;
+        $('thrMidLabel').textContent = RED_MAX + '';
+        $('thrSegR').style.flex = RED_MAX;
+        $('thrSegY').style.flex = 0;
+        $('thrSegY').style.display = 'none';
+        const total = Math.max(RED_MAX + 400, 1000);
+        $('thrSegG').style.flex = total - RED_MAX;
+    } else {
+        $('thrRedLabel').textContent = 'RED ≤' + RED_MAX;
+        $('thrYelLabel').textContent = 'YEL ' + (RED_MAX + 1) + '-' + YEL_MAX;
+        $('thrYelLabel').style.display = '';
+        $('thrGrnLabel').textContent = 'GRN >' + YEL_MAX;
+        $('thrMidLabel').textContent = RED_MAX + ' | ' + YEL_MAX;
+        const total = Math.max(YEL_MAX + 400, 1000);
+        $('thrSegR').style.flex = RED_MAX;
+        $('thrSegY').style.flex = YEL_MAX - RED_MAX;
+        $('thrSegY').style.display = '';
+        $('thrSegG').style.flex = total - YEL_MAX;
+    }
 }
 
 $('redThrR').oninput = e => {
     let v = +e.target.value;
-    if (v >= YEL_MAX) { v = YEL_MAX - 10; e.target.value = v; }
+    if (!skipYellow && v >= YEL_MAX) { v = YEL_MAX - 10; e.target.value = v; }
     RED_MAX = v;
     updateThresholdUI();
     stateHistory = [];
@@ -638,9 +670,6 @@ function setThresholds(r, y) {
 }
 updateThresholdUI();
 
-// ============================================
-// SPECIAL WORD DETECTION
-// ============================================
 const MIDDLE_WORDS = ['middle', 'middie', 'midd1e', 'm1ddle', 'rniddle', 'middl', 'mlddle', 'mid'];
 const GOAL_WORDS = ['goal', 'goa1', 'g0al', 'goai', 'qoal', 'g0a1'];
 
@@ -664,9 +693,6 @@ function detectGoal(raw, lines) {
     return false;
 }
 
-// ============================================
-// MQTT
-// ============================================
 let mqttWs = null, mqttConnected = false, mqttReconnectTimer = null;
 let mqttClientId = 'orion-' + Math.random().toString(36).substr(2, 9);
 let mqttTopic = '', mqttPingInterval = null;
@@ -796,7 +822,7 @@ function getMqttTopic(code) { return 'orion/room/' + code.toLowerCase(); }
 let lastBroadcastState = '', lastBroadcastTime = 0;
 function broadcastState(state, dist, dir) {
     const now = Date.now(), key = state + '|' + dist + '|' + dir;
-    if (key === lastBroadcastState && now - lastBroadcastTime < 100) return; // Increased rate
+    if (key === lastBroadcastState && now - lastBroadcastTime < 100) return;
     lastBroadcastState = key;
     lastBroadcastTime = now;
     const p = JSON.stringify({ s: state, d: dist, r: dir, t: now });
@@ -821,9 +847,6 @@ function genRoom() {
     return r;
 }
 
-// ============================================
-// ROLES
-// ============================================
 function chooseRole(r) {
     role = r;
     $('overlay').classList.add('hidden');
@@ -902,9 +925,6 @@ function joinRoom() {
     log('Remote: ' + code, 'g');
 }
 
-// ============================================
-// REMOTE VIEW
-// ============================================
 function handleRemoteState(data) {
     const { state, dist, dir } = data;
     const hero = $('remoteHero'), stEl = $('remoteState'), distEl = $('remoteDist'), dirEl = $('remoteDir'), timeEl = $('remoteTime');
@@ -1055,9 +1075,6 @@ function rStartRep() {
 
 function rStopRep() { if (rRepTimer) { clearInterval(rRepTimer); rRepTimer = null; } }
 
-// ============================================
-// HOST CONTROLS
-// ============================================
 $('volR').oninput = e => $('volV').textContent = Math.round(e.target.value * 100) + '%';
 $('spdR').oninput = e => $('spdV').textContent = (+e.target.value).toFixed(1) + 'x';
 $('repR').oninput = e => { $('repV').textContent = (+e.target.value).toFixed(1) + 's'; restartRep(); };
@@ -1181,9 +1198,6 @@ function stopRep() { if (repTimer) { clearInterval(repTimer); repTimer = null; }
 
 function restartRep() { if (curState !== 'OFF' && curState !== 'MIDDLE' && curState !== 'GOAL') startRep(); }
 
-// ============================================
-// CAPTURE
-// ============================================
 $('startBtn').onclick = async () => {
     try {
         const stream = await navigator.mediaDevices.getDisplayMedia({ video: { cursor: 'never' }, audio: false });
@@ -1220,9 +1234,6 @@ $('startBtn').onclick = async () => {
     }
 };
 
-// ============================================
-// SELECTION
-// ============================================
 let dragging = false, sx = 0, sy = 0, activeBox = null;
 function getPos(e) {
     const r = videoContainer.getBoundingClientRect();
@@ -1353,9 +1364,6 @@ function setPreset(name) {
     stateHistory = [];
 }
 
-// ============================================
-// OPTIMIZED DUAL-WORKER OCR
-// ============================================
 async function initOCR() {
     const b = $('ocrBadge');
     b.textContent = 'LOADING';
@@ -1398,7 +1406,7 @@ async function initOCR() {
 
 let dirOcrTimer = 0;
 let lastDistProcessTime = 0;
-const MIN_OCR_INTERVAL = 50; // 20 FPS max
+const MIN_OCR_INTERVAL = 50;
 
 function pipelineLoop() {
     if (!running || !ocrReady) {
@@ -1408,7 +1416,6 @@ function pipelineLoop() {
 
     const now = Date.now();
     
-    // Process distance OCR at max rate
     if (distRegion && now - lastDistProcessTime >= MIN_OCR_INTERVAL) {
         const fi = getFirstFreeWorker();
         if (fi !== -1) {
@@ -1418,7 +1425,6 @@ function pipelineLoop() {
         }
     }
 
-    // Process direction OCR less frequently (every 200ms)
     if ($('dirChk').checked && dirRegion && now - dirOcrTimer > 200) {
         const fi = getFirstFreeWorker();
         if (fi !== -1) {
@@ -1437,7 +1443,6 @@ function pipelineLoop() {
         $('dbgPipe').className = ocrFps >= 10 ? 'dbg-v ok' : ocrFps >= 5 ? 'dbg-v warn' : 'dbg-v bad';
     }
 
-    // Adaptive scheduling
     const delay = (ocrWorkerBusy[0] && ocrWorkerBusy[1]) ? 10 : 5;
     setTimeout(pipelineLoop, delay);
 }
@@ -1454,11 +1459,9 @@ function captureDistFrame() {
     const px = Math.round(reg.x * vidW), py = Math.round(reg.y * vidH),
         pw = Math.max(1, Math.round(reg.w * vidW)), ph = Math.max(1, Math.round(reg.h * vidH));
     
-    // Adaptive scaling for performance
     const sc = getScale(pw, ph);
     const sw = pw * sc, sh = ph * sc;
     
-    // Limit max size for performance
     const maxDim = 300;
     const scale = Math.min(1, maxDim / Math.max(sw, sh));
     const finalW = Math.round(sw * scale);
@@ -1467,10 +1470,9 @@ function captureDistFrame() {
     workCvs.width = finalW;
     workCvs.height = finalH;
     workCtx.imageSmoothingEnabled = true;
-    workCtx.imageSmoothingQuality = 'medium'; // Lower quality for speed
+    workCtx.imageSmoothingQuality = 'medium';
     workCtx.drawImage(vid, px, py, pw, ph, 0, 0, finalW, finalH);
     
-    // Preview canvases (downsampled)
     rawCvs.width = Math.min(pw, 200);
     rawCvs.height = Math.min(ph, 50);
     rawCtx.imageSmoothingEnabled = false;
@@ -1500,7 +1502,6 @@ async function dispatchDistOCR(wi, cd) {
     const t0 = performance.now();
     try {
         const w = ocrWorkers[wi];
-        // Use faster OCR settings
         await w.setParameters({ tessedit_pageseg_mode: '7' });
         const res = await w.recognize(cd.canvas);
         const el = Math.round(performance.now() - t0);
@@ -1522,7 +1523,6 @@ function processDistResult(res) {
     const lines = raw.split('\n').map(l => l.trim()).filter(l => l.length > 0);
     $('dbgLines').textContent = lines.length + ': ' + lines.map(l => `"${l}"`).join(', ').substring(0, 100);
 
-    // GOAL check
     if (detectGoal(raw, lines)) {
         $('dbgSpecial').textContent = 'GOAL';
         $('dbgSpecial').className = 'dbg-v warn';
@@ -1541,7 +1541,6 @@ function processDistResult(res) {
         return;
     }
 
-    // MIDDLE check
     if (detectMiddle(raw, lines)) {
         $('dbgSpecial').textContent = 'MIDDLE';
         $('dbgSpecial').className = 'dbg-v warn';
@@ -1563,7 +1562,6 @@ function processDistResult(res) {
     if (isMiddle) { isMiddle = false; middleAnnounced = false; }
     if (isGoal) { isGoal = false; goalAnnounced = false; }
 
-    // ? check
     if (hasQuestionMark(raw, lines)) {
         $('dbgNum').textContent = '?→LOOSE';
         $('dbgNum').className = 'dbg-v bad';
@@ -1631,7 +1629,6 @@ async function dispatchDirOCR(wi) {
         const px = Math.round(reg.x * vidW), py = Math.round(reg.y * vidH),
             pw = Math.max(1, Math.round(reg.w * vidW)), ph = Math.max(1, Math.round(reg.h * vidH));
         
-        // Smaller size for direction OCR (faster)
         const sw = Math.min(pw, 200);
         const sh = Math.min(ph, 60);
         
@@ -1681,7 +1678,7 @@ function getScale(pw, ph) {
     if (m < 50) return Math.min(b, 3);
     if (m < 100) return Math.min(b, 2);
     if (m < 200) return Math.min(b, 1.5);
-    return 1; // Don't scale large regions
+    return 1;
 }
 
 function processImg(img) {
@@ -1689,7 +1686,6 @@ function processImg(img) {
     let useThr = thr;
     
     if (autoT) {
-        // Fast auto-threshold using Otsu's method
         const h = new Array(256).fill(0);
         for (let i = 0; i < d.length; i += 4) {
             const g = Math.round(0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]);
@@ -1829,7 +1825,6 @@ function stabilize(num) {
         const avg = recentReadings.reduce((a, b) => a + b, 0) / recentReadings.length;
         const stdDev = Math.sqrt(recentReadings.map(x => Math.pow(x - avg, 2)).reduce((a, b) => a + b, 0) / recentReadings.length);
         
-        // If stable, use median; if fluctuating, use avg
         if (stdDev < 30) return Math.round(avg);
         return med;
     }
@@ -1904,7 +1899,6 @@ function applyState(state, dist) {
 setInterval(() => { if (speechSynthesis.paused) speechSynthesis.resume(); }, 5000);
 log('ORION v3 ready - High Performance Mode');
 
-// Force update on start
 setTimeout(() => {
     if (lastNum !== null) {
         const st = getState(lastNum);
