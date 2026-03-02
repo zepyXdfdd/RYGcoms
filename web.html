@@ -19,13 +19,13 @@ body{background:var(--bg);color:var(--t1);font-family:system-ui,Segoe UI,Inter,A
 .title{font-weight:900;letter-spacing:6px;font-size:34px;text-align:center}
 .sub{margin-top:8px;text-align:center;color:var(--t3);letter-spacing:2px;font-size:12px}
 .row{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px;justify-content:center}
-.btn{cursor:pointer;border:1px solid var(--brd);background:rgba(255,255,255,.03);color:var(--t2);padding:12px 16px;border-radius:999px;font-weight:700;font-size:13px}
-.btn:hover{border-color:var(--grn);color:var(--grn)}
+.btn{cursor:pointer;border:1px solid var(--brd);background:rgba(255,255,255,.03);color:var(--t2);padding:12px 16px;border-radius:999px;font-weight:700;font-size:13px;-webkit-tap-highlight-color:transparent}
+.btn:hover,.btn:active{border-color:var(--grn);color:var(--grn)}
 .btn.act{border-color:var(--grn);color:var(--grn);background:rgba(0,232,120,.10)}
 .input{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--brd);background:#0c0c18;color:var(--t1);font-size:16px;letter-spacing:4px;text-transform:uppercase;text-align:center;outline:none}
 .status{margin-top:10px;text-align:center;font-family:ui-monospace,Consolas,monospace;font-size:11px;color:var(--t3)}
 .status.ok{color:var(--grn)}.status.warn{color:var(--yel)}.status.bad{color:var(--red)}
-.nav{position:sticky;top:0;z-index:50;background:var(--card);border-bottom:1px solid var(--brd);padding:10px 16px;display:flex;justify-content:space-between;align-items:center}
+.nav{position:sticky;top:0;z-index:50;background:var(--card);border-bottom:1px solid var(--brd);padding:10px 16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px}
 .nav .brand{display:flex;align-items:center;gap:10px;font-weight:900;letter-spacing:3px}
 .pill{padding:4px 10px;border-radius:999px;border:1px solid var(--brd);font-size:11px;color:var(--t3);font-family:ui-monospace,Consolas,monospace}
 .pill.conn{border-color:rgba(0,160,255,.25);color:var(--blu);background:rgba(0,160,255,.10)}
@@ -58,7 +58,7 @@ canvas{width:100%;height:70px;background:#05050d;border:1px solid var(--brd);bor
 .hDir{margin-top:6px;color:var(--blu);font-family:ui-monospace,Consolas,monospace;font-size:14px;letter-spacing:2px;min-height:18px}
 .srow{display:flex;align-items:center;gap:10px;margin:10px 0}
 .srow label{min-width:88px;color:var(--t3);font-size:11px;font-weight:700}
-.srow input[type=range]{flex:1}
+.srow input[type=range]{flex:1;-webkit-appearance:auto}
 .srow input[type=text]{flex:1;padding:9px 10px;border-radius:10px;border:1px solid var(--brd);background:#0c0c18;color:var(--t1);font-size:12px;outline:none}
 .srow select{flex:1;padding:9px 10px;border-radius:10px;border:1px solid var(--brd);background:#0c0c18;color:var(--t2);font-size:11px}
 .tgl{display:flex;gap:10px;align-items:center;color:var(--t2);font-size:12px;margin-top:10px}
@@ -68,27 +68,30 @@ canvas{width:100%;height:70px;background:#05050d;border:1px solid var(--brd);bor
 .remoteWrap{max-width:720px;margin:0 auto;padding:16px}
 .smallNote{color:var(--t3);font-size:11px;line-height:1.6;margin-top:8px}
 .engRow{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
-.engBtn{cursor:pointer;border:1px solid var(--brd);background:rgba(255,255,255,.03);color:var(--t3);padding:5px 12px;border-radius:8px;font-size:11px;font-weight:700}
+.engBtn{cursor:pointer;border:1px solid var(--brd);background:rgba(255,255,255,.03);color:var(--t3);padding:5px 12px;border-radius:8px;font-size:11px;font-weight:700;-webkit-tap-highlight-color:transparent}
 .engBtn.act{border-color:var(--grn);color:var(--grn);background:rgba(0,232,120,.10)}
 .ttsBar{margin:6px 0;padding:7px 10px;border-radius:8px;background:#050510;border:1px solid var(--brd);font-size:11px;font-family:ui-monospace,Consolas,monospace;color:var(--t3)}
 .ttsBar.ok{border-color:rgba(0,232,120,.35);color:var(--grn)}
 .ttsBar.bad{border-color:rgba(255,61,80,.35);color:var(--red)}
 .ttsBar.warn{border-color:rgba(255,184,0,.35);color:var(--yel)}
+.debugLog{margin-top:8px;padding:8px;background:#050510;border:1px solid var(--brd);border-radius:8px;max-height:120px;overflow-y:auto;font-family:ui-monospace,Consolas,monospace;font-size:10px;color:var(--t3)}
+.debugLog div{padding:1px 0}
+.debugLog .err{color:var(--red)}.debugLog .ok{color:var(--grn)}.debugLog .wrn{color:var(--yel)}
 </style>
 </head>
 <body>
 
-<!-- ROLE -->
+<!-- ROLE SELECT -->
 <div class="overlay" id="roleOverlay">
   <div class="panel">
     <div class="title">ORION</div>
-    <div class="sub">BROWSER TTS · QUEST / META HEADSET COMPATIBLE</div>
+    <div class="sub">AI VOICE TTS · WORKS ON META QUEST BROWSER</div>
     <div class="row">
-      <button class="btn" onclick="chooseRole('host')">HOST</button>
-      <button class="btn" onclick="chooseRole('remote')">REMOTE</button>
+      <button class="btn" onclick="chooseRole('host')">HOST (PC)</button>
+      <button class="btn" onclick="chooseRole('remote')">REMOTE (QUEST)</button>
     </div>
     <div class="status" style="margin-top:14px">
-      Browser TTS with Quest-specific workarounds. Tap TEST VOICE after joining to verify audio.
+      Uses audio fetched as MP3 and played via AudioContext — works on Quest.
     </div>
   </div>
 </div>
@@ -97,7 +100,7 @@ canvas{width:100%;height:70px;background:#05050d;border:1px solid var(--brd);bor
 <div class="overlay hidden" id="hostOverlay">
   <div class="panel">
     <div class="title">HOST</div>
-    <div class="sub">Share this room code</div>
+    <div class="sub">Share this room code with the Quest user</div>
     <div class="row" style="margin-top:14px">
       <div style="width:min(520px,100%)">
         <div class="status">ROOM CODE</div>
@@ -106,7 +109,7 @@ canvas{width:100%;height:70px;background:#05050d;border:1px solid var(--brd);bor
       </div>
     </div>
     <div class="row"><button class="btn act" id="shareBtn">SHARE SCREEN</button></div>
-    <div class="status" style="margin-top:12px">Draw box around player name + distance number.</div>
+    <div class="status" style="margin-top:12px">Draw box around player name + distance.</div>
   </div>
 </div>
 
@@ -114,12 +117,13 @@ canvas{width:100%;height:70px;background:#05050d;border:1px solid var(--brd);bor
 <div class="overlay hidden" id="remoteOverlay">
   <div class="panel">
     <div class="title">REMOTE</div>
-    <div class="sub">Enter room code</div>
+    <div class="sub">Enter host room code</div>
     <div class="row" style="width:100%">
       <div style="width:min(520px,100%)">
-        <input class="input" id="roomIn" maxlength="6" placeholder="ROOM"/>
-        <button class="btn act" style="width:100%;margin-top:10px" onclick="joinRoom()">JOIN</button>
+        <input class="input" id="roomIn" maxlength="6" placeholder="ROOM CODE"/>
+        <button class="btn act" style="width:100%;margin-top:10px" id="joinBtn" onclick="joinRoom()">JOIN</button>
         <div class="status" id="remoteRelayStatus">Relay: ready</div>
+        <div class="debugLog" id="joinLog"></div>
       </div>
     </div>
   </div>
@@ -135,7 +139,6 @@ canvas{width:100%;height:70px;background:#05050d;border:1px solid var(--brd);bor
     </div>
   </div>
   <div class="app">
-    <!-- LEFT -->
     <div>
       <div class="card">
         <div class="ch"><span>Screen</span><span class="pill" id="capInfo">—</span></div>
@@ -169,7 +172,6 @@ canvas{width:100%;height:70px;background:#05050d;border:1px solid var(--brd);bor
         </div>
       </div>
     </div>
-    <!-- RIGHT -->
     <div>
       <div class="hero blue" id="hero">
         <div class="status">CURRENT</div>
@@ -178,16 +180,14 @@ canvas{width:100%;height:70px;background:#05050d;border:1px solid var(--brd);bor
         <div class="hDir" id="hDir"></div>
         <div class="status" id="hNameLine"></div>
       </div>
-
       <div class="card" style="margin-top:14px">
         <div class="ch"><span>Target Filter</span></div>
         <div class="cb">
           <div class="tgl"><input type="checkbox" id="filterOn" checked/><span>Only track player:</span></div>
           <div class="srow"><label>Target</label><input type="text" id="filterName" value="zepyX"/></div>
-          <div class="smallNote">Non-target players are ignored until target reappears.</div>
+          <div class="smallNote">Non-target players are ignored.</div>
         </div>
       </div>
-
       <div class="card" style="margin-top:14px">
         <div class="ch"><span>Thresholds</span></div>
         <div class="cb">
@@ -196,28 +196,38 @@ canvas{width:100%;height:70px;background:#05050d;border:1px solid var(--brd);bor
           <div class="tgl"><input type="checkbox" id="skipY"><span>Skip Yellow</span></div>
         </div>
       </div>
-
       <div class="card" style="margin-top:14px">
-        <div class="ch"><span>Voice</span></div>
+        <div class="ch"><span>AI Voice</span></div>
         <div class="cb">
-          <div class="ttsBar" id="hTtsBar">Voice: initializing…</div>
+          <div class="ttsBar" id="hTtsBar">Voice: ready</div>
           <div class="engRow">
-            <button class="engBtn act" id="hEng_browser" onclick="setHostEngine('browser')">Browser TTS</button>
+            <button class="engBtn act" id="hEng_ai" onclick="setHostEngine('ai')">AI Voice</button>
             <button class="engBtn" id="hEng_beep" onclick="setHostEngine('beep')">Beep Only</button>
           </div>
-          <div class="srow" id="hBrowserVoiceRow"><label>Voice</label><select id="voiceSel"></select></div>
+          <div id="hAiVoiceRow" class="srow"><label>AI Voice</label>
+            <select id="hAiVoice">
+              <option value="Brian">Brian (UK Male)</option>
+              <option value="Amy">Amy (UK Female)</option>
+              <option value="Joanna" selected>Joanna (US Female)</option>
+              <option value="Joey">Joey (US Male)</option>
+              <option value="Matthew">Matthew (US Male)</option>
+              <option value="Kimberly">Kimberly (US Female)</option>
+              <option value="Salli">Salli (US Female)</option>
+              <option value="Ivy">Ivy (US Child)</option>
+              <option value="Nicole">Nicole (AU Female)</option>
+              <option value="Russell">Russell (AU Male)</option>
+            </select>
+          </div>
           <div class="srow"><label>Volume</label><input type="range" id="vol" min="0" max="1" step="0.05" value="0.9"><span class="pill" id="volV">90%</span></div>
           <div class="srow"><label>Rate</label><input type="range" id="spd" min="0.5" max="2" step="0.05" value="1"><span class="pill" id="spdV">1.00x</span></div>
-          <div class="srow"><label>Base Int</label><input type="range" id="rep" min="1" max="8" step="0.5" value="2"><span class="pill" id="repV">2.0s</span></div>
+          <div class="srow"><label>Interval</label><input type="range" id="rep" min="1" max="8" step="0.5" value="2"><span class="pill" id="repV">2.0s</span></div>
           <div class="row" style="justify-content:flex-start;margin-top:8px">
             <button class="btn" onclick="testHostVoice()">TEST VOICE</button>
             <button class="btn act" id="muteBtn" onclick="toggleMute()">AUDIO ON</button>
           </div>
           <div class="vline" id="voiceLine">—</div>
-          <div class="smallNote">Quest: Tap TEST VOICE to confirm audio works. If silent, try selecting a different voice or use Beep mode.</div>
         </div>
       </div>
-
       <div class="card" style="margin-top:14px">
         <div class="ch"><span>Direction</span></div>
         <div class="cb">
@@ -225,12 +235,9 @@ canvas{width:100%;height:70px;background:#05050d;border:1px solid var(--brd);bor
           <div class="srow"><label>Manual</label>
             <select id="dirManual">
               <option value="">Auto</option>
-              <option value="left">Left</option>
-              <option value="right">Right</option>
-              <option value="behind">Behind</option>
-              <option value="in front">In Front</option>
-              <option value="above">Above</option>
-              <option value="below">Below</option>
+              <option value="left">Left</option><option value="right">Right</option>
+              <option value="behind">Behind</option><option value="in front">In Front</option>
+              <option value="above">Above</option><option value="below">Below</option>
             </select>
           </div>
           <div class="status" id="dirDbg">Draw direction box around direction text.</div>
@@ -244,7 +251,7 @@ canvas{width:100%;height:70px;background:#05050d;border:1px solid var(--brd);bor
 <div class="hidden" id="remoteUI">
   <div class="nav">
     <div class="brand">ORION <span class="pill" id="remoteRoomPill">ROOM -----</span></div>
-    <div style="display:flex;gap:8px;align-items:center">
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
       <span class="pill conn" id="remoteRelayPill">Relay: …</span>
       <span class="pill" id="delayPill">Delay: —</span>
     </div>
@@ -258,42 +265,53 @@ canvas{width:100%;height:70px;background:#05050d;border:1px solid var(--brd);bor
       <div class="status" id="rNameLine"></div>
       <div class="status" id="rTime">—</div>
     </div>
-
     <div class="card" style="margin-top:14px">
-      <div class="ch"><span>Target Filter (Remote)</span></div>
+      <div class="ch"><span>Target Filter</span></div>
       <div class="cb">
         <div class="tgl"><input type="checkbox" id="rFilterOn" checked/><span>Only accept player:</span></div>
         <div class="srow"><label>Target</label><input type="text" id="rFilterName" value="zepyX"/></div>
       </div>
     </div>
-
     <div class="card" style="margin-top:14px">
-      <div class="ch"><span>Thresholds (Remote)</span></div>
+      <div class="ch"><span>Thresholds</span></div>
       <div class="cb">
         <div class="srow"><label>Red ≤</label><input type="range" id="rRedR" min="100" max="2000" step="10" value="500"><span class="pill" id="rRedV">500</span></div>
         <div class="srow" id="rYelRow"><label>Yellow ≤</label><input type="range" id="rYelR" min="100" max="2500" step="10" value="600"><span class="pill" id="rYelV">600</span></div>
         <div class="tgl"><input type="checkbox" id="rSkipY"><span>Skip Yellow</span></div>
       </div>
     </div>
-
     <div class="card" style="margin-top:14px">
-      <div class="ch"><span>Voice (Remote)</span></div>
+      <div class="ch"><span>AI Voice</span></div>
       <div class="cb">
-        <div class="ttsBar" id="rTtsBar">Voice: initializing…</div>
+        <div class="ttsBar" id="rTtsBar">Voice: ready</div>
         <div class="engRow">
-          <button class="engBtn act" id="rEng_browser" onclick="setRemoteEngine('browser')">Browser TTS</button>
+          <button class="engBtn act" id="rEng_ai" onclick="setRemoteEngine('ai')">AI Voice</button>
           <button class="engBtn" id="rEng_beep" onclick="setRemoteEngine('beep')">Beep Only</button>
         </div>
-        <div class="srow" id="rBrowserVoiceRow"><label>Voice</label><select id="rVoiceSel"></select></div>
+        <div id="rAiVoiceRow" class="srow"><label>AI Voice</label>
+          <select id="rAiVoice">
+            <option value="Brian">Brian (UK Male)</option>
+            <option value="Amy">Amy (UK Female)</option>
+            <option value="Joanna" selected>Joanna (US Female)</option>
+            <option value="Joey">Joey (US Male)</option>
+            <option value="Matthew">Matthew (US Male)</option>
+            <option value="Kimberly">Kimberly (US Female)</option>
+            <option value="Salli">Salli (US Female)</option>
+            <option value="Ivy">Ivy (US Child)</option>
+            <option value="Nicole">Nicole (AU Female)</option>
+            <option value="Russell">Russell (AU Male)</option>
+          </select>
+        </div>
         <div class="srow"><label>Volume</label><input type="range" id="rVol" min="0" max="1" step="0.05" value="0.9"><span class="pill" id="rVolV">90%</span></div>
         <div class="srow"><label>Rate</label><input type="range" id="rSpd" min="0.5" max="2" step="0.05" value="1"><span class="pill" id="rSpdV">1.00x</span></div>
-        <div class="srow"><label>Base Int</label><input type="range" id="rRep" min="1" max="8" step="0.5" value="2"><span class="pill" id="rRepV">2.0s</span></div>
+        <div class="srow"><label>Interval</label><input type="range" id="rRep" min="1" max="8" step="0.5" value="2"><span class="pill" id="rRepV">2.0s</span></div>
         <div class="row" style="justify-content:flex-start;margin-top:8px">
-          <button class="btn" onclick="testRemoteVoice()">TEST VOICE</button>
+          <button class="btn" id="rTestBtn" onclick="testRemoteVoice()">TEST VOICE</button>
           <button class="btn act" id="rMuteBtn" onclick="rToggleMute()">AUDIO ON</button>
         </div>
         <div class="vline" id="rVoiceLine">—</div>
-        <div class="smallNote">Quest: Tap TEST VOICE after joining. If silent, switch voice or use Beep. Make sure Quest media volume is up.</div>
+        <div class="smallNote">⚡ Quest users: Tap TEST VOICE first. Make sure Quest volume is up. AI voice is fetched as audio — no browser TTS needed.</div>
+        <div class="debugLog" id="audioLog"></div>
       </div>
     </div>
   </div>
@@ -303,12 +321,35 @@ canvas{width:100%;height:70px;background:#05050d;border:1px solid var(--brd);bor
 'use strict';
 
 /* ================================================================
-   AUDIO CONTEXT (for beeps + audio unlock)
+   DEBUG LOG — visible on Quest so we can see what's happening
+   ================================================================ */
+function dlog(containerId, msg, cls) {
+  const c = document.getElementById(containerId);
+  if (!c) return;
+  const d = document.createElement('div');
+  d.textContent = new Date().toLocaleTimeString() + ' ' + msg;
+  if (cls) d.className = cls;
+  c.appendChild(d);
+  c.scrollTop = c.scrollHeight;
+  // keep max 40 lines
+  while (c.children.length > 40) c.removeChild(c.firstChild);
+}
+
+/* ================================================================
+   AUDIO CONTEXT — single shared instance
+   Quest requires creation inside user gesture, then resume()
    ================================================================ */
 let audioCtx = null;
+let audioUnlocked = false;
+
 function getAudioCtx() {
   if (!audioCtx || audioCtx.state === 'closed') {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    try {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    } catch(e) {
+      dlog('audioLog', 'AudioContext create FAILED: ' + e.message, 'err');
+      return null;
+    }
   }
   if (audioCtx.state === 'suspended') {
     audioCtx.resume().catch(() => {});
@@ -316,248 +357,214 @@ function getAudioCtx() {
   return audioCtx;
 }
 
-/* ================================================================
-   AUDIO UNLOCK — Critical for Quest Browser
-   Quest requires a user gesture to unlock both AudioContext AND
-   speechSynthesis. We unlock both on first interaction.
-   ================================================================ */
-let audioUnlocked = false;
-let synthUnlocked = false;
-
 function unlockAudio() {
-  // Unlock AudioContext
-  if (!audioUnlocked) {
+  if (audioUnlocked) return;
+  const ctx = getAudioCtx();
+  if (!ctx) return;
+  try {
+    // Play silent buffer to unlock
+    const buf = ctx.createBuffer(1, 1, ctx.sampleRate);
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.connect(ctx.destination);
+    src.start(0);
     audioUnlocked = true;
-    try {
-      const ctx = getAudioCtx();
-      const buf = ctx.createBuffer(1, 1, ctx.sampleRate);
-      const src = ctx.createBufferSource();
-      src.buffer = buf;
-      src.connect(ctx.destination);
-      src.start(0);
-    } catch(e) {}
-  }
-
-  // Unlock speechSynthesis on Quest — speak empty utterance on gesture
-  if (!synthUnlocked && typeof speechSynthesis !== 'undefined') {
-    synthUnlocked = true;
-    try {
-      const u = new SpeechSynthesisUtterance('');
-      u.volume = 0;
-      u.rate = 10; // fastest possible to be silent
-      speechSynthesis.speak(u);
-      // Immediately cancel to avoid any audible blip
-      setTimeout(() => { try { speechSynthesis.cancel(); } catch(e) {} }, 50);
-    } catch(e) {}
+    dlog('audioLog', 'Audio unlocked ✓', 'ok');
+    dlog('joinLog', 'Audio unlocked ✓', 'ok');
+  } catch(e) {
+    dlog('audioLog', 'Unlock failed: ' + e.message, 'err');
   }
 }
 
-['pointerdown','mousedown','touchstart','click','keydown'].forEach(ev => {
-  window.addEventListener(ev, unlockAudio, { passive: true });
+// Unlock on ANY user gesture — critical for Quest
+['pointerdown','mousedown','touchstart','touchend','click','keydown'].forEach(ev => {
+  window.addEventListener(ev, unlockAudio, { passive: true, capture: true });
 });
 
 /* ================================================================
-   BROWSER TTS — Quest-Hardened Implementation
-
-   Key Quest workarounds:
-   1. getVoices() returns [] initially — poll with retries
-   2. onend/onerror events may never fire — use timeout fallback
-   3. speechSynthesis.speaking can get stuck — force cancel
-   4. Cancel before every speak to clear any stuck state
-   5. Keep-alive: periodically cancel() to prevent freeze
-   6. Tab suspend: re-init on visibility change
-   7. If no voices found, speak without setting .voice (uses default)
+   AI VOICE TTS — Fetch MP3 audio, decode, play via AudioContext
+   This is the ONLY method that works reliably on Quest Browser.
+   Uses a proxy-friendly TTS endpoint that returns MP3.
    ================================================================ */
 
-let ttsVoicesReady = false;
-let ttsVoiceList = [];
-let ttsKeepAliveTimer = null;
-let ttsSpeaking = false;
-let ttsSpeakTimeout = null;
+// Multiple TTS endpoints to try (in order)
+const TTS_ENDPOINTS = [
+  { name: 'StreamElements', url: (voice, text) =>
+    `https://api.streamelements.com/kappa/v2/speech?voice=${encodeURIComponent(voice)}&text=${encodeURIComponent(text)}` },
+];
 
-// Quest: Poll for voices with retries — they may load late
-function pollVoices(callback, maxAttempts) {
-  maxAttempts = maxAttempts || 20;
-  let attempts = 0;
+const audioCache = new Map();
+let currentPlayingSrc = null;
+let ttsPlaying = false;
 
-  function tryLoad() {
-    attempts++;
-    try {
-      const voices = speechSynthesis.getVoices();
-      if (voices && voices.length > 0) {
-        ttsVoiceList = voices;
-        ttsVoicesReady = true;
-        populateVoiceSelectors();
-        if (callback) callback(true);
-        return;
+function stopCurrentPlay() {
+  if (currentPlayingSrc) {
+    try { currentPlayingSrc.stop(); } catch(e) {}
+    currentPlayingSrc = null;
+  }
+  ttsPlaying = false;
+}
+
+/**
+ * Fetch audio from TTS API, decode, play via AudioContext
+ * Returns: Promise<'ok'|'error'>
+ */
+async function aiSpeak(text, voice, volume, rate) {
+  const logId = role === 'remote' ? 'audioLog' : 'audioLog';
+  const cacheKey = voice + '|' + text;
+
+  const ctx = getAudioCtx();
+  if (!ctx) {
+    dlog(logId, 'No AudioContext!', 'err');
+    return 'error';
+  }
+
+  // Resume if suspended (Quest does this)
+  if (ctx.state === 'suspended') {
+    try { await ctx.resume(); } catch(e) {}
+  }
+
+  let audioBuffer;
+
+  if (audioCache.has(cacheKey)) {
+    audioBuffer = audioCache.get(cacheKey);
+    dlog(logId, 'Cache hit: "' + text + '"', 'ok');
+  } else {
+    // Try each endpoint
+    let fetched = false;
+    for (const ep of TTS_ENDPOINTS) {
+      const url = ep.url(voice, text);
+      dlog(logId, 'Fetching: ' + ep.name + ' "' + text.slice(0,30) + '"…');
+      try {
+        const resp = await fetch(url, {
+          mode: 'cors',
+          cache: 'force-cache',
+          headers: { 'Accept': 'audio/mpeg, audio/*' }
+        });
+        if (!resp.ok) {
+          dlog(logId, ep.name + ' HTTP ' + resp.status, 'err');
+          continue;
+        }
+        const arrayBuf = await resp.arrayBuffer();
+        if (arrayBuf.byteLength < 100) {
+          dlog(logId, ep.name + ' empty response', 'err');
+          continue;
+        }
+        dlog(logId, ep.name + ' got ' + arrayBuf.byteLength + ' bytes, decoding…');
+
+        // decodeAudioData — Quest supports this for MP3
+        try {
+          audioBuffer = await new Promise((resolve, reject) => {
+            // Use callback form for wider compatibility
+            ctx.decodeAudioData(arrayBuf,
+              buf => resolve(buf),
+              err => reject(err || new Error('decode failed'))
+            );
+          });
+        } catch(decErr) {
+          dlog(logId, 'Decode failed: ' + decErr.message, 'err');
+          continue;
+        }
+
+        // Cache it
+        if (audioCache.size > 80) {
+          const firstKey = audioCache.keys().next().value;
+          audioCache.delete(firstKey);
+        }
+        audioCache.set(cacheKey, audioBuffer);
+        fetched = true;
+        dlog(logId, ep.name + ' decoded OK (' + audioBuffer.duration.toFixed(1) + 's)', 'ok');
+        break;
+      } catch(fetchErr) {
+        dlog(logId, ep.name + ' fetch error: ' + fetchErr.message, 'err');
+        continue;
       }
-    } catch(e) {}
+    }
 
-    if (attempts < maxAttempts) {
-      setTimeout(tryLoad, 250);
-    } else {
-      // No voices found — still allow TTS with default voice
-      ttsVoicesReady = true;
-      ttsVoiceList = [];
-      populateVoiceSelectors();
-      if (callback) callback(false);
+    if (!fetched || !audioBuffer) {
+      dlog(logId, 'All TTS endpoints failed!', 'err');
+      return 'error';
     }
   }
 
-  tryLoad();
-}
+  // Stop any currently playing audio
+  stopCurrentPlay();
 
-function populateVoiceSelectors() {
-  ['voiceSel', 'rVoiceSel'].forEach(id => {
-    const sel = document.getElementById(id);
-    if (!sel) return;
-    sel.innerHTML = '';
+  // Play via AudioContext
+  return new Promise(resolve => {
+    try {
+      const src = ctx.createBufferSource();
+      src.buffer = audioBuffer;
+      src.playbackRate.value = Math.max(0.25, Math.min(4, rate || 1));
 
-    if (ttsVoiceList.length === 0) {
-      const o = document.createElement('option');
-      o.value = '-1';
-      o.textContent = '(Default — no voices detected)';
-      sel.appendChild(o);
-      return;
+      const gainNode = ctx.createGain();
+      gainNode.gain.value = Math.max(0, Math.min(1, volume));
+
+      src.connect(gainNode);
+      gainNode.connect(ctx.destination);
+
+      ttsPlaying = true;
+      currentPlayingSrc = src;
+
+      src.onended = () => {
+        if (currentPlayingSrc === src) currentPlayingSrc = null;
+        ttsPlaying = false;
+        resolve('ok');
+      };
+
+      src.start(0);
+      dlog(logId, 'Playing: "' + text + '"', 'ok');
+
+      // Safety timeout in case onended doesn't fire
+      const maxMs = (audioBuffer.duration / (rate || 1)) * 1000 + 2000;
+      setTimeout(() => {
+        if (ttsPlaying && currentPlayingSrc === src) {
+          ttsPlaying = false;
+          currentPlayingSrc = null;
+          resolve('ok');
+        }
+      }, maxMs);
+
+    } catch(playErr) {
+      dlog(logId, 'Play error: ' + playErr.message, 'err');
+      ttsPlaying = false;
+      resolve('error');
     }
-
-    let bestIdx = 0;
-    ttsVoiceList.forEach((v, i) => {
-      const o = document.createElement('option');
-      o.value = String(i);
-      o.textContent = v.name.slice(0, 32) + ' (' + v.lang + ')';
-      sel.appendChild(o);
-      // Prefer English voices, especially high-quality ones
-      if (/Google US|English.*Female|Samantha|Daniel|David|Zira|en-/i.test(v.name + ' ' + v.lang)) {
-        if (bestIdx === 0 || /Google|Samantha/i.test(v.name)) bestIdx = i;
-      }
-    });
-    sel.value = String(bestIdx);
   });
 }
 
-// Quest: Force-cancel any stuck speech state
-function ttsForceCancel() {
-  try {
-    speechSynthesis.cancel();
-  } catch(e) {}
-  ttsSpeaking = false;
-  if (ttsSpeakTimeout) {
-    clearTimeout(ttsSpeakTimeout);
-    ttsSpeakTimeout = null;
-  }
-}
-
-// Quest: Keep-alive timer — periodically cancel() to prevent freeze
-function startTtsKeepAlive() {
-  if (ttsKeepAliveTimer) return;
-  ttsKeepAliveTimer = setInterval(() => {
-    if (!ttsSpeaking) {
-      try {
-        // Quest workaround: periodic cancel prevents speechSynthesis freeze
-        speechSynthesis.cancel();
-      } catch(e) {}
-    }
-  }, 5000);
-}
-
-// Quest: Re-init on tab visibility change
-document.addEventListener('visibilitychange', () => {
-  if (!document.hidden) {
-    // Tab became visible — force cancel stuck state and re-poll voices
-    ttsForceCancel();
-    if (audioCtx && audioCtx.state === 'suspended') {
-      audioCtx.resume().catch(() => {});
-    }
-    pollVoices(null, 5);
-  }
-});
-
 /**
- * Robust browser TTS speak — with Quest-specific timeout fallback
- * voiceSelId: ID of the <select> element for voice choice
- * onDone(status): 'ok' | 'error' | 'timeout'
+ * Pre-cache common phrases — call after user gesture
  */
-function browserSpeak(text, vol, rate, voiceSelId, onDone) {
-  if (typeof speechSynthesis === 'undefined') {
-    onDone?.('error');
-    return;
-  }
-
-  // Force cancel any stuck/pending speech
-  ttsForceCancel();
-
-  // Small delay after cancel before new speak — Quest needs this
-  setTimeout(() => {
+async function prewarmVoice(voice) {
+  const phrases = ['Red', 'Yellow', 'Green', 'Ball loose',
+    'Red, left', 'Red, right', 'Red, behind', 'Red, in front'];
+  const logId = role === 'remote' ? 'audioLog' : 'audioLog';
+  dlog(logId, 'Pre-caching voice: ' + voice + '…');
+  for (const p of phrases) {
+    const key = voice + '|' + p;
+    if (audioCache.has(key)) continue;
     try {
-      const u = new SpeechSynthesisUtterance(text);
-      u.volume = Math.max(0, Math.min(1, vol));
-      u.rate = Math.max(0.1, Math.min(10, rate));
-      u.pitch = 1;
-
-      // Set voice if available
-      if (ttsVoiceList.length > 0) {
-        const sel = document.getElementById(voiceSelId);
-        if (sel) {
-          const idx = parseInt(sel.value, 10);
-          if (idx >= 0 && idx < ttsVoiceList.length) {
-            u.voice = ttsVoiceList[idx];
-          }
+      const url = TTS_ENDPOINTS[0].url(voice, p);
+      const resp = await fetch(url, { mode: 'cors', cache: 'force-cache' });
+      if (resp.ok) {
+        const buf = await resp.arrayBuffer();
+        const ctx = getAudioCtx();
+        if (ctx && buf.byteLength > 100) {
+          const decoded = await new Promise((res, rej) => {
+            ctx.decodeAudioData(buf, b => res(b), e => rej(e));
+          });
+          audioCache.set(key, decoded);
         }
       }
-      // If no voices, don't set .voice — browser uses its default
-
-      let settled = false;
-      function settle(result) {
-        if (settled) return;
-        settled = true;
-        ttsSpeaking = false;
-        if (ttsSpeakTimeout) { clearTimeout(ttsSpeakTimeout); ttsSpeakTimeout = null; }
-        onDone?.(result);
-      }
-
-      u.onend = () => settle('ok');
-      u.onerror = (e) => {
-        // Quest sometimes fires error for 'interrupted' when we cancel — ignore
-        if (e && e.error === 'interrupted') { settle('ok'); return; }
-        settle('error');
-      };
-
-      // Quest: onend may never fire — timeout fallback
-      // Estimate duration: ~80ms per char at rate 1, minimum 1.5s, max 10s
-      const estimatedMs = Math.max(1500, Math.min(10000, (text.length * 80) / rate));
-      ttsSpeakTimeout = setTimeout(() => {
-        if (!settled) {
-          // Check if still speaking
-          if (speechSynthesis.speaking) {
-            // Give it a bit more time
-            ttsSpeakTimeout = setTimeout(() => settle('timeout'), 2000);
-          } else {
-            settle('timeout');
-          }
-        }
-      }, estimatedMs + 500);
-
-      ttsSpeaking = true;
-      speechSynthesis.speak(u);
-
-      // Quest: Sometimes speak() doesn't start — check after brief delay
-      setTimeout(() => {
-        if (!settled && !speechSynthesis.speaking && !speechSynthesis.pending) {
-          // Speech didn't start — likely Quest issue
-          settle('error');
-        }
-      }, 300);
-
-    } catch(e) {
-      ttsSpeaking = false;
-      onDone?.('error');
-    }
-  }, 60); // 60ms delay after cancel
+    } catch(e) {}
+    await new Promise(r => setTimeout(r, 80));
+  }
+  dlog(logId, 'Pre-cache done (' + audioCache.size + ' items)', 'ok');
 }
 
 /* ================================================================
-   BEEP FALLBACK
+   BEEP — always works even offline
    ================================================================ */
 function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
 
@@ -567,11 +574,11 @@ function beepMs(n, state, baseSec, redMax, yelMax, skipY) {
   let ms = 1200;
   if (skipY) {
     if (state === 'RED') { const t = clamp(n/Math.max(1,redMax),0,1); ms=120+t*650; }
-    else if (state === 'GREEN') { const t = clamp((n-redMax)/900,0,1); ms=650+t*1650; }
+    else { const t = clamp((n-redMax)/900,0,1); ms=650+t*1650; }
   } else {
     if (state === 'RED') { const t = clamp(n/Math.max(1,redMax),0,1); ms=120+t*650; }
     else if (state === 'YELLOW') { const span=Math.max(1,yelMax-redMax); const t=clamp((n-redMax)/span,0,1); ms=350+t*1150; }
-    else if (state === 'GREEN') { const t = clamp((n-yelMax)/1100,0,1); ms=750+t*1750; }
+    else { const t = clamp((n-yelMax)/1100,0,1); ms=750+t*1750; }
   }
   return Math.round(clamp(ms * m, 90, 3000));
 }
@@ -579,7 +586,7 @@ function beepMs(n, state, baseSec, redMax, yelMax, skipY) {
 function playBeep(vol, urgent, lineEl, intervalMs) {
   if (vol <= 0) return;
   try {
-    const ctx = getAudioCtx();
+    const ctx = getAudioCtx(); if (!ctx) return;
     const now = ctx.currentTime;
     const dur = clamp((intervalMs * 0.55) / 1000, 0.06, 0.18);
     const attack = Math.min(0.012, dur * 0.25);
@@ -601,208 +608,143 @@ function playBeep(vol, urgent, lineEl, intervalMs) {
 }
 
 /* ================================================================
-   ENGINE STATE
+   ENGINE STATE — 'ai' or 'beep'
    ================================================================ */
-// 'browser' = SpeechSynthesis, 'beep' = beeps only
-let hostEngine = 'browser';
-let remoteEngine = 'browser';
+let hostEngine = 'ai', remoteEngine = 'ai';
 
 function setTtsBar(id, msg, cls) {
   const el = document.getElementById(id);
-  if (!el) return;
-  el.textContent = msg;
-  el.className = 'ttsBar ' + (cls || '');
+  if (el) { el.textContent = msg; el.className = 'ttsBar ' + (cls || ''); }
 }
 
 function setHostEngine(eng) {
   hostEngine = eng;
-  ['browser','beep'].forEach(e => {
-    const b = document.getElementById('hEng_' + e);
-    if (b) b.className = 'engBtn' + (e === eng ? ' act' : '');
-  });
-  document.getElementById('hBrowserVoiceRow').style.display = eng === 'browser' ? 'flex' : 'none';
-  if (eng === 'browser') {
-    const voiceCount = ttsVoiceList.length;
-    if (voiceCount > 0) {
-      setTtsBar('hTtsBar', 'Browser TTS ready — ' + voiceCount + ' voices found', 'ok');
-    } else if (ttsVoicesReady) {
-      setTtsBar('hTtsBar', 'Browser TTS — using default voice (none enumerated)', 'warn');
-    } else {
-      setTtsBar('hTtsBar', 'Browser TTS — loading voices…', 'warn');
-    }
-  } else {
-    setTtsBar('hTtsBar', 'Beep mode — no voice', '');
-  }
+  document.getElementById('hEng_ai').className = 'engBtn' + (eng==='ai'?' act':'');
+  document.getElementById('hEng_beep').className = 'engBtn' + (eng==='beep'?' act':'');
+  document.getElementById('hAiVoiceRow').style.display = eng==='ai' ? 'flex' : 'none';
+  setTtsBar('hTtsBar', eng==='ai'?'AI Voice — fetches real MP3 audio':'Beep mode', eng==='ai'?'ok':'');
 }
 
 function setRemoteEngine(eng) {
   remoteEngine = eng;
-  ['browser','beep'].forEach(e => {
-    const b = document.getElementById('rEng_' + e);
-    if (b) b.className = 'engBtn' + (e === eng ? ' act' : '');
-  });
-  document.getElementById('rBrowserVoiceRow').style.display = eng === 'browser' ? 'flex' : 'none';
-  if (eng === 'browser') {
-    const voiceCount = ttsVoiceList.length;
-    if (voiceCount > 0) {
-      setTtsBar('rTtsBar', 'Browser TTS ready — ' + voiceCount + ' voices found', 'ok');
-    } else if (ttsVoicesReady) {
-      setTtsBar('rTtsBar', 'Browser TTS — using default voice (none enumerated)', 'warn');
-    } else {
-      setTtsBar('rTtsBar', 'Browser TTS — loading voices…', 'warn');
-    }
-  } else {
-    setTtsBar('rTtsBar', 'Beep mode — no voice', '');
-  }
+  document.getElementById('rEng_ai').className = 'engBtn' + (eng==='ai'?' act':'');
+  document.getElementById('rEng_beep').className = 'engBtn' + (eng==='beep'?' act':'');
+  document.getElementById('rAiVoiceRow').style.display = eng==='ai' ? 'flex' : 'none';
+  setTtsBar('rTtsBar', eng==='ai'?'AI Voice — fetches real MP3 audio':'Beep mode', eng==='ai'?'ok':'');
 }
 
 /* ================================================================
    UNIFIED SPEAK
    ================================================================ */
-function hostSpeak(phrase, urgent) {
+let muted = false, rMuted = false;
+
+async function hostSpeak(phrase, urgent) {
   if (muted || !phrase) return;
   const vol = +document.getElementById('vol').value;
   const rate = +document.getElementById('spd').value;
   const lineEl = document.getElementById('voiceLine');
-
-  if (hostEngine === 'browser') {
-    lineEl.textContent = '🔊 ' + phrase;
-    lineEl.className = 'vline talk';
-    browserSpeak(phrase, vol, rate, 'voiceSel', (result) => {
-      if (result === 'ok') {
-        lineEl.textContent = '✓ ' + phrase;
-        lineEl.className = 'vline ok';
-      } else if (result === 'timeout') {
-        lineEl.textContent = '⚠ Speech may have played (timeout)';
-        lineEl.className = 'vline warn';
-      } else {
-        lineEl.textContent = '⚠ TTS failed — try Beep mode';
-        lineEl.className = 'vline bad';
-        // Auto-fallback to beep
-        const ms = beepMs(lastNum, curState, +document.getElementById('rep').value, RED_MAX, YEL_MAX, skipYellow);
-        playBeep(vol, urgent, lineEl, ms);
-      }
-    });
+  if (hostEngine === 'ai') {
+    const voice = document.getElementById('hAiVoice').value;
+    lineEl.textContent = '🔊 ' + phrase; lineEl.className = 'vline talk';
+    const result = await aiSpeak(phrase, voice, vol, rate);
+    if (result === 'ok') {
+      lineEl.textContent = '✓ ' + phrase; lineEl.className = 'vline ok';
+      setTtsBar('hTtsBar', '✓ AI voice playing', 'ok');
+    } else {
+      lineEl.textContent = '⚠ AI failed, beeping'; lineEl.className = 'vline bad';
+      setTtsBar('hTtsBar', '⚠ AI failed — check internet', 'bad');
+      playBeep(vol, urgent, lineEl, 500);
+    }
   } else {
     const ms = beepMs(lastNum, curState, +document.getElementById('rep').value, RED_MAX, YEL_MAX, skipYellow);
     playBeep(vol, urgent, lineEl, ms);
   }
 }
 
-function remoteSpeak(phrase, urgent) {
+async function remoteSpeak(phrase, urgent) {
   if (rMuted || !phrase) return;
   const vol = +document.getElementById('rVol').value;
   const rate = +document.getElementById('rSpd').value;
   const lineEl = document.getElementById('rVoiceLine');
-
-  if (remoteEngine === 'browser') {
-    lineEl.textContent = '🔊 ' + phrase;
-    lineEl.className = 'vline talk';
-    browserSpeak(phrase, vol, rate, 'rVoiceSel', (result) => {
-      if (result === 'ok') {
-        lineEl.textContent = '✓ ' + phrase;
-        lineEl.className = 'vline ok';
-      } else if (result === 'timeout') {
-        lineEl.textContent = '⚠ Speech may have played (timeout)';
-        lineEl.className = 'vline warn';
-      } else {
-        lineEl.textContent = '⚠ TTS failed — try Beep mode';
-        lineEl.className = 'vline bad';
-        const n = typeof rLastDist === 'number' ? rLastDist : parseInt(rLastDist, 10);
-        const ms = beepMs(isFinite(n)?n:null, rCurState, +document.getElementById('rRep').value, rRED_MAX, rYEL_MAX, rSkipYellow);
-        playBeep(vol, urgent, lineEl, ms);
-      }
-    });
+  if (remoteEngine === 'ai') {
+    const voice = document.getElementById('rAiVoice').value;
+    lineEl.textContent = '🔊 ' + phrase; lineEl.className = 'vline talk';
+    const result = await aiSpeak(phrase, voice, vol, rate);
+    if (result === 'ok') {
+      lineEl.textContent = '✓ ' + phrase; lineEl.className = 'vline ok';
+      setTtsBar('rTtsBar', '✓ AI voice playing', 'ok');
+    } else {
+      lineEl.textContent = '⚠ AI failed, beeping'; lineEl.className = 'vline bad';
+      setTtsBar('rTtsBar', '⚠ AI failed — check internet', 'bad');
+      const n = typeof rLastDist==='number'?rLastDist:parseInt(rLastDist,10);
+      playBeep(vol, urgent, lineEl, 500);
+    }
   } else {
-    const n = typeof rLastDist === 'number' ? rLastDist : parseInt(rLastDist, 10);
+    const n = typeof rLastDist==='number'?rLastDist:parseInt(rLastDist,10);
     const ms = beepMs(isFinite(n)?n:null, rCurState, +document.getElementById('rRep').value, rRED_MAX, rYEL_MAX, rSkipYellow);
     playBeep(vol, urgent, lineEl, ms);
   }
 }
 
 /* ================================================================
-   TEST BUTTONS
+   TEST VOICE
    ================================================================ */
-function testHostVoice() {
+async function testHostVoice() {
   unlockAudio();
   const vol = +document.getElementById('vol').value;
   const rate = +document.getElementById('spd').value;
   const lineEl = document.getElementById('voiceLine');
-
-  if (hostEngine === 'browser') {
-    lineEl.textContent = '🔊 Testing Browser TTS…';
-    lineEl.className = 'vline talk';
-    setTtsBar('hTtsBar', 'Testing…', 'warn');
-    browserSpeak('Red. Yellow. Green.', vol, rate, 'voiceSel', (r) => {
-      if (r === 'ok') {
-        lineEl.textContent = '✓ Browser TTS working!';
-        lineEl.className = 'vline ok';
-        setTtsBar('hTtsBar', '✓ Browser TTS working — ' + ttsVoiceList.length + ' voices', 'ok');
-      } else if (r === 'timeout') {
-        lineEl.textContent = '⚠ Timeout — speech may have played. If silent, try different voice.';
-        lineEl.className = 'vline warn';
-        setTtsBar('hTtsBar', '⚠ TTS timeout — Quest may need a different voice', 'warn');
-      } else {
-        lineEl.textContent = '⚠ Browser TTS failed — use Beep mode';
-        lineEl.className = 'vline bad';
-        setTtsBar('hTtsBar', '⚠ TTS failed — switch to Beep mode', 'bad');
-      }
-    });
+  if (hostEngine === 'ai') {
+    const voice = document.getElementById('hAiVoice').value;
+    lineEl.textContent = '🔊 Fetching AI voice…'; lineEl.className = 'vline talk';
+    setTtsBar('hTtsBar', 'Fetching…', 'warn');
+    const r = await aiSpeak('Red. Yellow. Green.', voice, vol, rate);
+    lineEl.textContent = r==='ok'?'✓ AI voice works!':'⚠ Failed — check connection';
+    lineEl.className = r==='ok'?'vline ok':'vline bad';
+    setTtsBar('hTtsBar', r==='ok'?'✓ AI Voice working ('+voice+')':'⚠ Failed', r==='ok'?'ok':'bad');
   } else {
-    playBeep(vol, true, lineEl, 400);
-    setTimeout(() => playBeep(vol, false, lineEl, 400), 500);
-    setTimeout(() => playBeep(vol, false, lineEl, 400), 1000);
+    playBeep(vol,true,lineEl,400);
+    setTimeout(()=>playBeep(vol,false,lineEl,400),500);
   }
 }
 
-function testRemoteVoice() {
+async function testRemoteVoice() {
   unlockAudio();
+  dlog('audioLog', 'TEST VOICE pressed', 'wrn');
   const vol = +document.getElementById('rVol').value;
   const rate = +document.getElementById('rSpd').value;
   const lineEl = document.getElementById('rVoiceLine');
-
-  if (remoteEngine === 'browser') {
-    lineEl.textContent = '🔊 Testing Browser TTS…';
-    lineEl.className = 'vline talk';
-    setTtsBar('rTtsBar', 'Testing…', 'warn');
-    browserSpeak('Red. Yellow. Green.', vol, rate, 'rVoiceSel', (r) => {
-      if (r === 'ok') {
-        lineEl.textContent = '✓ Browser TTS working!';
-        lineEl.className = 'vline ok';
-        setTtsBar('rTtsBar', '✓ Browser TTS working — ' + ttsVoiceList.length + ' voices', 'ok');
-      } else if (r === 'timeout') {
-        lineEl.textContent = '⚠ Timeout — speech may have played. If silent, try different voice.';
-        lineEl.className = 'vline warn';
-        setTtsBar('rTtsBar', '⚠ TTS timeout — Quest may need a different voice', 'warn');
-      } else {
-        lineEl.textContent = '⚠ Browser TTS failed — use Beep mode';
-        lineEl.className = 'vline bad';
-        setTtsBar('rTtsBar', '⚠ TTS failed — switch to Beep mode', 'bad');
-      }
-    });
+  if (remoteEngine === 'ai') {
+    const voice = document.getElementById('rAiVoice').value;
+    lineEl.textContent = '🔊 Fetching AI voice…'; lineEl.className = 'vline talk';
+    setTtsBar('rTtsBar', 'Fetching from server…', 'warn');
+    const r = await aiSpeak('Red. Yellow. Green.', voice, vol, rate);
+    lineEl.textContent = r==='ok'?'✓ AI voice works!':'⚠ Failed — check WiFi/internet';
+    lineEl.className = r==='ok'?'vline ok':'vline bad';
+    setTtsBar('rTtsBar', r==='ok'?'✓ AI Voice working ('+voice+')':'⚠ Failed — try again or use Beep', r==='ok'?'ok':'bad');
+    if (r==='ok') prewarmVoice(voice).catch(()=>{});
   } else {
-    playBeep(vol, true, lineEl, 400);
-    setTimeout(() => playBeep(vol, false, lineEl, 400), 500);
-    setTimeout(() => playBeep(vol, false, lineEl, 400), 1000);
+    playBeep(vol,true,lineEl,400);
+    setTimeout(()=>playBeep(vol,false,lineEl,400),500);
   }
 }
 
 /* ================================================================
-   MQTT RELAY
+   MQTT RELAY — multiple brokers, Quest-compatible
    ================================================================ */
 const MQTT_ENDPOINTS = [
-  { name:'Eclipse 443', url:'wss://mqtt.eclipseprojects.io:443/mqtt', proto:'mqtt' },
-  { name:'Eclipse',     url:'wss://mqtt.eclipseprojects.io/mqtt',     proto:'mqtt' },
-  { name:'HiveMQ',      url:'wss://broker.hivemq.com:8884/mqtt',      proto:'mqtt' },
-  { name:'EMQX',        url:'wss://broker.emqx.io:8084/mqtt',         proto:'mqtt' },
+  { name:'HiveMQ',  url:'wss://broker.hivemq.com:8884/mqtt',      proto:'mqtt' },
+  { name:'EMQX',    url:'wss://broker.emqx.io:8084/mqtt',         proto:'mqtt' },
+  { name:'Eclipse',  url:'wss://mqtt.eclipseprojects.io:443/mqtt', proto:'mqtt' },
+  { name:'Eclipse2', url:'wss://mqtt.eclipseprojects.io/mqtt',     proto:'mqtt' },
 ];
-let mqttWs=null, mqttConnected=false, mqttEndpointIndex=0;
-let mqttConnectTimer=null, mqttConnAckTimer=null, mqttReconnectTimer=null, mqttPingInterval=null;
-let mqttClientId = 'orion-' + Math.random().toString(36).slice(2,10);
+let mqttWs=null,mqttConnected=false,mqttEndpointIndex=0;
+let mqttConnectTimer=null,mqttConnAckTimer=null,mqttReconnectTimer=null,mqttPingInterval=null;
+let mqttClientId='orion-'+Math.random().toString(36).slice(2,10);
+let mqttSubscribedTopic='';
 
-function mqttEncodeRL(len){
-  const out=[]; do{let d=len%128;len=Math.floor(len/128);if(len>0)d|=0x80;out.push(d);}while(len>0); return out;
-}
+function mqttEncodeRL(len){const out=[];do{let d=len%128;len=Math.floor(len/128);if(len>0)d|=0x80;out.push(d);}while(len>0);return out;}
+
 function mqttClose(){
   try{if(mqttWs)mqttWs.close();}catch(e){}
   mqttWs=null;mqttConnected=false;
@@ -810,65 +752,114 @@ function mqttClose(){
   if(mqttConnAckTimer){clearTimeout(mqttConnAckTimer);mqttConnAckTimer=null;}
   if(mqttConnectTimer){clearTimeout(mqttConnectTimer);mqttConnectTimer=null;}
 }
-function scheduleReconnect(){
+
+function scheduleReconnect(fast){
   if(mqttReconnectTimer)return;
-  mqttReconnectTimer=setTimeout(()=>{mqttReconnectTimer=null;mqttConnect();},1500);
+  mqttReconnectTimer=setTimeout(()=>{mqttReconnectTimer=null;mqttConnect();},fast?500:2000);
 }
+
 function setRelayUI(text,cls){
   ['hostRelayStatus','remoteRelayStatus'].forEach(id=>{const e=document.getElementById(id);if(e){e.textContent=text;e.className='status '+(cls||'');}});
   ['relayPill','remoteRelayPill'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=text.replace('Relay: ','');});
+  dlog('joinLog',text,cls==='ok'?'ok':cls==='bad'?'err':'wrn');
 }
+
 function mqttConnect(){
   mqttClose();mqttConnected=false;
+  if(!roomCode){setRelayUI('Relay: no room code','warn');return;}
   const ep=MQTT_ENDPOINTS[mqttEndpointIndex%MQTT_ENDPOINTS.length];
-  setRelayUI(`Relay: connecting (${ep.name})…`,'warn');
+  setRelayUI('Relay: trying '+ep.name+'…','warn');
   let ws;
   try{ws=new WebSocket(ep.url,ep.proto);}
-  catch(e){mqttEndpointIndex++;setRelayUI('Relay: blocked, trying next…','bad');scheduleReconnect();return;}
-  mqttWs=ws;mqttWs.binaryType='arraybuffer';
-  mqttConnectTimer=setTimeout(()=>{mqttEndpointIndex++;mqttClose();setRelayUI('Relay: timeout, trying next…','bad');scheduleReconnect();},6500);
-  mqttWs.onopen=()=>{
+  catch(e){
+    setRelayUI('Relay: WebSocket blocked ('+ep.name+')','bad');
+    mqttEndpointIndex++;scheduleReconnect(true);return;
+  }
+  mqttWs=ws;ws.binaryType='arraybuffer';
+
+  mqttConnectTimer=setTimeout(()=>{
+    mqttEndpointIndex++;mqttClose();
+    setRelayUI('Relay: '+ep.name+' timeout, next…','bad');
+    scheduleReconnect(true);
+  },8000);
+
+  ws.onopen=()=>{
     clearTimeout(mqttConnectTimer);mqttConnectTimer=null;
+    setRelayUI('Relay: connected to '+ep.name+', authenticating…','warn');
+    // Send CONNECT packet
     const cid=mqttClientId,cl=cid.length,rl=10+2+cl;
     const p=new Uint8Array(2+rl);let i=0;
-    p[i++]=0x10;p[i++]=rl;p[i++]=0;p[i++]=4;p[i++]=77;p[i++]=81;p[i++]=84;p[i++]=84;
-    p[i++]=4;p[i++]=2;p[i++]=0;p[i++]=60;p[i++]=(cl>>8)&0xff;p[i++]=cl&0xff;
+    p[i++]=0x10;p[i++]=rl;
+    p[i++]=0;p[i++]=4;p[i++]=77;p[i++]=81;p[i++]=84;p[i++]=84;
+    p[i++]=4;p[i++]=2;p[i++]=0;p[i++]=60;
+    p[i++]=(cl>>8)&0xff;p[i++]=cl&0xff;
     for(let c=0;c<cl;c++)p[i++]=cid.charCodeAt(c);
-    mqttWs.send(p.buffer);
-    mqttConnAckTimer=setTimeout(()=>{mqttEndpointIndex++;mqttClose();setRelayUI('Relay: no CONNACK, trying next…','bad');scheduleReconnect();},4000);
+    ws.send(p.buffer);
+    mqttConnAckTimer=setTimeout(()=>{
+      mqttEndpointIndex++;mqttClose();
+      setRelayUI('Relay: no CONNACK from '+ep.name,'bad');
+      scheduleReconnect(true);
+    },5000);
   };
-  mqttWs.onmessage=(evt)=>{
+
+  ws.onmessage=(evt)=>{
     const data=new Uint8Array(evt.data);if(!data.length)return;
     const type=data[0]>>4;
     if(type===2){
+      // CONNACK
       clearTimeout(mqttConnAckTimer);mqttConnAckTimer=null;
-      mqttConnected=true;setRelayUI(`Relay: connected (${ep.name})`,'ok');
-      mqttPingInterval=setInterval(()=>{if(mqttWs&&mqttWs.readyState===1)mqttWs.send(new Uint8Array([0xC0,0]).buffer);},25000);
-      mqttSubscribe(getTopic(roomCode));
+      mqttConnected=true;
+      setRelayUI('Relay: connected ✓ ('+ep.name+')','ok');
+      // PING keep-alive
+      mqttPingInterval=setInterval(()=>{
+        if(mqttWs&&mqttWs.readyState===1)mqttWs.send(new Uint8Array([0xC0,0]).buffer);
+      },20000);
+      // Subscribe
+      const topic=getTopic(roomCode);
+      mqttSubscribe(topic);
+      mqttSubscribedTopic=topic;
+    }
+    if(type===9){
+      // SUBACK
+      setRelayUI('Relay: subscribed ✓ ('+ep.name+')','ok');
     }
     if(type===3){
+      // PUBLISH
       let idx=1,mul=1,rem=0,enc;
       do{enc=data[idx++];rem+=(enc&127)*mul;mul*=128;}while((enc&128)!==0&&idx<data.length);
       const tl=(data[idx]<<8)|data[idx+1];idx+=2;idx+=tl;
-      onRelayMessage(new TextDecoder().decode(data.slice(idx)));
+      try{onRelayMessage(new TextDecoder().decode(data.slice(idx)));}catch(e){}
     }
   };
-  mqttWs.onerror=()=>setRelayUI('Relay: error, trying next…','bad');
-  mqttWs.onclose=()=>{
+
+  ws.onerror=(e)=>{
+    setRelayUI('Relay: '+ep.name+' error','bad');
+  };
+
+  ws.onclose=()=>{
     mqttConnected=false;
     if(mqttConnAckTimer){clearTimeout(mqttConnAckTimer);mqttConnAckTimer=null;}
     if(mqttPingInterval){clearInterval(mqttPingInterval);mqttPingInterval=null;}
-    mqttEndpointIndex++;setRelayUI('Relay: disconnected, retrying…','warn');scheduleReconnect();
+    mqttEndpointIndex++;
+    setRelayUI('Relay: lost connection, retrying…','warn');
+    scheduleReconnect(false);
   };
 }
+
 function mqttSubscribe(topic){
   if(!mqttWs||mqttWs.readyState!==1)return;
   const tb=new TextEncoder().encode(topic),tl=tb.length;
-  const p=new Uint8Array(6+tl);let i=0;
-  p[i++]=0x82;p[i++]=4+tl;p[i++]=0;p[i++]=1;p[i++]=(tl>>8)&0xff;p[i++]=tl&0xff;
+  const rl=2+tl+1;
+  const p=new Uint8Array(2+rl);let i=0;
+  p[i++]=0x82;p[i++]=rl;
+  p[i++]=0;p[i++]=1;
+  p[i++]=(tl>>8)&0xff;p[i++]=tl&0xff;
   p.set(tb,i);i+=tl;
+  p[i]=0; // QoS 0
   mqttWs.send(p.buffer);
+  dlog('joinLog','Subscribing to: '+topic);
 }
+
 function mqttPublish(topic,payload){
   if(!mqttWs||!mqttConnected||mqttWs.readyState!==1)return;
   const tb=new TextEncoder().encode(topic),pb=new TextEncoder().encode(payload);
@@ -880,7 +871,8 @@ function mqttPublish(topic,payload){
   p.set(tb,i);i+=tl;p.set(pb,i);
   mqttWs.send(p.buffer);
 }
-function getTopic(code){return 'orion/room/'+(code||'').toLowerCase();}
+
+function getTopic(code){return 'orion/v2/room/'+(code||'').toLowerCase();}
 
 /* ================================================================
    APP STATE
@@ -898,19 +890,13 @@ let RED_MAX=500,YEL_MAX=600,skipYellow=false;
 let stateHistory=[];
 let lastNum=null,curState='OFF',lastSpokenState='';
 let detectedDir='',manualDirOverride='';
-let muted=false,repTimer=null;
+let repTimer=null;
 let netSeq=0,lastNetSend=0,lastNetSent={s:'',d:null,r:'',n:''};
 const NET_MIN_MS=200,NET_HEARTBEAT_MS=1200;
 
-const DIR_KW={
-  behind:'behind',back:'behind',rear:'behind',
-  front:'in front',ahead:'in front',forward:'in front',
-  left:'left',right:'right',
-  above:'above',up:'above',top:'above',
-  below:'below',down:'below',bottom:'below',under:'below'
-};
+const DIR_KW={behind:'behind',back:'behind',rear:'behind',front:'in front',ahead:'in front',forward:'in front',left:'left',right:'right',above:'above',up:'above',top:'above',below:'below',down:'below',bottom:'below',under:'below'};
 
-let rMuted=false,rRepTimer=null;
+let rRepTimer=null;
 let rCurState='OFF',rLastDist=null,rLastDir='',rLastName='';
 let rLastSeq=0,rClockOffset=null;
 let rRED_MAX=500,rYEL_MAX=600,rSkipYellow=false;
@@ -919,16 +905,12 @@ let rStateHistory=[];
 /* ================================================================
    ROLE / ROOM
    ================================================================ */
-function genRoom(){
-  const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let r='';for(let i=0;i<5;i++)r+=c[Math.floor(Math.random()*c.length)];return r;
-}
+function genRoom(){const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let r='';for(let i=0;i<5;i++)r+=c[Math.floor(Math.random()*c.length)];return r;}
 function normName(s){return(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');}
 
 function chooseRole(r){
-  role=r;
+  role=r;unlockAudio();
   document.getElementById('roleOverlay').classList.add('hidden');
-  unlockAudio();
   if(r==='host'){
     roomCode=genRoom();
     document.getElementById('hostRoomCode').textContent=roomCode;
@@ -938,12 +920,6 @@ function chooseRole(r){
   } else {
     document.getElementById('remoteOverlay').classList.remove('hidden');
   }
-  // Start voice polling
-  pollVoices((found) => {
-    if (role === 'host') setHostEngine(hostEngine);
-    else setRemoteEngine(remoteEngine);
-  });
-  startTtsKeepAlive();
 }
 
 document.getElementById('shareBtn').addEventListener('click',async()=>{
@@ -955,13 +931,14 @@ document.getElementById('shareBtn').addEventListener('click',async()=>{
     running=true;
     document.getElementById('hostOverlay').classList.add('hidden');
     document.getElementById('hostUI').classList.remove('hidden');
-    document.getElementById('capInfo').textContent=`${vid.videoWidth}×${vid.videoHeight}`;
+    document.getElementById('capInfo').textContent=vid.videoWidth+'×'+vid.videoHeight;
     stream.getVideoTracks()[0].onended=()=>{
       running=false;
       document.getElementById('hostOverlay').classList.remove('hidden');
       document.getElementById('hostUI').classList.add('hidden');
       stopRep();
     };
+    prewarmVoice(document.getElementById('hAiVoice').value).catch(()=>{});
     await initOCR();
     ocrLoop();
   }catch(e){alert(e.message);}
@@ -972,48 +949,25 @@ function joinRoom(){
   const code=(document.getElementById('roomIn').value||'').trim().toUpperCase();
   if(code.length<3){alert('Enter room code');return;}
   roomCode=code;
+  dlog('joinLog','Joining room: '+code,'wrn');
   document.getElementById('remoteRoomPill').textContent='ROOM '+code;
   document.getElementById('remoteOverlay').classList.add('hidden');
   document.getElementById('remoteUI').classList.remove('hidden');
   rLastSeq=0;rClockOffset=null;
   mqttConnect();
+  // Start pre-caching voice
+  prewarmVoice(document.getElementById('rAiVoice').value).catch(()=>{});
 }
 
 /* ================================================================
    UI CONTROLS
    ================================================================ */
-function setMode(m){
-  drawMode=m;
-  document.getElementById('modeDist').className='mode'+(m==='distance'?' onD':'');
-  document.getElementById('modeDir').className='mode'+(m==='direction'?' onR':'');
-  document.getElementById('hint').textContent=m==='distance'?'Draw DISTANCE box':'Draw DIRECTION box';
-}
-function clearBoxes(){
-  distRegion=null;dirRegion=null;
-  document.getElementById('distBox').classList.remove('show');
-  document.getElementById('dirBox').classList.remove('show');
-  detectedDir='';updateDirUI();setHostOff('Cleared');
-}
-function setPreset(name){
-  if(!vid.videoWidth)return;
-  if(name==='top')distRegion={x:0.30,y:0.02,w:0.40,h:0.08};
-  else if(name==='topRight')distRegion={x:0.62,y:0.02,w:0.35,h:0.08};
-  applyRegionBox('distBox',distRegion);
-}
-function applyRegionBox(id,reg){
-  if(!reg)return;
-  const el=document.getElementById(id);
-  el.style.left=(reg.x*100)+'%';el.style.top=(reg.y*100)+'%';
-  el.style.width=(reg.w*100)+'%';el.style.height=(reg.h*100)+'%';
-  el.classList.add('show');
-}
+function setMode(m){drawMode=m;document.getElementById('modeDist').className='mode'+(m==='distance'?' onD':'');document.getElementById('modeDir').className='mode'+(m==='direction'?' onR':'');document.getElementById('hint').textContent=m==='distance'?'Draw DISTANCE box':'Draw DIRECTION box';}
+function clearBoxes(){distRegion=null;dirRegion=null;document.getElementById('distBox').classList.remove('show');document.getElementById('dirBox').classList.remove('show');detectedDir='';updateDirUI();setHostOff('Cleared');}
+function setPreset(name){if(!vid.videoWidth)return;if(name==='top')distRegion={x:0.30,y:0.02,w:0.40,h:0.08};else if(name==='topRight')distRegion={x:0.62,y:0.02,w:0.35,h:0.08};applyRegionBox('distBox',distRegion);}
+function applyRegionBox(id,reg){if(!reg)return;const el=document.getElementById(id);el.style.left=(reg.x*100)+'%';el.style.top=(reg.y*100)+'%';el.style.width=(reg.w*100)+'%';el.style.height=(reg.h*100)+'%';el.classList.add('show');}
 
-// Sliders
-function ws(id,dId,fn){
-  const e=document.getElementById(id),d=document.getElementById(dId);
-  if(!e||!d)return;
-  e.addEventListener('input',()=>{d.textContent=fn(+e.value);});
-}
+function ws(id,dId,fn){const e=document.getElementById(id),d=document.getElementById(dId);if(!e||!d)return;e.addEventListener('input',()=>{d.textContent=fn(+e.value);});}
 ws('redR','redV',v=>{RED_MAX=v;stateHistory=[];return v;});
 ws('yelR','yelV',v=>{YEL_MAX=v;stateHistory=[];return v;});
 ws('vol','volV',v=>Math.round(v*100)+'%');
@@ -1025,68 +979,23 @@ ws('rVol','rVolV',v=>Math.round(v*100)+'%');
 ws('rSpd','rSpdV',v=>v.toFixed(2)+'x');
 ws('rRep','rRepV',v=>v.toFixed(1)+'s');
 
-document.getElementById('skipY').addEventListener('change',()=>{
-  skipYellow=document.getElementById('skipY').checked;
-  document.getElementById('yelRow').classList.toggle('hidden',skipYellow);
-  stateHistory=[];
-});
-document.getElementById('rSkipY').addEventListener('change',()=>{
-  rSkipYellow=document.getElementById('rSkipY').checked;
-  document.getElementById('rYelRow').classList.toggle('hidden',rSkipYellow);
-  rStateHistory=[];
-});
-document.getElementById('dirEnable').addEventListener('change',()=>{
-  if(!document.getElementById('dirEnable').checked){dirRegion=null;detectedDir='';document.getElementById('dirBox').classList.remove('show');}
-  updateDirUI();
-});
+document.getElementById('skipY').addEventListener('change',()=>{skipYellow=document.getElementById('skipY').checked;document.getElementById('yelRow').classList.toggle('hidden',skipYellow);stateHistory=[];});
+document.getElementById('rSkipY').addEventListener('change',()=>{rSkipYellow=document.getElementById('rSkipY').checked;document.getElementById('rYelRow').classList.toggle('hidden',rSkipYellow);rStateHistory=[];});
+document.getElementById('dirEnable').addEventListener('change',()=>{if(!document.getElementById('dirEnable').checked){dirRegion=null;detectedDir='';document.getElementById('dirBox').classList.remove('show');}updateDirUI();});
 document.getElementById('dirManual').addEventListener('change',e=>{manualDirOverride=e.target.value;updateDirUI();});
 
-function toggleMute(){
-  muted=!muted;
-  document.getElementById('muteBtn').textContent=muted?'AUDIO OFF':'AUDIO ON';
-  document.getElementById('muteBtn').classList.toggle('act',!muted);
-  if(muted){ttsForceCancel();stopRep();}
-  else startRep();
-}
-function rToggleMute(){
-  rMuted=!rMuted;
-  document.getElementById('rMuteBtn').textContent=rMuted?'AUDIO OFF':'AUDIO ON';
-  document.getElementById('rMuteBtn').classList.toggle('act',!rMuted);
-  if(rMuted){ttsForceCancel();rStopRep();}
-  else rStartRep();
-}
+function toggleMute(){muted=!muted;document.getElementById('muteBtn').textContent=muted?'AUDIO OFF':'AUDIO ON';document.getElementById('muteBtn').classList.toggle('act',!muted);if(muted){stopCurrentPlay();stopRep();}else startRep();}
+function rToggleMute(){rMuted=!rMuted;document.getElementById('rMuteBtn').textContent=rMuted?'AUDIO OFF':'AUDIO ON';document.getElementById('rMuteBtn').classList.toggle('act',!rMuted);if(rMuted){stopCurrentPlay();rStopRep();}else rStartRep();}
 
 /* ================================================================
    DRAG SELECT
    ================================================================ */
 let dragging=false,sx=0,sy=0;
-const wrap=document.getElementById('videoWrap');
-const drag=document.getElementById('drag');
+const wrap=document.getElementById('videoWrap'),dragEl=document.getElementById('drag');
 function relPos(e){const r=wrap.getBoundingClientRect();return{x:clamp((e.clientX-r.left)/r.width,0,1),y:clamp((e.clientY-r.top)/r.height,0,1)};}
-drag.addEventListener('mousedown',e=>{
-  dragging=true;const p=relPos(e);sx=p.x;sy=p.y;
-  const el=drawMode==='direction'?document.getElementById('dirBox'):document.getElementById('distBox');
-  el.style.left=(sx*100)+'%';el.style.top=(sy*100)+'%';el.style.width='0%';el.style.height='0%';
-  el.classList.add('show');
-});
-document.addEventListener('mousemove',e=>{
-  if(!dragging)return;
-  const p=relPos(e),x=Math.min(sx,p.x),y=Math.min(sy,p.y),w=Math.abs(p.x-sx),h=Math.abs(p.y-sy);
-  const el=drawMode==='direction'?document.getElementById('dirBox'):document.getElementById('distBox');
-  el.style.left=(x*100)+'%';el.style.top=(y*100)+'%';el.style.width=(w*100)+'%';el.style.height=(h*100)+'%';
-});
-document.addEventListener('mouseup',e=>{
-  if(!dragging)return;dragging=false;
-  const p=relPos(e),x=Math.min(sx,p.x),y=Math.min(sy,p.y),w=Math.abs(p.x-sx),h=Math.abs(p.y-sy);
-  if(w<0.005||h<0.003){
-    if(drawMode==='distance'){distRegion=null;document.getElementById('distBox').classList.remove('show');setHostOff('No box');}
-    else{dirRegion=null;document.getElementById('dirBox').classList.remove('show');detectedDir='';updateDirUI();}
-    return;
-  }
-  const reg={x,y,w,h};
-  if(drawMode==='distance'){distRegion=reg;applyRegionBox('distBox',reg);stateHistory=[];}
-  else{dirRegion=reg;applyRegionBox('dirBox',reg);updateDirUI();}
-});
+dragEl.addEventListener('mousedown',e=>{dragging=true;const p=relPos(e);sx=p.x;sy=p.y;const el=drawMode==='direction'?document.getElementById('dirBox'):document.getElementById('distBox');el.style.left=(sx*100)+'%';el.style.top=(sy*100)+'%';el.style.width='0%';el.style.height='0%';el.classList.add('show');});
+document.addEventListener('mousemove',e=>{if(!dragging)return;const p=relPos(e),x=Math.min(sx,p.x),y=Math.min(sy,p.y),w=Math.abs(p.x-sx),h=Math.abs(p.y-sy);const el=drawMode==='direction'?document.getElementById('dirBox'):document.getElementById('distBox');el.style.left=(x*100)+'%';el.style.top=(y*100)+'%';el.style.width=(w*100)+'%';el.style.height=(h*100)+'%';});
+document.addEventListener('mouseup',e=>{if(!dragging)return;dragging=false;const p=relPos(e),x=Math.min(sx,p.x),y=Math.min(sy,p.y),w=Math.abs(p.x-sx),h=Math.abs(p.y-sy);if(w<0.005||h<0.003){if(drawMode==='distance'){distRegion=null;document.getElementById('distBox').classList.remove('show');setHostOff('No box');}else{dirRegion=null;document.getElementById('dirBox').classList.remove('show');detectedDir='';updateDirUI();}return;}const reg={x,y,w,h};if(drawMode==='distance'){distRegion=reg;applyRegionBox('distBox',reg);stateHistory=[];}else{dirRegion=reg;applyRegionBox('dirBox',reg);updateDirUI();}});
 
 /* ================================================================
    OCR
@@ -1095,50 +1004,34 @@ let tWorker=null,ocrBusy=false,dirOcrCooldown=0;
 async function initOCR(){
   if(typeof Tesseract==='undefined'){
     document.getElementById('ocrStatus').textContent='loading…';
-    await new Promise((res,rej)=>{
-      const s=document.createElement('script');
-      s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
-      s.onload=res;s.onerror=()=>rej(new Error('Tesseract load failed'));
-      document.head.appendChild(s);
-    });
+    await new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';s.onload=res;s.onerror=()=>rej(new Error('Tesseract load failed'));document.head.appendChild(s);});
   }
   document.getElementById('ocrStatus').textContent='init…';
   tWorker=await Tesseract.createWorker('eng',1,{logger:()=>{}});
-  await tWorker.setParameters({
-    tessedit_pageseg_mode:'7',
-    tessedit_char_whitelist:'0123456789()[]?ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz _-.:'
-  });
+  await tWorker.setParameters({tessedit_pageseg_mode:'7',tessedit_char_whitelist:'0123456789()[]?ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz _-.:'});
   document.getElementById('ocrStatus').textContent='ready';
 }
 
-function captureRegion(reg,maxW=360,maxH=90,forDir=false){
-  if(!reg||!vid.videoWidth)return null;
+function captureRegion(reg,maxW,maxH,forDir){
+  if(!reg||!vid.videoWidth)return null;maxW=maxW||360;maxH=maxH||90;
   const vw=vid.videoWidth,vh=vid.videoHeight;
   const px=Math.max(0,Math.floor(reg.x*vw)),py=Math.max(0,Math.floor(reg.y*vh));
   const pw=Math.max(1,Math.floor(reg.w*vw)),ph=Math.max(1,Math.floor(reg.h*vh));
   const scale=Math.min(maxW/pw,maxH/ph,3);
   const w=Math.max(1,Math.floor(pw*scale)),h=Math.max(1,Math.floor(ph*scale));
   const ctx=forDir?workCtx2:workCtx,cv=forDir?workCvs2:workCvs;
-  cv.width=w;cv.height=h;
-  ctx.drawImage(vid,px,py,pw,ph,0,0,w,h);
-  const img=ctx.getImageData(0,0,w,h);
-  let sum=0;
+  cv.width=w;cv.height=h;ctx.drawImage(vid,px,py,pw,ph,0,0,w,h);
+  const img=ctx.getImageData(0,0,w,h);let sum=0;
   for(let i=0;i<img.data.length;i+=4)sum+=0.299*img.data[i]+0.587*img.data[i+1]+0.114*img.data[i+2];
   const thr=sum/(img.data.length/4);
   for(let i=0;i<img.data.length;i+=4){const g=0.299*img.data[i]+0.587*img.data[i+1]+0.114*img.data[i+2];const v=g>thr?255:0;img.data[i]=img.data[i+1]=img.data[i+2]=v;}
   ctx.putImageData(img,0,0);
-  if(!forDir){
-    rawCvs.width=Math.min(pw,200);rawCvs.height=Math.min(ph,70);
-    rawCtx.drawImage(vid,px,py,pw,ph,0,0,rawCvs.width,rawCvs.height);
-    procCvs.width=Math.min(w,200);procCvs.height=Math.min(h,70);
-    procCtx.drawImage(cv,0,0,procCvs.width,procCvs.height);
-  }
+  if(!forDir){rawCvs.width=Math.min(pw,200);rawCvs.height=Math.min(ph,70);rawCtx.drawImage(vid,px,py,pw,ph,0,0,rawCvs.width,rawCvs.height);procCvs.width=Math.min(w,200);procCvs.height=Math.min(h,70);procCtx.drawImage(cv,0,0,procCvs.width,procCvs.height);}
   return cv;
 }
 
 function parseOCR(raw){
-  const t=(raw||'').trim();
-  if(!t)return{name:'',num:null,special:null};
+  const t=(raw||'').trim();if(!t)return{name:'',num:null,special:null};
   if(t.includes('?'))return{name:'',num:null,special:'BALL LOOSE'};
   let m=t.match(/([A-Za-z0-9._-]{2,24})?\s*[\(\[]\s*(\d{2,4})\s*[\)\]]/);
   if(m)return{name:m[1]||'',num:parseInt(m[2],10),special:null};
@@ -1148,42 +1041,20 @@ function parseOCR(raw){
 }
 
 function getStateRaw(n){if(n<=RED_MAX)return'RED';if(skipYellow)return'GREEN';if(n<=YEL_MAX)return'YELLOW';return'GREEN';}
-function getStateHyst(n){
-  const raw=getStateRaw(n);stateHistory.push(raw);if(stateHistory.length>4)stateHistory.shift();
-  if(stateHistory.length<2)return raw;
-  const w={RED:0,YELLOW:0,GREEN:0};
-  for(let i=0;i<stateHistory.length;i++)w[stateHistory[i]]+=(i+1);
-  return Object.keys(w).reduce((a,b)=>w[a]>w[b]?a:b);
-}
+function getStateHyst(n){const raw=getStateRaw(n);stateHistory.push(raw);if(stateHistory.length>4)stateHistory.shift();if(stateHistory.length<2)return raw;const w={RED:0,YELLOW:0,GREEN:0};for(let i=0;i<stateHistory.length;i++)w[stateHistory[i]]+=(i+1);return Object.keys(w).reduce((a,b)=>w[a]>w[b]?a:b);}
 
 function getActiveDir(){return manualDirOverride||detectedDir||'';}
-function updateDirUI(){
-  const dir=getActiveDir();
-  document.getElementById('dirDbg').textContent=dir?'DIR: '+dir.toUpperCase():dirRegion?'DIR: SCANNING':'Draw direction box.';
-  document.getElementById('hDir').textContent=(document.getElementById('dirEnable').checked&&(dir||dirRegion))?'DIR: '+(dir?dir.toUpperCase():'SCANNING'):'';
-}
+function updateDirUI(){const dir=getActiveDir();document.getElementById('dirDbg').textContent=dir?'DIR: '+dir.toUpperCase():dirRegion?'DIR: SCANNING':'Draw direction box.';document.getElementById('hDir').textContent=(document.getElementById('dirEnable').checked&&(dir||dirRegion))?'DIR: '+(dir?dir.toUpperCase():'SCANNING'):'';}
+
 function setHero(state,dist,dir,nameLine){
-  const h=document.getElementById('hero');
-  h.className='hero '+(state==='RED'?'red':state==='YELLOW'?'yellow':state==='GREEN'?'green':'blue');
+  const h=document.getElementById('hero');h.className='hero '+(state==='RED'?'red':state==='YELLOW'?'yellow':state==='GREEN'?'green':'blue');
   document.getElementById('hState').textContent=state==='OFF'?'—':state;
   document.getElementById('hDist').textContent=(dist!==null&&dist!==undefined&&dist!=='')?String(dist):'Waiting…';
   document.getElementById('hDir').textContent=(document.getElementById('dirEnable').checked&&(dir||dirRegion))?'DIR: '+(dir?dir.toUpperCase():'SCANNING'):'';
   document.getElementById('hNameLine').textContent=nameLine||'';
 }
-function setHostOff(reason){
-  curState='OFF';lastNum=null;lastSpokenState='OFF';stopRep();
-  setHero('OFF','',getActiveDir(),reason?'FILTER: '+reason:'');
-  broadcastState('OFF','',getActiveDir(),'');
-}
-function setRemoteOff(reason){
-  rCurState='OFF';rStopRep();
-  const h=document.getElementById('rHero');h.className='hero blue';
-  document.getElementById('rState').textContent='WAITING';
-  document.getElementById('rDist').textContent='—';
-  document.getElementById('rDir').textContent='';
-  document.getElementById('rNameLine').textContent=reason?'FILTER: '+reason:'';
-  document.getElementById('rTime').textContent='Updated: '+new Date().toLocaleTimeString();
-}
+function setHostOff(reason){curState='OFF';lastNum=null;lastSpokenState='OFF';stopRep();setHero('OFF','',getActiveDir(),reason?'FILTER: '+reason:'');broadcastState('OFF','',getActiveDir(),'');}
+function setRemoteOff(reason){rCurState='OFF';rStopRep();const h=document.getElementById('rHero');h.className='hero blue';document.getElementById('rState').textContent='WAITING';document.getElementById('rDist').textContent='—';document.getElementById('rDir').textContent='';document.getElementById('rNameLine').textContent=reason?'FILTER: '+reason:'';document.getElementById('rTime').textContent='Updated: '+new Date().toLocaleTimeString();}
 
 async function ocrLoop(){
   if(!running||!tWorker)return;
@@ -1193,20 +1064,14 @@ async function ocrLoop(){
       const cv=captureRegion(distRegion,360,90,false);
       if(cv){
         await tWorker.setParameters({tessedit_pageseg_mode:'7',tessedit_char_whitelist:'0123456789()[]?ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz _-.:'});
-        const res=await tWorker.recognize(cv);
-        const raw=(res.data.text||'').trim();
-        const parsed=parseOCR(raw);
-        document.getElementById('ocrDbg').textContent=raw?`OCR: "${raw.slice(0,100)}"`:' OCR: (empty)';
+        const res=await tWorker.recognize(cv);const raw=(res.data.text||'').trim();const parsed=parseOCR(raw);
+        document.getElementById('ocrDbg').textContent=raw?'OCR: "'+raw.slice(0,100)+'"':'OCR: (empty)';
         const want=normName(document.getElementById('filterName').value||'');
         const hasFilter=document.getElementById('filterOn').checked&&want.length>0;
         let seenNorm=normName(parsed.name)||(raw?normName(raw.split(/\s+/)[0]):'');
-        if(hasFilter&&(!seenNorm||!seenNorm.includes(want))){
-          setHostOff(`Ignoring "${parsed.name||'?'}" (want ${document.getElementById('filterName').value})`);
-          ocrBusy=false;setTimeout(ocrLoop,120);return;
-        }
+        if(hasFilter&&(!seenNorm||!seenNorm.includes(want))){setHostOff('Ignoring "'+(parsed.name||'?')+'" (want '+document.getElementById('filterName').value+')');ocrBusy=false;setTimeout(ocrLoop,120);return;}
         const nameLine=parsed.name?'PLAYER: '+parsed.name:hasFilter?'PLAYER: '+document.getElementById('filterName').value:'';
-        document.getElementById('hNameLine').textContent=nameLine;
-        const dir=getActiveDir();
+        document.getElementById('hNameLine').textContent=nameLine;const dir=getActiveDir();
         if(parsed.special){curState='BALL LOOSE';lastNum=null;setHero('BALL LOOSE','?',dir,nameLine);alertHost('BALL LOOSE',dir);broadcastState('BALL LOOSE','?',dir,parsed.name||'');}
         else if(parsed.num!==null){lastNum=parsed.num;const st=getStateHyst(parsed.num);curState=st;setHero(st,parsed.num,dir,nameLine);alertHost(st,dir);broadcastState(st,parsed.num,dir,parsed.name||'');}
       }
@@ -1215,21 +1080,10 @@ async function ocrLoop(){
   }
   if(document.getElementById('dirEnable').checked&&dirRegion&&Date.now()-dirOcrCooldown>350&&!ocrBusy){
     dirOcrCooldown=Date.now();ocrBusy=true;
-    try{
-      const cv=captureRegion(dirRegion,240,70,true);
-      if(cv){
-        await tWorker.setParameters({tessedit_pageseg_mode:'7',tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz '});
-        const res=await tWorker.recognize(cv);
-        const raw=(res.data.text||'').trim().toLowerCase();
-        let found='';
-        for(const k of Object.keys(DIR_KW)){if(raw.includes(k)){found=DIR_KW[k];break;}}
-        if(!manualDirOverride&&found!==detectedDir){detectedDir=found;updateDirUI();startRep();}
-      }
-    }catch(e){}
+    try{const cv=captureRegion(dirRegion,240,70,true);if(cv){await tWorker.setParameters({tessedit_pageseg_mode:'7',tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz '});const res=await tWorker.recognize(cv);const raw=(res.data.text||'').trim().toLowerCase();let found='';for(const k of Object.keys(DIR_KW)){if(raw.includes(k)){found=DIR_KW[k];break;}}if(!manualDirOverride&&found!==detectedDir){detectedDir=found;updateDirUI();startRep();}}}catch(e){}
     ocrBusy=false;
   }
-  heartbeatTick();
-  setTimeout(ocrLoop,120);
+  heartbeatTick();setTimeout(ocrLoop,120);
 }
 
 /* ================================================================
@@ -1243,28 +1097,19 @@ function broadcastState(state,dist,dir,name){
   lastNetSend=now;lastNetSent={s:state,d:dQ,r,n:nm};
   mqttPublish(getTopic(roomCode),JSON.stringify({s:state,d:dQ,r,n:nm,t:now,q:++netSeq}));
 }
-function heartbeatTick(){
-  if(!mqttConnected||!roomCode)return;
-  if(curState==='OFF')broadcastState('OFF','',getActiveDir(),'');
-  else if(curState==='BALL LOOSE')broadcastState('BALL LOOSE','?',getActiveDir(),'');
-  else if(lastNum!==null)broadcastState(curState,lastNum,getActiveDir(),'');
-}
+function heartbeatTick(){if(!mqttConnected||!roomCode)return;if(curState==='OFF')broadcastState('OFF','',getActiveDir(),'');else if(curState==='BALL LOOSE')broadcastState('BALL LOOSE','?',getActiveDir(),'');else if(lastNum!==null)broadcastState(curState,lastNum,getActiveDir(),'');}
 
 /* ================================================================
    REMOTE RECEIVE
    ================================================================ */
 function rGetStateRaw(n){if(n<=rRED_MAX)return'RED';if(rSkipYellow)return'GREEN';if(n<=rYEL_MAX)return'YELLOW';return'GREEN';}
-function rGetStateHyst(n){
-  const raw=rGetStateRaw(n);rStateHistory.push(raw);if(rStateHistory.length>4)rStateHistory.shift();
-  if(rStateHistory.length<2)return raw;
-  const w={RED:0,YELLOW:0,GREEN:0};
-  for(let i=0;i<rStateHistory.length;i++)w[rStateHistory[i]]+=(i+1);
-  return Object.keys(w).reduce((a,b)=>w[a]>w[b]?a:b);
-}
+function rGetStateHyst(n){const raw=rGetStateRaw(n);rStateHistory.push(raw);if(rStateHistory.length>4)rStateHistory.shift();if(rStateHistory.length<2)return raw;const w={RED:0,YELLOW:0,GREEN:0};for(let i=0;i<rStateHistory.length;i++)w[rStateHistory[i]]+=(i+1);return Object.keys(w).reduce((a,b)=>w[a]>w[b]?a:b);}
+
 function onRelayMessage(payload){
   if(role!=='remote')return;
   try{
     const d=JSON.parse(payload);if(d.s===undefined)return;
+    dlog('audioLog','MSG: '+d.s+' d='+d.d+' q='+d.q,'ok');
     if(typeof d.q==='number'){if(d.q<=rLastSeq)return;rLastSeq=d.q;}
     if(typeof d.t==='number'){
       if(rClockOffset===null)rClockOffset=Date.now()-d.t;
@@ -1273,20 +1118,16 @@ function onRelayMessage(payload){
     rLastDist=d.d;rLastDir=d.r||'';rLastName=d.n||'';
     const rWant=normName(document.getElementById('rFilterName').value||'');
     const rHasFilter=document.getElementById('rFilterOn').checked&&rWant.length>0;
-    if(rHasFilter&&d.s!=='OFF'){
-      const seenNorm=normName(rLastName);
-      if(!seenNorm||!seenNorm.includes(rWant)){setRemoteOff(`Ignoring "${rLastName||'?'}" (want ${document.getElementById('rFilterName').value})`);return;}
-    }
-    let effective=d.s;
-    const n=typeof d.d==='number'?d.d:parseInt(d.d,10);
+    if(rHasFilter&&d.s!=='OFF'){const seenNorm=normName(rLastName);if(!seenNorm||!seenNorm.includes(rWant)){setRemoteOff('Ignoring "'+(rLastName||'?')+'" (want '+document.getElementById('rFilterName').value+')');return;}}
+    let effective=d.s;const n=typeof d.d==='number'?d.d:parseInt(d.d,10);
     if((d.s==='RED'||d.s==='YELLOW'||d.s==='GREEN')&&isFinite(n))effective=rGetStateHyst(n);
     else rStateHistory=[];
     renderRemote(effective,d.d,rLastDir,rLastName);
-  }catch(e){}
+  }catch(e){dlog('audioLog','Parse error: '+e.message,'err');}
 }
+
 function renderRemote(state,dist,dir,name){
-  const h=document.getElementById('rHero');
-  h.className='hero '+(state==='RED'?'red':state==='YELLOW'?'yellow':state==='GREEN'?'green':'blue');
+  const h=document.getElementById('rHero');h.className='hero '+(state==='RED'?'red':state==='YELLOW'?'yellow':state==='GREEN'?'green':'blue');
   document.getElementById('rState').textContent=state==='OFF'?'WAITING':state;
   document.getElementById('rDist').textContent=(dist!==null&&dist!==undefined&&dist!=='')?String(dist):'—';
   document.getElementById('rDir').textContent=dir?'DIR: '+dir.toUpperCase():'';
@@ -1302,77 +1143,55 @@ function phraseFor(state,dir){
   if(state==='BALL LOOSE')return'Ball loose';
   if(state==='RED')return dir?'Red, '+dir:'Red';
   if(state==='YELLOW')return'Yellow';
-  if(state==='GREEN')return'Green';
-  return'';
+  if(state==='GREEN')return'Green';return'';
 }
 
-function alertHost(state,dir){
-  if(state===lastSpokenState)return;
-  lastSpokenState=state;
-  if(state==='OFF')return;
-  hostSpeak(phraseFor(state,dir),state==='RED'||state==='BALL LOOSE');
-  startRep();
-}
-function alertRemote(state,dir){
-  if(state==='OFF')return;
-  remoteSpeak(phraseFor(state,dir),state==='RED'||state==='BALL LOOSE');
-}
+function alertHost(state,dir){if(state===lastSpokenState)return;lastSpokenState=state;if(state==='OFF')return;hostSpeak(phraseFor(state,dir),state==='RED'||state==='BALL LOOSE');startRep();}
+function alertRemote(state,dir){if(state==='OFF')return;remoteSpeak(phraseFor(state,dir),state==='RED'||state==='BALL LOOSE');}
 
 function startRep(){
   stopRep();if(muted||curState==='OFF'||curState==='')return;
-  const tick=()=>{
-    if(muted){stopRep();return;}
+  const tick=()=>{if(muted){stopRep();return;}
     hostSpeak(phraseFor(curState,getActiveDir()),curState==='RED'||curState==='BALL LOOSE');
-    const interval=hostEngine==='beep'
-      ?beepMs(lastNum,curState,+document.getElementById('rep').value,RED_MAX,YEL_MAX,skipYellow)
-      :Math.round(+document.getElementById('rep').value*1000);
+    const interval=hostEngine==='beep'?beepMs(lastNum,curState,+document.getElementById('rep').value,RED_MAX,YEL_MAX,skipYellow):Math.round(+document.getElementById('rep').value*1000);
     repTimer=setTimeout(tick,Math.max(500,interval));
   };
-  repTimer=setTimeout(tick,500);
+  repTimer=setTimeout(tick,600);
 }
 function stopRep(){if(repTimer){clearTimeout(repTimer);repTimer=null;}}
 
 function rStartRep(){
   rStopRep();if(rMuted||rCurState==='OFF'||rCurState==='')return;
-  const tick=()=>{
-    if(rMuted){rStopRep();return;}
+  const tick=()=>{if(rMuted){rStopRep();return;}
     remoteSpeak(phraseFor(rCurState,rLastDir),rCurState==='RED'||rCurState==='BALL LOOSE');
     const n=typeof rLastDist==='number'?rLastDist:parseInt(rLastDist,10);
-    const interval=remoteEngine==='beep'
-      ?beepMs(isFinite(n)?n:null,rCurState,+document.getElementById('rRep').value,rRED_MAX,rYEL_MAX,rSkipYellow)
-      :Math.round(+document.getElementById('rRep').value*1000);
+    const interval=remoteEngine==='beep'?beepMs(isFinite(n)?n:null,rCurState,+document.getElementById('rRep').value,rRED_MAX,rYEL_MAX,rSkipYellow):Math.round(+document.getElementById('rRep').value*1000);
     rRepTimer=setTimeout(tick,Math.max(500,interval));
   };
-  rRepTimer=setTimeout(tick,500);
+  rRepTimer=setTimeout(tick,600);
 }
 function rStopRep(){if(rRepTimer){clearTimeout(rRepTimer);rRepTimer=null;}}
 
 /* ================================================================
-   INIT VOICES
+   RELAY PILL + VISIBILITY HANDLING
    ================================================================ */
-// Also handle Chromium's onvoiceschanged
-try {
-  if (typeof speechSynthesis !== 'undefined') {
-    speechSynthesis.onvoiceschanged = () => {
-      pollVoices((found) => {
-        if (role === 'host') setHostEngine(hostEngine);
-        else if (role === 'remote') setRemoteEngine(remoteEngine);
-      }, 3);
-    };
-  }
-} catch(e) {}
-
-// Early voice poll attempt
-setTimeout(() => pollVoices(null, 10), 200);
-
-/* relay pill update */
 setInterval(()=>{
-  ['relayPill','remoteRelayPill'].forEach(id=>{
-    const e=document.getElementById(id);if(e)e.textContent=mqttConnected?'connected':'…';
-  });
+  ['relayPill','remoteRelayPill'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=mqttConnected?'connected':'…';});
 },1500);
 
-/* init defaults */
+// Quest suspends tabs — reconnect on visibility change
+document.addEventListener('visibilitychange',()=>{
+  if(!document.hidden && roomCode){
+    if(audioCtx && audioCtx.state==='suspended') audioCtx.resume().catch(()=>{});
+    if(!mqttConnected){
+      dlog('joinLog','Tab visible — reconnecting…','wrn');
+      dlog('audioLog','Tab visible — reconnecting…','wrn');
+      mqttConnect();
+    }
+  }
+});
+
+/* init */
 document.getElementById('filterName').value='zepyX';
 document.getElementById('redV').textContent=RED_MAX;
 document.getElementById('yelV').textContent=YEL_MAX;
