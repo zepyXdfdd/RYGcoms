@@ -1,50 +1,2190 @@
-<!doctype html><html lang="en"> <head> <meta charset="utf-8"/> <meta name="viewport" content="width=device-width,initial-scale=1"/> <title>ORION - DIRECTIONAL BEEP + VOICES</title> <style> :root{ --bg:#06060e;--card:#0a0a16;--card2:#070711;--brd:#1b1b33; --t1:#e8e8ff;--t2:#9a9ab5;--t3:#5b5b78; --red:#ff3d50;--yel:#ffb800;--grn:#00e878;--blu:#00a0ff; --rg:rgba(255,61,80,.15);--yg:rgba(255,184,0,.15);--gg:rgba(0,232,120,.15);--bg2:rgba(0,160,255,.15); --r:12px;--rs:8px; } *{box-sizing:border-box;margin:0;padding:0} body{background:var(--bg);color:var(--t1);font-family:system-ui,Segoe UI,Inter,Arial;min-height:100vh} .hidden{display:none!important} .overlay{position:fixed;inset:0;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;z-index:999;padding:22px} .panel{width:min(920px,100%);background:var(--card);border:1px solid var(--brd);border-radius:var(--r);padding:18px} .title{font-weight:900;letter-spacing:6px;font-size:34px;text-align:center} .sub{margin-top:8px;text-align:center;color:var(--t3);letter-spacing:2px;font-size:12px} .row{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px;justify-content:center} .btn{cursor:pointer;border:1px solid var(--brd);background:rgba(255,255,255,.03);color:var(--t2);padding:12px 16px;border-radius:999px;font-weight:700;font-size:13px;-webkit-tap-highlight-color:transparent} .btn:hover,.btn:active{border-color:var(--grn);color:var(--grn)} .btn.act{border-color:var(--grn);color:var(--grn);background:rgba(0,232,120,.10)} .input{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--brd);background:#0c0c18;color:var(--t1);font-size:16px;letter-spacing:4px;text-transform:uppercase;text-align:center;outline:none} .status{margin-top:10px;text-align:center;font-family:ui-monospace,Consolas,monospace;font-size:11px;color:var(--t3)} .status.ok{color:var(--grn)}.status.warn{color:var(--yel)}.status.bad{color:var(--red)} .nav{position:sticky;top:0;z-index:50;background:var(--card);border-bottom:1px solid var(--brd);padding:10px 16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px} .nav .brand{display:flex;align-items:center;gap:10px;font-weight:900;letter-spacing:3px} .pill{padding:4px 10px;border-radius:999px;border:1px solid var(--brd);font-size:11px;color:var(--t3);font-family:ui-monospace,Consolas,monospace} .pill.conn{border-color:rgba(0,160,255,.25);color:var(--blu);background:rgba(0,160,255,.10)} .pill.live{border-color:rgba(0,232,120,.25);color:var(--grn);background:rgba(0,232,120,.10)} .app{max-width:1400px;margin:0 auto;padding:14px;display:grid;grid-template-columns:1fr 380px;gap:14px} @media(max-width:980px){.app{grid-template-columns:1fr}} .card{background:var(--card);border:1px solid var(--brd);border-radius:var(--r);overflow:hidden} .ch{padding:10px 14px;background:var(--card2);border-bottom:1px solid var(--brd);color:var(--t2);font-weight:900;letter-spacing:1px;font-size:12px;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center} .cb{padding:14px} .videoWrap{position:relative;border:1px solid var(--brd);border-radius:var(--rs);overflow:hidden;background:#000} video{width:100%;height:auto;display:block} .drag{position:absolute;inset:0;cursor:crosshair} .box{position:absolute;border:2px solid var(--grn);background:rgba(0,232,120,.08);display:none} .box.show{display:block} .box.dir{border-color:var(--blu);background:rgba(0,160,255,.08)} .hint{position:absolute;left:50%;transform:translateX(-50%);bottom:10px;background:rgba(0,0,0,.75);padding:6px 12px;border-radius:999px;font-size:11px;color:var(--t3)} .modeRow{display:flex;gap:8px;margin-bottom:10px} .mode{flex:1;padding:10px 12px;border-radius:12px;border:1px solid var(--brd);background:rgba(255,255,255,.03);color:var(--t3);cursor:pointer;font-weight:800} .mode.onD{border-color:rgba(0,232,120,.25);color:var(--grn);background:rgba(0,232,120,.10)} .mode.onR{border-color:rgba(0,160,255,.25);color:var(--blu);background:rgba(0,160,255,.10)} .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px} canvas{width:100%;height:70px;background:#05050d;border:1px solid var(--brd);border-radius:10px;image-rendering:pixelated} .hero{border:2px solid var(--brd);border-radius:var(--r);padding:18px;text-align:center} .hero.red{border-color:var(--red);background:var(--rg)} .hero.yellow{border-color:var(--yel);background:var(--yg)} .hero.green{border-color:var(--grn);background:var(--gg)} .hero.blue{border-color:var(--blu);background:var(--bg2)} .hState{font-size:44px;font-family:ui-monospace,Consolas,monospace;font-weight:900} .hDist{margin-top:8px;color:var(--t2);font-family:ui-monospace,Consolas,monospace;font-size:18px} .hDir{margin-top:6px;color:var(--blu);font-family:ui-monospace,Consolas,monospace;font-size:14px;letter-spacing:2px;min-height:18px} .srow{display:flex;align-items:center;gap:10px;margin:10px 0} .srow label{min-width:88px;color:var(--t3);font-size:11px;font-weight:700} .srow input[type=range]{flex:1;-webkit-appearance:auto} .srow input[type=text]{flex:1;padding:9px 10px;border-radius:10px;border:1px solid var(--brd);background:#0c0c18;color:var(--t1);font-size:12px;outline:none} .srow select{flex:1;padding:9px 10px;border-radius:10px;border:1px solid var(--brd);background:#0c0c18;color:var(--t2);font-size:11px} .tgl{display:flex;gap:10px;align-items:center;color:var(--t2);font-size:12px;margin-top:10px} .tgl input{width:16px;height:16px;accent-color:var(--grn)} .vline{margin-top:10px;padding:8px 10px;background:#070712;border:1px solid var(--brd);border-radius:10px;font-family:ui-monospace,Consolas,monospace;font-size:11px;color:var(--t3);min-height:30px;text-align:center} .vline.talk{color:var(--yel)}.vline.ok{color:var(--grn)}.vline.bad{color:var(--red)} .remoteWrap{max-width:720px;margin:0 auto;padding:16px} .smallNote{color:var(--t3);font-size:11px;line-height:1.6;margin-top:8px} .engRow{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0} .engBtn{cursor:pointer;border:1px solid var(--brd);background:rgba(255,255,255,.03);color:var(--t3);padding:5px 12px;border-radius:8px;font-size:11px;font-weight:700;-webkit-tap-highlight-color:transparent} .engBtn.act{border-color:var(--grn);color:var(--grn);background:rgba(0,232,120,.10)} .ttsBar{margin:6px 0;padding:7px 10px;border-radius:8px;background:#050510;border:1px solid var(--brd);font-size:11px;font-family:ui-monospace,Consolas,monospace;color:var(--t3)} .ttsBar.ok{border-color:rgba(0,232,120,.35);color:var(--grn)} .ttsBar.bad{border-color:rgba(255,61,80,.35);color:var(--red)} .ttsBar.warn{border-color:rgba(255,184,0,.35);color:var(--yel)} .debugLog{margin-top:8px;padding:8px;background:#050510;border:1px solid var(--brd);border-radius:8px;max-height:120px;overflow-y:auto;font-family:ui-monospace,Consolas,monospace;font-size:10px;color:var(--t3)} .debugLog div{padding:1px 0} .debugLog .err{color:var(--red)}.debugLog .ok{color:var(--grn)}.debugLog .wrn{color:var(--yel)} .direction-box-container {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin: 15px 0;
-    padding: 12px;
-    background: var(--card2);
-    border-radius: var(--rs);
-    border: 1px solid var(--brd);
-}
-.direction-box-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-.direction-box-label {
-    font-weight: bold;
-    color: var(--blu);
-    min-width: 100px;
-}
-.direction-box-value {
-    font-family: monospace;
-    background: #0c0c18;
-    padding: 6px 12px;
-    border-radius: 6px;
-    border: 1px solid var(--brd);
-    min-width: 120px;
-    text-align: center;
-}
-.direction-box-value.active {
-    border-color: var(--grn);
-    color: var(--grn);
-    animation: pulse 1s infinite;
-}
-@keyframes pulse {
-    0% { border-color: var(--grn); }
-    50% { border-color: rgba(0,232,120,0.3); }
-    100% { border-color: var(--grn); }
-}
-.voice-indicator {
-    display: inline-block;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    margin-right: 6px;
-}
-.voice-indicator.loaded { background: var(--grn); }
-.voice-indicator.loading { background: var(--yel); }
-.voice-indicator.error { background: var(--red); }
-</style> </head> <body><!-- ROLE SELECT --><div class="overlay" id="roleOverlay"> <div class="panel"> <div class="title">ORION</div> <div class="sub">DIRECTIONAL BEEP + PRE-RECORDED VOICES · WORKS ON META QUEST BROWSER</div> <div class="row"> <button class="btn" onclick="chooseRole('host')">HOST (PC)</button> <button class="btn" onclick="chooseRole('remote')">REMOTE (QUEST)</button> </div> <div class="status" style="margin-top:14px"> Uses pre-recorded voice files: red.mp3, yellow.mp3, green.mp3 from GitHub repository. </div> </div> </div><!-- HOST SETUP --><div class="overlay hidden" id="hostOverlay"> <div class="panel"> <div class="title">HOST</div> <div class="sub">Share this room code with the Quest user</div> <div class="row" style="margin-top:14px"> <div style="width:min(520px,100%)"> <div class="status">ROOM CODE</div> <div class="title" id="hostRoomCode" style="letter-spacing:12px">-----</div> <div class="status" id="hostRelayStatus">Relay: connecting…</div> </div> </div> <div class="row"><button class="btn act" id="shareBtn">SHARE SCREEN</button></div> <div class="status" style="margin-top:12px">Draw box around player name + distance, and direction box for direction text.</div> </div> </div><!-- REMOTE SETUP --><div class="overlay hidden" id="remoteOverlay"> <div class="panel"> <div class="title">REMOTE</div> <div class="sub">Enter host room code</div> <div class="row" style="width:100%"> <div style="width:min(520px,100%)"> <input class="input" id="roomIn" maxlength="6" placeholder="ROOM CODE"/> <button class="btn act" style="width:100%;margin-top:10px" id="joinBtn" onclick="joinRoom()">JOIN</button> <div class="status" id="remoteRelayStatus">Relay: ready</div> <div class="debugLog" id="joinLog"></div> </div> </div> </div> </div><!-- HOST UI --><div class="hidden" id="hostUI"> <div class="nav"> <div class="brand">ORION <span class="pill" id="hostRoomPill">ROOM -----</span></div> <div style="display:flex;gap:8px;align-items:center"> <span class="pill conn" id="relayPill">Relay: …</span> <span class="pill live">LIVE</span> </div> </div> <div class="app"> <div> <div class="card"> <div class="ch"><span>Screen</span><span class="pill" id="capInfo">—</span></div> <div class="cb"> <div class="modeRow"> <button class="mode onD" id="modeDist" onclick="setMode('distance')">Distance Box</button> <button class="mode" id="modeDir" onclick="setMode('direction')">Direction Box</button> </div> <div class="videoWrap" id="videoWrap"> <video id="vid" playsinline muted></video> <div class="drag" id="drag"></div> <div class="box" id="distBox"></div> <div class="box dir" id="dirBox"></div> <div class="hint" id="hint">Draw DISTANCE box</div> </div> <div class="row" style="justify-content:flex-start;margin-top:10px"> <button class="btn" onclick="clearBoxes()">CLEAR</button> <button class="btn" onclick="setPreset('top')">PRESET TOP</button> <button class="btn" onclick="setPreset('topRight')">PRESET TOP-R</button> </div> </div> </div> <div class="card" style="margin-top:14px"> <div class="ch"><span>OCR</span><span class="pill" id="ocrStatus">idle</span></div> <div class="cb"> <div class="grid2"> <div><div class="status">Captured</div><canvas id="rawCvs"></canvas></div> <div><div class="status">Processed</div><canvas id="procCvs"></canvas></div> </div> <div class="status" id="ocrDbg" style="margin-top:10px">—</div> </div> </div> </div> <div> <div class="hero blue" id="hero"> <div class="status">CURRENT</div> <div class="hState" id="hState">—</div> <div class="hDist" id="hDist">Waiting…</div> <div class="hDir" id="hDir"></div> <div class="status" id="hNameLine"></div> </div> <div class="card" style="margin-top:14px"> <div class="ch"><span>Target Filter</span></div> <div class="cb"> <div class="tgl"><input type="checkbox" id="filterOn" checked/><span>Only track player:</span></div> <div class="srow"><label>Target</label><input type="text" id="filterName" value="zepyX"/></div> <div class="smallNote">Non-target players are ignored.</div> </div> </div> <div class="card" style="margin-top:14px"> <div class="ch"><span>Thresholds</span></div> <div class="cb"> <div class="srow"><label>Red ≤</label><input type="range" id="redR" min="100" max="2000" step="10" value="500"><span class="pill" id="redV">500</span></div> <div class="srow" id="yelRow"><label>Yellow ≤</label><input type="range" id="yelR" min="100" max="2500" step="10" value="600"><span class="pill" id="yelV">600</span></div> <div class="tgl"><input type="checkbox" id="skipY"><span>Skip Yellow</span></div> </div> </div> <div class="card" style="margin-top:14px"> <div class="ch"><span>Direction Box</span></div> <div class="cb"> <div class="direction-box-container"> <div class="direction-box-row"> <span class="direction-box-label">Current Dir:</span> <span class="direction-box-value" id="dirCurrentDisplay">—</span> </div> <div class="direction-box-row"> <span class="direction-box-label">Manual Override:</span> <select id="dirManual"> <option value="">Auto (use OCR)</option> <option value="left">Left</option><option value="right">Right</option> <option value="behind">Behind</option><option value="in front">In Front</option> <option value="above">Above</option><option value="below">Below</option> </select> </div> </div> <div class="tgl"><input type="checkbox" id="dirEnable" checked><span>Enable Direction OCR</span></div> <div class="status" id="dirDbg">Draw direction box around direction text.</div> </div> </div> <div class="card" style="margin-top:14px"> <div class="ch"><span>Audio Output</span></div> <div class="cb"> <div class="engRow"> <button class="engBtn act" id="hAudio_beep" onclick="setHostAudioMode('beep')">Directional Beep</button> <button class="engBtn" id="hAudio_voice" onclick="setHostAudioMode('voice')">Voice Alerts</button> </div> <div id="hVoiceStatus" class="ttsBar"> <span class="voice-indicator" id="hRedIndicator"></span> Red <span class="voice-indicator" id="hYellowIndicator"></span> Yellow <span class="voice-indicator" id="hGreenIndicator"></span> Green </div> <div class="srow"><label>Volume</label><input type="range" id="vol" min="0" max="1" step="0.05" value="0.9"><span class="pill" id="volV">90%</span></div> <div class="srow"><label>Base Speed</label><input type="range" id="spd" min="0.5" max="2" step="0.05" value="1"><span class="pill" id="spdV">1.00x</span></div> <div class="srow"><label>Interval</label><input type="range" id="rep" min="1" max="8" step="0.5" value="2"><span class="pill" id="repV">2.0s</span></div> <div class="tgl"><input type="checkbox" id="beepDirectional" checked><span>Directional Effects (for beeps)</span></div> <div class="row" style="justify-content:flex-start;margin-top:8px"> <button class="btn" onclick="testHostAudio()">TEST AUDIO</button> <button class="btn act" id="muteBtn" onclick="toggleMute()">AUDIO ON</button> <button class="btn" onclick="preloadVoices()">PRELOAD VOICES</button> </div> <div class="vline" id="voiceLine">—</div> </div> </div> </div> </div> </div><!-- REMOTE UI --><div class="hidden" id="remoteUI"> <div class="nav"> <div class="brand">ORION <span class="pill" id="remoteRoomPill">ROOM -----</span></div> <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"> <span class="pill conn" id="remoteRelayPill">Relay: …</span> <span class="pill" id="delayPill">Delay: —</span> </div> </div> <div class="remoteWrap"> <div class="hero blue" id="rHero"> <div class="status">REMOTE</div> <div class="hState" id="rState">WAITING</div> <div class="hDist" id="rDist">—</div> <div class="hDir" id="rDir"></div> <div class="status" id="rNameLine"></div> <div class="status" id="rTime">—</div> </div> <div class="card" style="margin-top:14px"> <div class="ch"><span>Target Filter</span></div> <div class="cb"> <div class="tgl"><input type="checkbox" id="rFilterOn" checked/><span>Only accept player:</span></div> <div class="srow"><label>Target</label><input type="text" id="rFilterName" value="zepyX"/></div> </div> </div> <div class="card" style="margin-top:14px"> <div class="ch"><span>Thresholds</span></div> <div class="cb"> <div class="srow"><label>Red ≤</label><input type="range" id="rRedR" min="100" max="2000" step="10" value="500"><span class="pill" id="rRedV">500</span></div> <div class="srow" id="rYelRow"><label>Yellow ≤</label><input type="range" id="rYelR" min="100" max="2500" step="10" value="600"><span class="pill" id="rYelV">600</span></div> <div class="tgl"><input type="checkbox" id="rSkipY"><span>Skip Yellow</span></div> </div> </div> <div class="card" style="margin-top:14px"> <div class="ch"><span>Directional Audio</span></div> <div class="cb"> <div class="direction-box-container"> <div class="direction-box-row"> <span class="direction-box-label">Current Dir:</span> <span class="direction-box-value" id="rDirCurrentDisplay">—</span> </div> </div> <div class="engRow"> <button class="engBtn act" id="rAudio_beep" onclick="setRemoteAudioMode('beep')">Directional Beep</button> <button class="engBtn" id="rAudio_voice" onclick="setRemoteAudioMode('voice')">Voice Alerts</button> </div> <div id="rVoiceStatus" class="ttsBar"> <span class="voice-indicator" id="rRedIndicator"></span> Red <span class="voice-indicator" id="rYellowIndicator"></span> Yellow <span class="voice-indicator" id="rGreenIndicator"></span> Green </div> <div class="srow"><label>Volume</label><input type="range" id="rVol" min="0" max="1" step="0.05" value="0.9"><span class="pill" id="rVolV">90%</span></div> <div class="srow"><label>Base Speed</label><input type="range" id="rSpd" min="0.5" max="2" step="0.05" value="1"><span class="pill" id="rSpdV">1.00x</span></div> <div class="srow"><label>Interval</label><input type="range" id="rRep" min="1" max="8" step="0.5" value="2"><span class="pill" id="rRepV">2.0s</span></div> <div class="tgl"><input type="checkbox" id="rBeepDirectional" checked><span>Directional Effects (for beeps)</span></div> <div class="row" style="justify-content:flex-start;margin-top:8px"> <button class="btn" id="rTestBtn" onclick="testRemoteAudio()">TEST AUDIO</button> <button class="btn act" id="rMuteBtn" onclick="rToggleMute()">AUDIO ON</button> <button class="btn" onclick="preloadRemoteVoices()">PRELOAD VOICES</button> </div> <div class="vline" id="rVoiceLine">—</div> <div class="smallNote">⚡ Pre-recorded voices: red.mp3, yellow.mp3, green.mp3 from GitHub repository.</div> <div class="debugLog" id="audioLog"></div> </div> </div> </div> </div><script> 'use strict'; /* ================================================================ DEBUG LOG ================================================================ */ function dlog(containerId, msg, cls) { const c = document.getElementById(containerId); if (!c) return; const d = document.createElement('div'); d.textContent = new Date().toLocaleTimeString() + ' ' + msg; if (cls) d.className = cls; c.appendChild(d); c.scrollTop = c.scrollHeight; while (c.children.length > 40) c.removeChild(c.firstChild); } /* ================================================================ AUDIO CONTEXT ================================================================ */ let audioCtx = null; let audioUnlocked = false; function getAudioCtx() { if (!audioCtx || audioCtx.state === 'closed') { try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) { dlog('audioLog', 'AudioContext create FAILED: ' + e.message, 'err'); return null; } } if (audioCtx.state === 'suspended') { audioCtx.resume().catch(() => {}); } return audioCtx; } function unlockAudio() { if (audioUnlocked) return; const ctx = getAudioCtx(); if (!ctx) return; try { const buf = ctx.createBuffer(1, 1, ctx.sampleRate); const src = ctx.createBufferSource(); src.buffer = buf; src.connect(ctx.destination); src.start(0); audioUnlocked = true; dlog('audioLog', 'Audio unlocked ✓', 'ok'); dlog('joinLog', 'Audio unlocked ✓', 'ok'); } catch(e) { dlog('audioLog', 'Unlock failed: ' + e.message, 'err'); } } ['pointerdown','mousedown','touchstart','touchend','click','keydown'].forEach(ev => { window.addEventListener(ev, unlockAudio, { passive: true, capture: true }); }); /* ================================================================ PRE-RECORDED VOICES ================================================================ */ const VOICE_FILES = { red: 'red.mp3', yellow: 'yellow.mp3', green: 'green.mp3' }; let voiceBuffers = { red: null, yellow: null, green: null }; let voiceLoadStatus = { red: 'loading', yellow: 'loading', green: 'loading' }; let voiceLoadCallbacks = []; async function preloadVoices() { dlog('audioLog', 'Preloading voice files...', 'wrn'); updateVoiceIndicators('host'); for (const [color, filename] of Object.entries(VOICE_FILES)) { try { // Try multiple possible paths const paths = [ filename, `./${filename}`, `/${filename}`, `https://raw.githubusercontent.com/yourusername/yourrepo/main/${filename}` // Replace with your actual GitHub raw URL ]; let loaded = false; for (const path of paths) { try { dlog('audioLog', `Trying to load ${color} from: ${path}`, 'wrn'); const response = await fetch(path, { mode: 'cors', cache: 'force-cache' }); if (response.ok) { const arrayBuffer = await response.arrayBuffer(); const ctx = getAudioCtx(); if (ctx) { const decoded = await new Promise((resolve, reject) => { ctx.decodeAudioData(arrayBuffer, resolve, reject); }); voiceBuffers[color] = decoded; voiceLoadStatus[color] = 'loaded'; dlog('audioLog', `✓ Loaded ${color}.mp3 (${decoded.duration.toFixed(1)}s)`, 'ok'); loaded = true; break; } } catch(e) { // Continue to next path } } if (!loaded) { voiceLoadStatus[color] = 'error'; dlog('audioLog', `✗ Failed to load ${color}.mp3`, 'err'); } } catch(e) { voiceLoadStatus[color] = 'error'; dlog('audioLog', `Error loading ${color}: ${e.message}`, 'err'); } updateVoiceIndicators(role); } // Notify callbacks voiceLoadCallbacks.forEach(cb => cb()); voiceLoadCallbacks = []; } function updateVoiceIndicators(forRole) { const prefix = forRole === 'host' ? 'h' : 'r'; for (const color of ['red', 'yellow', 'green']) { const indicator = document.getElementById(`${prefix}${color.charAt(0).toUpperCase() + color.slice(1)}Indicator`); if (indicator) { indicator.className = `voice-indicator ${voiceLoadStatus[color]}`; } } } async function playVoice(color, volume, rate, lineEl) { if (!voiceBuffers[color]) { dlog('audioLog', `Voice ${color} not loaded, attempting to preload...`, 'wrn'); await preloadVoices(); if (!voiceBuffers[color]) { dlog('audioLog', `Failed to load ${color} voice`, 'err'); return false; } } const ctx = getAudioCtx(); if (!ctx) return false; try { const source = ctx.createBufferSource(); source.buffer = voiceBuffers[color]; source.playbackRate.value = rate; const gainNode = ctx.createGain(); gainNode.gain.value = volume; source.connect(gainNode); gainNode.connect(ctx.destination); source.start(0); if (lineEl) { lineEl.textContent = `🔊 ${color.toUpperCase()}`; lineEl.className = 'vline talk'; source.onended = () => { lineEl.textContent = `✓ ${color}`; lineEl.className = 'vline ok'; }; } dlog('audioLog', `Playing ${color} voice`, 'ok'); return true; } catch(e) { dlog('audioLog', `Error playing ${color}: ${e.message}`, 'err'); return false; } } /* ================================================================ DIRECTIONAL BEEPING ================================================================ */ let currentPlayingNodes = null; let beepPlaying = false; function stopCurrentBeep() { if (currentPlayingNodes) { try { if (currentPlayingNodes.osc) currentPlayingNodes.osc.stop(); if (currentPlayingNodes.lfo) currentPlayingNodes.lfo.stop(); if (currentPlayingNodes.filter) currentPlayingNodes.filter.disconnect(); } catch(e) {} currentPlayingNodes = null; } beepPlaying = false; } function playDirectionalBeep(direction, urgency, volume, baseIntervalMs, lineEl) { if (volume <= 0) return; const ctx = getAudioCtx(); if (!ctx) return; stopCurrentBeep(); const now = ctx.currentTime; const baseFreq = urgency ? 880 : 660; const beepDur = Math.min(0.15, (baseIntervalMs * 0.4) / 1000); const attack = 0.005; const release = Math.min(0.05, beepDur * 0.3); let pan = 0; let pitch = baseFreq; let useFilter = false; let filterFreq = 2000; let useTremolo = false; let tremoloRate = 0; switch(direction) { case 'left': pan = -0.8; pitch = baseFreq * 1.0; break; case 'right': pan = 0.8; pitch = baseFreq * 1.0; break; case 'above': pan = 0; pitch = baseFreq * 1.5; break; case 'below': pan = 0; pitch = baseFreq * 0.7; break; case 'behind': pan = 0; useFilter = true; filterFreq = 800; useTremolo = true; tremoloRate = 8; break; case 'in front': pan = 0; useFilter = true; filterFreq = 4000; useTremolo = true; tremoloRate = 4; break; default: pan = 0; pitch = baseFreq; break; } try { const osc = ctx.createOscillator(); osc.type = 'sine'; osc.frequency.value = pitch; const gainNode = ctx.createGain(); gainNode.gain.value = volume * 0.4; let lastNode = osc; if (useFilter) { const filter = ctx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = filterFreq; filter.Q.value = 1; lastNode.connect(filter); lastNode = filter; } const panner = ctx.createStereoPanner(); panner.pan.value = pan; lastNode.connect(panner); lastNode = panner; let lfo = null; if (useTremolo) { const tremoloGain = ctx.createGain(); tremoloGain.gain.value = 1; lastNode.connect(tremoloGain); lastNode = tremoloGain; lfo = ctx.createOscillator(); lfo.type = 'sine'; lfo.frequency.value = tremoloRate; const lfoGain = ctx.createGain(); lfoGain.gain.value = 0.3; lfo.connect(lfoGain); lfoGain.connect(tremoloGain.gain); } lastNode.connect(gainNode); gainNode.connect(ctx.destination); gainNode.gain.setValueAtTime(0, now); gainNode.gain.linearRampToValueAtTime(volume * 0.4, now + attack); gainNode.gain.setValueAtTime(volume * 0.4, now + beepDur - release); gainNode.gain.linearRampToValueAtTime(0, now + beepDur); osc.start(now); osc.stop(now + beepDur + 0.02); if (lfo) { lfo.start(now); lfo.stop(now + beepDur + 0.02); } currentPlayingNodes = { osc, lfo }; beepPlaying = true; osc.onended = () => { if (currentPlayingNodes?.osc === osc) { currentPlayingNodes = null; beepPlaying = false; } }; if (lineEl) { lineEl.textContent = `BEEP ${direction ? '→ '+direction : ''}`; lineEl.className = 'vline talk'; setTimeout(() => { lineEl.textContent = '✓'; lineEl.className = 'vline ok'; }, Math.min(300, baseIntervalMs)); } } catch(e) { dlog('audioLog', 'Beep error: ' + e.message, 'err'); } } function playSimpleBeep(vol, urgent, lineEl, intervalMs) { if (vol <= 0) return; const ctx = getAudioCtx(); if (!ctx) return; const now = ctx.currentTime; const dur = Math.min(0.15, intervalMs * 0.4 / 1000); const attack = 0.005; const release = Math.min(0.05, dur * 0.3); const osc = ctx.createOscillator(); osc.type = 'sine'; osc.frequency.value = urgent ? 880 : 660; const gain = ctx.createGain(); gain.gain.setValueAtTime(0, now); gain.gain.linearRampToValueAtTime(vol * 0.4, now + attack); gain.gain.setValueAtTime(vol * 0.4, now + dur - release); gain.gain.linearRampToValueAtTime(0, now + dur); osc.connect(gain); gain.connect(ctx.destination); osc.start(now); osc.stop(now + dur + 0.02); if (lineEl) { lineEl.textContent = 'BEEP'; lineEl.className = 'vline talk'; setTimeout(() => { lineEl.textContent = '✓'; lineEl.className = 'vline ok'; }, Math.min(300, intervalMs)); } } /* ================================================================ BEEP TIMING ================================================================ */ function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); } function beepMs(n, state, baseSec, redMax, yelMax, skipY) { const m = clamp((baseSec || 2) / 2, 0.25, 3); if (typeof n !== 'number' || !isFinite(n)) return Math.round(900 * m); let ms = 1200; if (skipY) { if (state === 'RED') { const t = clamp(n/Math.max(1,redMax),0,1); ms=120+t*650; } else { const t = clamp((n-redMax)/900,0,1); ms=650+t*1650; } } else { if (state === 'RED') { const t = clamp(n/Math.max(1,redMax),0,1); ms=120+t*650; } else if (state === 'YELLOW') { const span=Math.max(1,yelMax-redMax); const t=clamp((n-redMax)/span,0,1); ms=350+t*1150; } else { const t = clamp((n-yelMax)/1100,0,1); ms=750+t*1750; } } return Math.round(clamp(ms * m, 90, 3000)); } /* ================================================================ AUDIO MODE ================================================================ */ let hostAudioMode = 'beep'; let remoteAudioMode = 'beep'; function setHostAudioMode(mode) { hostAudioMode = mode; document.getElementById('hAudio_beep').className = 'engBtn' + (mode==='beep'?' act':''); document.getElementById('hAudio_voice').className = 'engBtn' + (mode==='voice'?' act':''); dlog('audioLog', `Host audio mode: ${mode}`, 'ok'); } function setRemoteAudioMode(mode) { remoteAudioMode = mode; document.getElementById('rAudio_beep').className = 'engBtn' + (mode==='beep'?' act':''); document.getElementById('rAudio_voice').className = 'engBtn' + (mode==='voice'?' act':''); dlog('audioLog', `Remote audio mode: ${mode}`, 'ok'); } /* ================================================================ MQTT RELAY ================================================================ */ const MQTT_ENDPOINTS = [ { name:'HiveMQ', url:'wss://broker.hivemq.com:8884/mqtt', proto:'mqtt' }, { name:'EMQX', url:'wss://broker.emqx.io:8084/mqtt', proto:'mqtt' }, { name:'Eclipse', url:'wss://mqtt.eclipseprojects.io:443/mqtt', proto:'mqtt' }, { name:'Eclipse2', url:'wss://mqtt.eclipseprojects.io/mqtt', proto:'mqtt' }, ]; let mqttWs=null,mqttConnected=false,mqttEndpointIndex=0; let mqttConnectTimer=null,mqttConnAckTimer=null,mqttReconnectTimer=null,mqttPingInterval=null; let mqttClientId='orion-'+Math.random().toString(36).slice(2,10); let mqttSubscribedTopic=''; function mqttEncodeRL(len){const out=[];do{let d=len%128;len=Math.floor(len/128);if(len>0)d|=0x80;out.push(d);}while(len>0);return out;} function mqttClose(){ try{if(mqttWs)mqttWs.close();}catch(e){} mqttWs=null;mqttConnected=false; if(mqttPingInterval){clearInterval(mqttPingInterval);mqttPingInterval=null;} if(mqttConnAckTimer){clearTimeout(mqttConnAckTimer);mqttConnAckTimer=null;} if(mqttConnectTimer){clearTimeout(mqttConnectTimer);mqttConnectTimer=null;} } function scheduleReconnect(fast){ if(mqttReconnectTimer)return; mqttReconnectTimer=setTimeout(()=>{mqttReconnectTimer=null;mqttConnect();},fast?500:2000); } function setRelayUI(text,cls){ ['hostRelayStatus','remoteRelayStatus'].forEach(id=>{const e=document.getElementById(id);if(e){e.textContent=text;e.className='status '+(cls||'');}}); ['relayPill','remoteRelayPill'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=text.replace('Relay: ','');}); dlog('joinLog',text,cls==='ok'?'ok':cls==='bad'?'err':'wrn'); } function mqttConnect(){ mqttClose();mqttConnected=false; if(!roomCode){setRelayUI('Relay: no room code','warn');return;} const ep=MQTT_ENDPOINTS[mqttEndpointIndex%MQTT_ENDPOINTS.length]; setRelayUI('Relay: trying '+ep.name+'…','warn'); let ws; try{ws=new WebSocket(ep.url,ep.proto);} catch(e){ setRelayUI('Relay: WebSocket blocked ('+ep.name+')','bad'); mqttEndpointIndex++;scheduleReconnect(true);return; } mqttWs=ws;ws.binaryType='arraybuffer'; mqttConnectTimer=setTimeout(()=>{ mqttEndpointIndex++;mqttClose(); setRelayUI('Relay: '+ep.name+' timeout, next…','bad'); scheduleReconnect(true); },8000); ws.onopen=()=>{ clearTimeout(mqttConnectTimer);mqttConnectTimer=null; setRelayUI('Relay: connected to '+ep.name+', authenticating…','warn'); const cid=mqttClientId,cl=cid.length,rl=10+2+cl; const p=new Uint8Array(2+rl);let i=0; p[i++]=0x10;p[i++]=rl; p[i++]=0;p[i++]=4;p[i++]=77;p[i++]=81;p[i++]=84;p[i++]=84; p[i++]=4;p[i++]=2;p[i++]=0;p[i++]=60; p[i++]=(cl>>8)&0xff;p[i++]=cl&0xff; for(let c=0;c<cl;c++)p[i++]=cid.charCodeAt(c); ws.send(p.buffer); mqttConnAckTimer=setTimeout(()=>{ mqttEndpointIndex++;mqttClose(); setRelayUI('Relay: no CONNACK from '+ep.name,'bad'); scheduleReconnect(true); },5000); }; ws.onmessage=(evt)=>{ const data=new Uint8Array(evt.data);if(!data.length)return; const type=data[0]>>4; if(type===2){ clearTimeout(mqttConnAckTimer);mqttConnAckTimer=null; mqttConnected=true; setRelayUI('Relay: connected ✓ ('+ep.name+')','ok'); mqttPingInterval=setInterval(()=>{ if(mqttWs&&mqttWs.readyState===1)mqttWs.send(new Uint8Array([0xC0,0]).buffer); },20000); const topic=getTopic(roomCode); mqttSubscribe(topic); mqttSubscribedTopic=topic; } if(type===9){ setRelayUI('Relay: subscribed ✓ ('+ep.name+')','ok'); } if(type===3){ let idx=1,mul=1,rem=0,enc; do{enc=data[idx++];rem+=(enc&127)*mul;mul*=128;}while((enc&128)!==0&&idx<data.length); const tl=(data[idx]<<8)|data[idx+1];idx+=2;idx+=tl; try{onRelayMessage(new TextDecoder().decode(data.slice(idx)));}catch(e){} } }; ws.onerror=(e)=>{ setRelayUI('Relay: '+ep.name+' error','bad'); }; ws.onclose=()=>{ mqttConnected=false; if(mqttConnAckTimer){clearTimeout(mqttConnAckTimer);mqttConnAckTimer=null;} if(mqttPingInterval){clearInterval(mqttPingInterval);mqttPingInterval=null;} mqttEndpointIndex++; setRelayUI('Relay: lost connection, retrying…','warn'); scheduleReconnect(false); }; } function mqttSubscribe(topic){ if(!mqttWs||mqttWs.readyState!==1)return; const tb=new TextEncoder().encode(topic),tl=tb.length; const rl=2+tl+1; const p=new Uint8Array(2+rl);let i=0; p[i++]=0x82;p[i++]=rl; p[i++]=0;p[i++]=1; p[i++]=(tl>>8)&0xff;p[i++]=tl&0xff; p.set(tb,i);i+=tl; p[i]=0; mqttWs.send(p.buffer); dlog('joinLog','Subscribing to: '+topic); } function mqttPublish(topic,payload){ if(!mqttWs||!mqttConnected||mqttWs.readyState!==1)return; const tb=new TextEncoder().encode(topic),pb=new TextEncoder().encode(payload); const tl=tb.length,pl=pb.length,rl=2+tl+pl; const rem=mqttEncodeRL(rl); const p=new Uint8Array(1+rem.length+2+tl+pl);let i=0; p[i++]=0x30;for(const b of rem)p[i++]=b; p[i++]=(tl>>8)&0xff;p[i++]=tl&0xff; p.set(tb,i);i+=tl;p.set(pb,i); mqttWs.send(p.buffer); } function getTopic(code){return 'orion/v2/room/'+(code||'').toLowerCase();} /* ================================================================ APP STATE ================================================================ */ let role=null,roomCode='',running=false; const vid=document.getElementById('vid'); const rawCvs=document.getElementById('rawCvs'),procCvs=document.getElementById('procCvs'); const rawCtx=rawCvs.getContext('2d'),procCtx=procCvs.getContext('2d'); const workCvs=document.createElement('canvas'),workCvs2=document.createElement('canvas'); const workCtx=workCvs.getContext('2d',{willReadFrequently:true}); const workCtx2=workCvs2.getContext('2d',{willReadFrequently:true}); let drawMode='distance',distRegion=null,dirRegion=null; let RED_MAX=500,YEL_MAX=600,skipYellow=false; let stateHistory=[]; let lastNum=null,curState='OFF',lastSpokenState=''; let detectedDir='',manualDirOverride=''; let repTimer=null; let netSeq=0,lastNetSend=0,lastNetSent={s:'',d:null,r:'',n:''}; const NET_MIN_MS=200,NET_HEARTBEAT_MS=1200; const DIR_KW={behind:'behind',back:'behind',rear:'behind',front:'in front',ahead:'in front',forward:'in front',left:'left',right:'right',above:'above',up:'above',top:'above',below:'below',down:'below',bottom:'below',under:'below'}; let rRepTimer=null; let rCurState='OFF',rLastDist=null,rLastDir='',rLastName=''; let rLastSeq=0,rClockOffset=null; let rRED_MAX=500,rYEL_MAX=600,rSkipYellow=false; let rStateHistory=[]; /* ================================================================ ROLE / ROOM ================================================================ */ function genRoom(){const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let r='';for(let i=0;i<5;i++)r+=c[Math.floor(Math.random()*c.length)];return r;} function normName(s){return(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');} function chooseRole(r){ role=r;unlockAudio(); document.getElementById('roleOverlay').classList.add('hidden'); if(r==='host'){ roomCode=genRoom(); document.getElementById('hostRoomCode').textContent=roomCode; document.getElementById('hostRoomPill').textContent='ROOM '+roomCode; document.getElementById('hostOverlay').classList.remove('hidden'); mqttConnect(); } else { document.getElementById('remoteOverlay').classList.remove('hidden'); } } document.getElementById('shareBtn').addEventListener('click',async()=>{ unlockAudio(); try{ const stream=await navigator.mediaDevices.getDisplayMedia({video:{cursor:'never'},audio:false}); vid.srcObject=stream;await vid.play(); await new Promise(res=>vid.readyState>=1?res():(vid.onloadedmetadata=res)); running=true; document.getElementById('hostOverlay').classList.add('hidden'); document.getElementById('hostUI').classList.remove('hidden'); document.getElementById('capInfo').textContent=vid.videoWidth+'×'+vid.videoHeight; stream.getVideoTracks()[0].onended=()=>{ running=false; document.getElementById('hostOverlay').classList.remove('hidden'); document.getElementById('hostUI').classList.add('hidden'); stopRep(); }; await initOCR(); ocrLoop(); }catch(e){alert(e.message);} }); function joinRoom(){ unlockAudio(); const code=(document.getElementById('roomIn').value||'').trim().toUpperCase(); if(code.length<3){alert('Enter room code');return;} roomCode=code; dlog('joinLog','Joining room: '+code,'wrn'); document.getElementById('remoteRoomPill').textContent='ROOM '+code; document.getElementById('remoteOverlay').classList.add('hidden'); document.getElementById('remoteUI').classList.remove('hidden'); rLastSeq=0;rClockOffset=null; mqttConnect(); } /* ================================================================ UI CONTROLS ================================================================ */ function setMode(m){drawMode=m;document.getElementById('modeDist').className='mode'+(m==='distance'?' onD':'');document.getElementById('modeDir').className='mode'+(m==='direction'?' onR':'');document.getElementById('hint').textContent=m==='distance'?'Draw DISTANCE box':'Draw DIRECTION box';} function clearBoxes(){distRegion=null;dirRegion=null;document.getElementById('distBox').classList.remove('show');document.getElementById('dirBox').classList.remove('show');detectedDir='';updateDirUI();setHostOff('Cleared');} function setPreset(name){if(!vid.videoWidth)return;if(name==='top')distRegion={x:0.30,y:0.02,w:0.40,h:0.08};else if(name==='topRight')distRegion={x:0.62,y:0.02,w:0.35,h:0.08};applyRegionBox('distBox',distRegion);} function applyRegionBox(id,reg){if(!reg)return;const el=document.getElementById(id);el.style.left=(reg.x*100)+'%';el.style.top=(reg.y*100)+'%';el.style.width=(reg.w*100)+'%';el.style.height=(reg.h*100)+'%';el.classList.add('show');} function ws(id,dId,fn){const e=document.getElementById(id),d=document.getElementById(dId);if(!e||!d)return;e.addEventListener('input',()=>{d.textContent=fn(+e.value);});} ws('redR','redV',v=>{RED_MAX=v;stateHistory=[];return v;}); ws('yelR','yelV',v=>{YEL_MAX=v;stateHistory=[];return v;}); ws('vol','volV',v=>Math.round(v*100)+'%'); ws('spd','spdV',v=>v.toFixed(2)+'x'); ws('rep','repV',v=>v.toFixed(1)+'s'); ws('rRedR','rRedV',v=>{rRED_MAX=v;rStateHistory=[];return v;}); ws('rYelR','rYelV',v=>{rYEL_MAX=v;rStateHistory=[];return v;}); ws('rVol','rVolV',v=>Math.round(v*100)+'%'); ws('rSpd','rSpdV',v=>v.toFixed(2)+'x'); ws('rRep','rRepV',v=>v.toFixed(1)+'s'); document.getElementById('skipY').addEventListener('change',()=>{skipYellow=document.getElementById('skipY').checked;document.getElementById('yelRow').classList.toggle('hidden',skipYellow);stateHistory=[];}); document.getElementById('rSkipY').addEventListener('change',()=>{rSkipYellow=document.getElementById('rSkipY').checked;document.getElementById('rYelRow').classList.toggle('hidden',rSkipYellow);rStateHistory=[];}); document.getElementById('dirEnable').addEventListener('change',()=>{if(!document.getElementById('dirEnable').checked){dirRegion=null;detectedDir='';document.getElementById('dirBox').classList.remove('show');}updateDirUI();}); document.getElementById('dirManual').addEventListener('change',e=>{manualDirOverride=e.target.value;updateDirUI();}); function toggleMute(){muted=!muted;document.getElementById('muteBtn').textContent=muted?'AUDIO OFF':'AUDIO ON';document.getElementById('muteBtn').classList.toggle('act',!muted);if(muted){stopCurrentBeep();stopRep();}else startRep();} function rToggleMute(){rMuted=!rMuted;document.getElementById('rMuteBtn').textContent=rMuted?'AUDIO OFF':'AUDIO ON';document.getElementById('rMuteBtn').classList.toggle('act',!rMuted);if(rMuted){stopCurrentBeep();rStopRep();}else rStartRep();} /* ================================================================ DRAG SELECT ================================================================ */ let dragging=false,sx=0,sy=0; const wrap=document.getElementById('videoWrap'),dragEl=document.getElementById('drag'); function relPos(e){const r=wrap.getBoundingClientRect();return{x:clamp((e.clientX-r.left)/r.width,0,1),y:clamp((e.clientY-r.top)/r.height,0,1)};} dragEl.addEventListener('mousedown',e=>{dragging=true;const p=relPos(e);sx=p.x;sy=p.y;const el=drawMode==='direction'?document.getElementById('dirBox'):document.getElementById('distBox');el.style.left=(sx*100)+'%';el.style.top=(sy*100)+'%';el.style.width='0%';el.style.height='0%';el.classList.add('show');}); document.addEventListener('mousemove',e=>{if(!dragging)return;const p=relPos(e),x=Math.min(sx,p.x),y=Math.min(sy,p.y),w=Math.abs(p.x-sx),h=Math.abs(p.y-sy);const el=drawMode==='direction'?document.getElementById('dirBox'):document.getElementById('distBox');el.style.left=(x*100)+'%';el.style.top=(y*100)+'%';el.style.width=(w*100)+'%';el.style.height=(h*100)+'%';}); document.addEventListener('mouseup',e=>{if(!dragging)return;dragging=false;const p=relPos(e),x=Math.min(sx,p.x),y=Math.min(sy,p.y),w=Math.abs(p.x-sx),h=Math.abs(p.y-sy);if(w<0.005||h<0.003){if(drawMode==='distance'){distRegion=null;document.getElementById('distBox').classList.remove('show');setHostOff('No box');}else{dirRegion=null;document.getElementById('dirBox').classList.remove('show');detectedDir='';updateDirUI();}return;}const reg={x,y,w,h};if(drawMode==='distance'){distRegion=reg;applyRegionBox('distBox',reg);stateHistory=[];}else{dirRegion=reg;applyRegionBox('dirBox',reg);updateDirUI();}}); /* ================================================================ OCR ================================================================ */ let tWorker=null,ocrBusy=false,dirOcrCooldown=0; async function initOCR(){ if(typeof Tesseract==='undefined'){ document.getElementById('ocrStatus').textContent='loading…'; await new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';s.onload=res;s.onerror=()=>rej(new Error('Tesseract load failed'));document.head.appendChild(s);}); } document.getElementById('ocrStatus').textContent='init…'; tWorker=await Tesseract.createWorker('eng',1,{logger:()=>{}}); await tWorker.setParameters({tessedit_pageseg_mode:'7',tessedit_char_whitelist:'0123456789()[]?ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz _-.:'}); document.getElementById('ocrStatus').textContent='ready'; } function captureRegion(reg,maxW,maxH,forDir){ if(!reg||!vid.videoWidth)return null;maxW=maxW||360;maxH=maxH||90; const vw=vid.videoWidth,vh=vid.videoHeight; const px=Math.max(0,Math.floor(reg.x*vw)),py=Math.max(0,Math.floor(reg.y*vh)); const pw=Math.max(1,Math.floor(reg.w*vw)),ph=Math.max(1,Math.floor(reg.h*vh)); const scale=Math.min(maxW/pw,maxH/ph,3); const w=Math.max(1,Math.floor(pw*scale)),h=Math.max(1,Math.floor(ph*scale)); const ctx=forDir?workCtx2:workCtx,cv=forDir?workCvs2:workCvs; cv.width=w;cv.height=h;ctx.drawImage(vid,px,py,pw,ph,0,0,w,h); const img=ctx.getImageData(0,0,w,h);let sum=0; for(let i=0;i<img.data.length;i+=4)sum+=0.299*img.data[i]+0.587*img.data[i+1]+0.114*img.data[i+2]; const thr=sum/(img.data.length/4); for(let i=0;i<img.data.length;i+=4){const g=0.299*img.data[i]+0.587*img.data[i+1]+0.114*img.data[i+2];const v=g>thr?255:0;img.data[i]=img.data[i+1]=img.data[i+2]=v;} ctx.putImageData(img,0,0); if(!forDir){rawCvs.width=Math.min(pw,200);rawCvs.height=Math.min(ph,70);rawCtx.drawImage(vid,px,py,pw,ph,0,0,rawCvs.width,rawCvs.height);procCvs.width=Math.min(w,200);procCvs.height=Math.min(h,70);procCtx.drawImage(cv,0,0,procCvs.width,procCvs.height);} return cv; } function parseOCR(raw){ const t=(raw||'').trim();if(!t)return{name:'',num:null,special:null}; if(t.includes('?'))return{name:'',num:null,special:'BALL LOOSE'}; let m=t.match(/([A-Za-z0-9._-]{2,24})?\s*[\(\[]\s*(\d{2,4})\s*[\)\]]/); if(m)return{name:m[1]||'',num:parseInt(m[2],10),special:null}; m=t.match(/\d{2,4}/); if(m)return{name:(t.split(/\s+/)[0]||''),num:parseInt(m[0],10),special:null}; return{name:'',num:null,special:null}; } function getStateRaw(n){if(n<=RED_MAX)return'RED';if(skipYellow)return'GREEN';if(n<=YEL_MAX)return'YELLOW';return'GREEN';} function getStateHyst(n){const raw=getStateRaw(n);stateHistory.push(raw);if(stateHistory.length>4)stateHistory.shift();if(stateHistory.length<2)return raw;const w={RED:0,YELLOW:0,GREEN:0};for(let i=0;i<stateHistory.length;i++)w[stateHistory[i]]+=(i+1);return Object.keys(w).reduce((a,b)=>w[a]>w[b]?a:b);} function getActiveDir(){return manualDirOverride||detectedDir||'';} function updateDirUI(){const dir=getActiveDir();document.getElementById('dirDbg').textContent=dir?'DIR: '+dir.toUpperCase():dirRegion?'DIR: SCANNING':'Draw direction box.';document.getElementById('hDir').textContent=(document.getElementById('dirEnable').checked&&(dir||dirRegion))?'DIR: '+(dir?dir.toUpperCase():'SCANNING'):''; document.getElementById('dirCurrentDisplay').textContent=dir?dir.toUpperCase():(dirRegion?'SCANNING':'—');} function setHero(state,dist,dir,nameLine){ const h=document.getElementById('hero');h.className='hero '+(state==='RED'?'red':state==='YELLOW'?'yellow':state==='GREEN'?'green':'blue'); document.getElementById('hState').textContent=state==='OFF'?'—':state; document.getElementById('hDist').textContent=(dist!==null&&dist!==undefined&&dist!=='')?String(dist):'Waiting…'; document.getElementById('hDir').textContent=(document.getElementById('dirEnable').checked&&(dir||dirRegion))?'DIR: '+(dir?dir.toUpperCase():'SCANNING'):''; document.getElementById('hNameLine').textContent=nameLine||''; } function setHostOff(reason){curState='OFF';lastNum=null;lastSpokenState='OFF';stopRep();setHero('OFF','',getActiveDir(),reason?'FILTER: '+reason:'');broadcastState('OFF','',getActiveDir(),'');} function setRemoteOff(reason){rCurState='OFF';rStopRep();const h=document.getElementById('rHero');h.className='hero blue';document.getElementById('rState').textContent='WAITING';document.getElementById('rDist').textContent='—';document.getElementById('rDir').textContent='';document.getElementById('rNameLine').textContent=reason?'FILTER: '+reason:'';document.getElementById('rTime').textContent='Updated: '+new Date().toLocaleTimeString();} async function ocrLoop(){ if(!running||!tWorker)return; if(distRegion&&!ocrBusy){ ocrBusy=true; try{ const cv=captureRegion(distRegion,360,90,false); if(cv){ await tWorker.setParameters({tessedit_pageseg_mode:'7',tessedit_char_whitelist:'0123456789()[]?ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz _-.:'}); const res=await tWorker.recognize(cv);const raw=(res.data.text||'').trim();const parsed=parseOCR(raw); document.getElementById('ocrDbg').textContent=raw?'OCR: "'+raw.slice(0,100)+'"':'OCR: (empty)'; const want=normName(document.getElementById('filterName').value||''); const hasFilter=document.getElementById('filterOn').checked&&want.length>0; let seenNorm=normName(parsed.name)||(raw?normName(raw.split(/\s+/)[0]):''); if(hasFilter&&(!seenNorm||!seenNorm.includes(want))){setHostOff('Ignoring "'+(parsed.name||'?')+'" (want '+document.getElementById('filterName').value+')');ocrBusy=false;setTimeout(ocrLoop,120);return;} const nameLine=parsed.name?'PLAYER: '+parsed.name:hasFilter?'PLAYER: '+document.getElementById('filterName').value:''; document.getElementById('hNameLine').textContent=nameLine;const dir=getActiveDir(); if(parsed.special){curState='BALL LOOSE';lastNum=null;setHero('BALL LOOSE','?',dir,nameLine);alertHost('BALL LOOSE',dir);broadcastState('BALL LOOSE','?',dir,parsed.name||'');} else if(parsed.num!==null){lastNum=parsed.num;const st=getStateHyst(parsed.num);curState=st;setHero(st,parsed.num,dir,nameLine);alertHost(st,dir);broadcastState(st,parsed.num,dir,parsed.name||'');} } }catch(e){document.getElementById('ocrDbg').textContent='OCR error: '+e.message;} ocrBusy=false; } if(document.getElementById('dirEnable').checked&&dirRegion&&Date.now()-dirOcrCooldown>350&&!ocrBusy){ dirOcrCooldown=Date.now();ocrBusy=true; try{const cv=captureRegion(dirRegion,240,70,true);if(cv){await tWorker.setParameters({tessedit_pageseg_mode:'7',tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz '});const res=await tWorker.recognize(cv);const raw=(res.data.text||'').trim().toLowerCase();let found='';for(const k of Object.keys(DIR_KW)){if(raw.includes(k)){found=DIR_KW[k];break;}}if(!manualDirOverride&&found!==detectedDir){detectedDir=found;updateDirUI();startRep();}}}catch(e){} ocrBusy=false; } heartbeatTick();setTimeout(ocrLoop,120); } /* ================================================================ NETWORK ================================================================ */ function normDist(d){return typeof d==='number'&&isFinite(d)?Math.round(d/5)*5:d;} function broadcastState(state,dist,dir,name){ const now=Date.now(),dQ=normDist(dist),r=dir||'',nm=(name||'').slice(0,24); const changed=state!==lastNetSent.s||dQ!==lastNetSent.d||r!==lastNetSent.r||nm!==lastNetSent.n; if(now-lastNetSend<(changed?NET_MIN_MS:NET_HEARTBEAT_MS))return; lastNetSend=now;lastNetSent={s:state,d:dQ,r,n:nm}; mqttPublish(getTopic(roomCode),JSON.stringify({s:state,d:dQ,r,n:nm,t:now,q:++netSeq})); } function heartbeatTick(){if(!mqttConnected||!roomCode)return;if(curState==='OFF')broadcastState('OFF','',getActiveDir(),'');else if(curState==='BALL LOOSE')broadcastState('BALL LOOSE','?',getActiveDir(),'');else if(lastNum!==null)broadcastState(curState,lastNum,getActiveDir(),'');} /* ================================================================ REMOTE RECEIVE ================================================================ */ function rGetStateRaw(n){if(n<=rRED_MAX)return'RED';if(rSkipYellow)return'GREEN';if(n<=rYEL_MAX)return'YELLOW';return'GREEN';} function rGetStateHyst(n){const raw=rGetStateRaw(n);rStateHistory.push(raw);if(rStateHistory.length>4)rStateHistory.shift();if(rStateHistory.length<2)return raw;const w={RED:0,YELLOW:0,GREEN:0};for(let i=0;i<rStateHistory.length;i++)w[rStateHistory[i]]+=(i+1);return Object.keys(w).reduce((a,b)=>w[a]>w[b]?a:b);} function onRelayMessage(payload){ if(role!=='remote')return; try{ const d=JSON.parse(payload);if(d.s===undefined)return; dlog('audioLog','MSG: '+d.s+' d='+d.d+' r='+d.r+' q='+d.q,'ok'); if(typeof d.q==='number'){if(d.q<=rLastSeq)return;rLastSeq=d.q;} if(typeof d.t==='number'){ if(rClockOffset===null)rClockOffset=Date.now()-d.t; document.getElementById('delayPill').textContent='Delay: '+Math.max(0,Math.round(Date.now()-(d.t+rClockOffset)))+'ms'; } rLastDist=d.d;rLastDir=d.r||'';rLastName=d.n||''; document.getElementById('rDirCurrentDisplay').textContent=rLastDir?rLastDir.toUpperCase():'—'; const rWant=normName(document.getElementById('rFilterName').value||''); const rHasFilter=document.getElementById('rFilterOn').checked&&rWant.length>0; if(rHasFilter&&d.s!=='OFF'){const seenNorm=normName(rLastName);if(!seenNorm||!seenNorm.includes(rWant)){setRemoteOff('Ignoring "'+(rLastName||'?')+'" (want '+document.getElementById('rFilterName').value+')');return;}} let effective=d.s;const n=typeof d.d==='number'?d.d:parseInt(d.d,10); if((d.s==='RED'||d.s==='YELLOW'||d.s==='GREEN')&&isFinite(n))effective=rGetStateHyst(n); else rStateHistory=[]; renderRemote(effective,d.d,rLastDir,rLastName); }catch(e){dlog('audioLog','Parse error: '+e.message,'err');} } function renderRemote(state,dist,dir,name){ const h=document.getElementById('rHero');h.className='hero '+(state==='RED'?'red':state==='YELLOW'?'yellow':state==='GREEN'?'green':'blue'); document.getElementById('rState').textContent=state==='OFF'?'WAITING':state; document.getElementById('rDist').textContent=(dist!==null&&dist!==undefined&&dist!=='')?String(dist):'—'; document.getElementById('rDir').textContent=dir?'DIR: '+dir.toUpperCase():''; document.getElementById('rNameLine').textContent=name?'PLAYER: '+name:''; document.getElementById('rTime').textContent='Updated: '+new Date().toLocaleTimeString(); if(state!==rCurState){rCurState=state;alertRemote(state,dir);rStartRep();} } /* ================================================================ ALERTS + REPEAT ================================================================ */ let muted = false, rMuted = false; async function alertHost(state,dir){ if(state===lastSpokenState) return; lastSpokenState=state; if(state==='OFF') return; startRep(); } async function alertRemote(state,dir){ if(state==='OFF') return; rStartRep(); } async function playHostAlert(state, dir) { if (muted) return; const vol = +document.getElementById('vol').value; const rate = +document.getElementById('spd').value; const lineEl = document.getElementById('voiceLine'); const useDirectional = document.getElementById('beepDirectional').checked; if (hostAudioMode === 'voice') { // Use pre-recorded voices const color = state === 'RED' ? 'red' : state === 'YELLOW' ? 'yellow' : state === 'GREEN' ? 'green' : null; if (color) { await playVoice(color, vol, rate, lineEl); } } else { // Use beep const baseInterval = +document.getElementById('rep').value * 1000; const urgent = (state === 'RED' || state === 'BALL LOOSE'); if (useDirectional) { playDirectionalBeep(dir, urgent, vol, baseInterval, lineEl); } else { playSimpleBeep(vol, urgent, lineEl, baseInterval); } } } async function playRemoteAlert(state, dir) { if (rMuted) return; const vol = +document.getElementById('rVol').value; const rate = +document.getElementById('rSpd').value; const lineEl = document.getElementById('rVoiceLine'); const useDirectional = document.getElementById('rBeepDirectional').checked; if (remoteAudioMode === 'voice') { const color = state === 'RED' ? 'red' : state === 'YELLOW' ? 'yellow' : state === 'GREEN' ? 'green' : null; if (color) { await playVoice(color, vol, rate, lineEl); } } else { const baseInterval = +document.getElementById('rRep').value * 1000; const urgent = (state === 'RED' || state === 'BALL LOOSE'); if (useDirectional) { playDirectionalBeep(dir, urgent, vol, baseInterval, lineEl); } else { playSimpleBeep(vol, urgent, lineEl, baseInterval); } } } function startRep(){ stopRep();if(muted||curState==='OFF'||curState==='')return; const tick=async ()=>{if(muted){stopRep();return;} const dir=getActiveDir(); await playHostAlert(curState, dir); const interval=beepMs(lastNum,curState,+document.getElementById('rep').value,RED_MAX,YEL_MAX,skipYellow); repTimer=setTimeout(tick,Math.max(500,interval)); }; repTimer=setTimeout(tick,600); } function stopRep(){if(repTimer){clearTimeout(repTimer);repTimer=null;}} function rStartRep(){ rStopRep();if(rMuted||rCurState==='OFF'||rCurState==='')return; const tick=async ()=>{if(rMuted){rStopRep();return;} await playRemoteAlert(rCurState, rLastDir); const n=typeof rLastDist==='number'?rLastDist:parseInt(rLastDist,10); const interval=beepMs(isFinite(n)?n:null,rCurState,+document.getElementById('rRep').value,rRED_MAX,rYEL_MAX,rSkipYellow); rRepTimer=setTimeout(tick,Math.max(500,interval)); }; rRepTimer=setTimeout(tick,600); } function rStopRep(){if(rRepTimer){clearTimeout(rRepTimer);rRepTimer=null;}} async function testHostAudio() { unlockAudio(); const dir = getActiveDir() || 'left'; if (hostAudioMode === 'voice') { await playVoice('red', +document.getElementById('vol').value, +document.getElementById('spd').value, document.getElementById('voiceLine')); setTimeout(async () => { await playVoice('yellow', +document.getElementById('vol').value, +document.getElementById('spd').value, document.getElementById('voiceLine')); }, 1000); setTimeout(async () => { await playVoice('green', +document.getElementById('vol').value, +document.getElementById('spd').value, document.getElementById('voiceLine')); }, 2000); } else { const vol = +document.getElementById('vol').value; const baseInterval = 1000; const lineEl = document.getElementById('voiceLine'); const useDirectional = document.getElementById('beepDirectional').checked; if (useDirectional) { playDirectionalBeep(dir, true, vol, baseInterval, lineEl); setTimeout(() => { playDirectionalBeep('right', false, vol, baseInterval, lineEl); }, 800); } else { playSimpleBeep(vol, true, lineEl, baseInterval); setTimeout(() => { playSimpleBeep(vol, false, lineEl, baseInterval); }, 800); } } } async function testRemoteAudio() { unlockAudio(); dlog('audioLog', 'TEST AUDIO pressed', 'wrn'); const dir = rLastDir || 'left'; if (remoteAudioMode === 'voice') { await playVoice('red', +document.getElementById('rVol').value, +document.getElementById('rSpd').value, document.getElementById('rVoiceLine')); setTimeout(async () => { await playVoice('yellow', +document.getElementById('rVol').value, +document.getElementById('rSpd').value, document.getElementById('rVoiceLine')); }, 1000); setTimeout(async () => { await playVoice('green', +document.getElementById('rVol').value, +document.getElementById('rSpd').value, document.getElementById('rVoiceLine')); }, 2000); } else { const vol = +document.getElementById('rVol').value; const baseInterval = 1000; const lineEl = document.getElementById('rVoiceLine'); const useDirectional = document.getElementById('rBeepDirectional').checked; if (useDirectional) { playDirectionalBeep(dir, true, vol, baseInterval, lineEl); setTimeout(() => { playDirectionalBeep('right', false, vol, baseInterval, lineEl); }, 800); } else { playSimpleBeep(vol, true, lineEl, baseInterval); setTimeout(() => { playSimpleBeep(vol, false, lineEl, baseInterval); }, 800); } } } function preloadRemoteVoices() { preloadVoices(); } /* ================================================================ RELAY PILL + VISIBILITY HANDLING ================================================================ */ setInterval(()=>{ ['relayPill','remoteRelayPill'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=mqttConnected?'connected':'…';}); },1500); document.addEventListener('visibilitychange',()=>{ if(!document.hidden && roomCode){ if(audioCtx && audioCtx.state==='suspended') audioCtx.resume().catch(()=>{}); if(!mqttConnected){ dlog('joinLog','Tab visible — reconnecting…','wrn'); dlog('audioLog','Tab visible — reconnecting…','wrn'); mqttConnect(); } } }); /* init */ document.getElementById('filterName').value='zepyX'; document.getElementById('redV').textContent=RED_MAX; document.getElementById('yelV').textContent=YEL_MAX; document.getElementById('rRedV').textContent=rRED_MAX; document.getElementById('rYelV').textContent=rYEL_MAX; // Initialize audio mode buttons setHostAudioMode('beep'); setRemoteAudioMode('beep'); // Start preloading voices preloadVoices(); </script></body> </html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ORION Distance Tracker v3 - Beep Only</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    :root{
+      --bg:#06060e;--card:#0a0a16;--card-h:#07070f;--brd:#161628;--brd2:#252545;
+      --t1:#e0e0f0;--t2:#8888aa;--t3:#555570;
+      --red:#ff3d50;--rg:rgba(255,61,80,.15);
+      --yel:#ffb800;--yg:rgba(255,184,0,.15);
+      --grn:#00e878;--gg:rgba(0,232,120,.15);--ga:#00e87833;
+      --blu:#00a0ff;--bg2:rgba(0,160,255,.15);
+      --pur:#b44dff;--pg:rgba(180,77,255,.15);
+      --org:#ff8c00;--og:rgba(255,140,0,.15);
+      --r:10px;--rs:6px
+    }
+    body{background:var(--bg);color:var(--t1);font-family:'Inter','Segoe UI',system-ui,sans-serif;min-height:100vh;overflow-x:hidden}
+    .navbar{display:flex;align-items:center;justify-content:space-between;padding:10px 24px;background:var(--card);border-bottom:1px solid var(--brd);position:sticky;top:0;z-index:500}
+    .nav-brand{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:700;letter-spacing:3px}
+    .nav-logo{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--grn),var(--blu));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:#000}
+    .nav-pills{display:flex;align-items:center;gap:12px}
+    .pill{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600}
+    .pill.live{background:var(--gg);color:var(--grn)}.pill.off{background:rgba(255,255,255,.05);color:var(--t3)}
+    .pill .dot{width:7px;height:7px;border-radius:50%;background:currentColor;animation:pulse 1.5s infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+    .overlay{position:fixed;inset:0;background:rgba(4,4,10,.98);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;z-index:1000;padding:20px}
+    .overlay.hidden{display:none}
+    .hero-t{font-size:42px;font-weight:900;letter-spacing:8px;background:linear-gradient(135deg,var(--grn),var(--blu));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .hero-s{color:var(--t3);font-size:13px;letter-spacing:2px}
+    .start-btn{width:175px;height:175px;border-radius:50%;background:radial-gradient(circle at 40% 40%,#0c1a14,#060610);border:3px solid var(--grn);color:var(--grn);font-size:15px;font-weight:700;cursor:pointer;letter-spacing:2px;transition:all .3s;box-shadow:0 0 40px var(--ga),inset 0 0 30px var(--ga);position:relative}
+    .start-btn:hover{transform:scale(1.05);box-shadow:0 0 60px var(--ga),inset 0 0 40px var(--ga)}
+    .start-btn::after{content:'';position:absolute;inset:-8px;border-radius:50%;border:1px solid var(--ga);animation:ring 2s infinite}
+    @keyframes ring{0%,100%{transform:scale(1);opacity:.5}50%{transform:scale(1.08);opacity:0}}
+    .start-info{max-width:560px;text-align:center;color:var(--t2);font-size:14px;line-height:2}
+    .start-info b{color:var(--grn)}.start-info .r{color:var(--red)}.start-info .y{color:var(--yel)}
+    .ex-box{background:#0c0c18;padding:14px 28px;border-radius:var(--r);margin:10px auto;font-family:'Consolas',monospace;font-size:20px;border:1px solid var(--brd);display:inline-block}
+    .ex-box .br{color:#666}.ex-box .nm{color:var(--grn);font-weight:bold}.ex-box .na{color:var(--t2)}
+    .role-selector{display:flex;gap:16px;margin-top:10px;flex-wrap:wrap;justify-content:center}
+    .role-btn{padding:16px 32px;border-radius:var(--r);border:2px solid var(--brd);background:var(--card);color:var(--t2);font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;text-align:center;min-width:180px}
+    .role-btn:hover{border-color:var(--grn);color:var(--grn)}
+    .role-btn .role-icon{font-size:32px;margin-bottom:8px}
+    .role-btn .role-sub{font-size:10px;color:var(--t3);margin-top:4px;font-weight:400}
+
+    .app{display:grid;grid-template-columns:1fr 340px;gap:16px;padding:16px;max-width:1600px;margin:0 auto}
+    @media(max-width:900px){.app{grid-template-columns:1fr}}
+    .side{display:flex;flex-direction:column;gap:14px}
+
+    .card{background:var(--card);border:1px solid var(--brd);border-radius:var(--r);overflow:hidden;margin-bottom:14px}
+    .card:last-child{margin-bottom:0}
+    .card-h{padding:11px 16px;background:var(--card-h);border-bottom:1px solid var(--brd);font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;color:var(--t2)}
+    .card-b{padding:16px}
+
+    .mode-bar{display:flex;gap:6px;margin-bottom:12px}
+    .mode-btn{flex:1;padding:10px;background:rgba(255,255,255,.02);border:2px solid var(--brd);color:var(--t3);border-radius:var(--rs);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:8px}
+    .mode-btn .mdot{width:10px;height:10px;border-radius:50%;border:2px solid currentColor}
+    .mode-btn.act-dist{border-color:var(--grn);color:var(--grn);background:var(--ga)}
+    .mode-btn.act-dist .mdot{background:var(--grn)}
+    .mode-btn.act-dir{border-color:var(--blu);color:var(--blu);background:var(--bg2)}
+    .mode-btn.act-dir .mdot{background:var(--blu)}
+
+    .video-container{position:relative;width:100%;background:#000;overflow:hidden;border:2px solid var(--brd);border-radius:var(--rs)}
+    .video-container video{display:block;width:100%;height:100%}
+    .drag-overlay{position:absolute;inset:0;cursor:crosshair;z-index:10}
+    .sel-box{position:absolute;pointer-events:none;display:none;z-index:5;border-radius:2px}
+    .sel-box.show{display:block}
+    .sel-box.dragging{border-style:dashed!important}
+    .sel-box.dist-sel{border:2px solid var(--grn);background:rgba(0,232,120,.08);box-shadow:0 0 12px var(--ga)}
+    .sel-box.dir-sel{border:2px solid var(--blu);background:rgba(0,160,255,.08);box-shadow:0 0 12px rgba(0,160,255,.15)}
+    .sel-box::before{position:absolute;top:-20px;left:0;font-size:9px;padding:2px 8px;border-radius:3px;font-weight:700;letter-spacing:1px;white-space:nowrap}
+    .sel-box.dist-sel::before{content:'DISTANCE';background:var(--grn);color:#000}
+    .sel-box.dir-sel::before{content:'DIRECTION';background:var(--blu);color:#000}
+    .vid-hint{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);padding:6px 16px;background:rgba(0,0,0,.8);border-radius:20px;font-size:11px;color:var(--t3);white-space:nowrap;pointer-events:none;z-index:4}
+    .vid-hint b{color:var(--grn)}
+
+    .presets-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+    .pre-btn{padding:7px 13px;background:rgba(255,255,255,.03);border:1px solid var(--brd);color:var(--t3);border-radius:20px;font-size:11px;cursor:pointer;transition:all .15s;font-weight:500}
+    .pre-btn:hover{border-color:var(--grn);color:var(--grn);background:var(--ga)}
+    .pre-btn.dng:hover{border-color:var(--red);color:var(--red);background:var(--rg)}
+
+    .cap-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+    .cap-item{background:#05050c;border:1px solid var(--brd);border-radius:var(--rs);padding:10px}
+    .cap-lbl{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;font-weight:600}
+    .cap-item canvas{display:block;width:100%;height:70px;background:#030308;border-radius:4px;image-rendering:pixelated}
+
+    .res-display{background:#050510;border:2px solid var(--brd);border-radius:var(--r);padding:24px;text-align:center;transition:all .3s;position:relative;overflow:hidden}
+    .res-display::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .3s}
+    .res-display.red{border-color:var(--red)}.res-display.red::before{background:radial-gradient(ellipse at center,var(--rg),transparent 70%);opacity:1}
+    .res-display.yellow{border-color:var(--yel)}.res-display.yellow::before{background:radial-gradient(ellipse at center,var(--yg),transparent 70%);opacity:1}
+    .res-display.green{border-color:var(--grn)}.res-display.green::before{background:radial-gradient(ellipse at center,var(--gg),transparent 70%);opacity:1}
+    .res-display.purple{border-color:var(--pur)}.res-display.purple::before{background:radial-gradient(ellipse at center,var(--pg),transparent 70%);opacity:1}
+    .res-display.orange{border-color:var(--org)}.res-display.orange::before{background:radial-gradient(ellipse at center,var(--og),transparent 70%);opacity:1}
+    .res-num{font-size:56px;font-weight:900;font-family:'Consolas',monospace;line-height:1;position:relative;z-index:1;transition:color .15s}
+    .res-num.red{color:var(--red)}.res-num.yellow{color:var(--yel)}.res-num.green{color:var(--grn)}
+    .res-num.purple{color:var(--pur)}.res-num.orange{color:var(--org)}
+    .res-num.none{color:var(--t3);font-size:15px;font-weight:500}
+    .res-num.loose{color:var(--red);font-size:28px;animation:flash .7s infinite}
+    .res-num.middle{color:var(--pur);font-size:32px}
+    .res-num.goal{color:var(--org);font-size:36px}
+    @keyframes flash{0%,100%{opacity:1}50%{opacity:.4}}
+    .res-lbl{font-size:13px;font-weight:700;margin-top:8px;letter-spacing:4px;text-transform:uppercase;position:relative;z-index:1}
+    .res-lbl.red{color:var(--red)}.res-lbl.yellow{color:var(--yel)}.res-lbl.green{color:var(--grn)}.res-lbl.loose{color:var(--red);letter-spacing:6px}
+    .res-lbl.purple{color:var(--pur)}.res-lbl.orange{color:var(--org)}
+
+    .dbg{display:grid;gap:0;margin-top:14px;background:#06060e;border-radius:var(--rs);overflow:hidden;border:1px solid var(--brd)}
+    .dbg-r{display:flex;justify-content:space-between;align-items:center;padding:7px 12px;border-bottom:1px solid #0c0c18;font-size:11px;font-family:'Consolas',monospace}
+    .dbg-r:last-child{border-bottom:none}
+    .dbg-k{color:var(--t3);font-weight:500}.dbg-v{color:var(--t2);text-align:right;max-width:220px;word-break:break-all}
+    .dbg-v.ok{color:var(--grn)}.dbg-v.warn{color:var(--yel)}.dbg-v.bad{color:var(--red)}
+
+    .state-hero{text-align:center;padding:28px 20px;border-radius:var(--r);border:3px solid var(--brd);transition:all .3s;background:var(--card);position:relative;overflow:hidden}
+    .state-hero::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .3s}
+    .state-hero.red{border-color:var(--red)}.state-hero.red::before{background:radial-gradient(ellipse at center,var(--rg),transparent 70%);opacity:1}
+    .state-hero.yellow{border-color:var(--yel)}.state-hero.yellow::before{background:radial-gradient(ellipse at center,var(--yg),transparent 70%);opacity:1}
+    .state-hero.green{border-color:var(--grn)}.state-hero.green::before{background:radial-gradient(ellipse at center,var(--gg),transparent 70%);opacity:1}
+    .state-hero.purple{border-color:var(--pur)}.state-hero.purple::before{background:radial-gradient(ellipse at center,var(--pg),transparent 70%);opacity:1}
+    .state-hero.orange{border-color:var(--org)}.state-hero.orange::before{background:radial-gradient(ellipse at center,var(--og),transparent 70%);opacity:1}
+    .st-lbl{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:3px;font-weight:600;position:relative;z-index:1}
+    .st-big{font-size:44px;font-weight:900;font-family:'Consolas',monospace;margin:10px 0 6px;position:relative;z-index:1}
+    .st-big.red{color:var(--red)}.st-big.yellow{color:var(--yel)}.st-big.green{color:var(--grn)}.st-big.off{color:#1a1a30}
+    .st-big.loose{color:var(--red);font-size:28px;animation:flash .7s infinite}
+    .st-big.purple{color:var(--pur)}.st-big.orange{color:var(--org)}
+    .st-dist{font-size:18px;font-family:monospace;color:var(--t3);position:relative;z-index:1}
+    .st-dir{font-size:14px;font-family:monospace;color:var(--blu);margin-top:6px;letter-spacing:2px;position:relative;z-index:1;min-height:18px}
+
+    .thr-bar{display:flex;gap:4px;margin-top:16px;position:relative;z-index:1}
+    .thr-i{flex:1;padding:7px;border-radius:4px;text-align:center;font-size:10px;font-weight:700}
+    .thr-i.ri{background:var(--rg);color:var(--red)}.thr-i.yi{background:var(--yg);color:var(--yel)}.thr-i.gi{background:var(--gg);color:var(--grn)}
+
+    .srow{display:flex;align-items:center;gap:10px;margin-bottom:13px}
+    .srow label{font-size:11px;color:var(--t3);min-width:80px;font-weight:500}
+    .srow input[type=range]{flex:1;height:4px;-webkit-appearance:none;background:#1a1a30;border-radius:2px;outline:none}
+    .srow input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;background:var(--grn);border-radius:50%;cursor:pointer;box-shadow:0 0 6px var(--ga)}
+    .srow .sv{font-size:11px;color:var(--t3);min-width:45px;text-align:right;font-family:monospace;font-weight:600}
+    .srow select{flex:1;padding:8px 10px;background:#0c0c18;border:1px solid var(--brd);color:var(--t2);border-radius:var(--rs);font-size:11px;outline:none;cursor:pointer}
+
+    .tgl{display:flex;align-items:center;gap:10px;margin-bottom:12px;font-size:12px;color:var(--t2);cursor:pointer}
+    .tgl input[type=checkbox]{width:16px;height:16px;accent-color:var(--grn);cursor:pointer}
+
+    .btn-row{display:flex;gap:8px;margin-top:10px}
+    .btn{flex:1;padding:9px 12px;background:rgba(255,255,255,.03);border:1px solid var(--brd);color:var(--t3);border-radius:var(--rs);font-size:11px;cursor:pointer;transition:all .15s;font-weight:600}
+    .btn:hover{border-color:var(--grn);color:var(--grn)}.btn.act{border-color:var(--grn);color:var(--grn);background:var(--ga)}
+
+    .vstatus{margin-top:10px;padding:8px 12px;background:#06060e;border-radius:var(--rs);font-size:11px;text-align:center;font-family:monospace;min-height:28px}
+    .vstatus.ok{color:var(--grn)}.vstatus.err{color:var(--red)}.vstatus.talk{color:var(--yel)}
+
+    .dir-result{margin-top:12px;padding:14px;background:#06060e;border:1px solid var(--brd);border-radius:var(--rs);text-align:center}
+    .dir-detected{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px}
+    .dir-value{font-size:22px;font-weight:800;color:var(--blu);font-family:'Consolas',monospace;letter-spacing:2px}
+    .dir-value.none{color:var(--t3);font-size:13px;font-weight:400}
+    .dir-raw{margin-top:8px;font-size:10px;color:var(--t3);font-family:monospace;word-break:break-all}
+    .dir-callout{margin-top:10px;padding:8px;background:var(--rg);border:1px solid rgba(255,61,80,.3);border-radius:4px;font-size:12px;color:var(--red);font-weight:600;text-align:center}
+    .dir-manual{margin-top:12px}
+    .dir-manual select{width:100%;padding:8px 10px;background:#0c0c18;border:1px solid var(--brd);color:var(--t2);border-radius:var(--rs);font-size:11px;outline:none}
+
+    .badge{padding:4px 10px;border-radius:12px;font-size:10px;font-weight:700;letter-spacing:.5px}
+    .badge.load{background:#1a1500;color:var(--yel)}.badge.rdy{background:#001a0f;color:var(--grn)}.badge.fail{background:#1a0008;color:var(--red)}
+
+    .info-c{background:var(--ga);border:1px solid rgba(0,232,120,.2);border-radius:var(--rs);padding:12px;margin-top:14px;font-size:11px;color:var(--grn);line-height:1.8}
+    .info-c span{opacity:.7}
+
+    .log-c{background:#04040a;border:1px solid var(--brd);border-radius:var(--rs);padding:10px 12px;max-height:80px;overflow-y:auto;font-family:'Consolas',monospace;font-size:10px;margin:0 16px 16px}
+    .log-c div{padding:2px 0;color:var(--t3)}.log-c .lg{color:var(--grn)}.log-c .le{color:var(--red)}.log-c .lw{color:var(--yel)}
+
+    .hidden{display:none!important}
+    ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#222240;border-radius:2px}
+
+    .remote-container{padding:20px;max-width:600px;margin:0 auto}
+    .remote-hero{text-align:center;padding:50px 30px;border-radius:16px;border:4px solid var(--brd);background:var(--card);position:relative;overflow:hidden;transition:all .4s;margin-bottom:20px}
+    .remote-hero::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .4s}
+    .remote-hero.red{border-color:var(--red)}.remote-hero.red::before{background:radial-gradient(ellipse at center,var(--rg),transparent 70%);opacity:1}
+    .remote-hero.yellow{border-color:var(--yel)}.remote-hero.yellow::before{background:radial-gradient(ellipse at center,var(--yg),transparent 70%);opacity:1}
+    .remote-hero.green{border-color:var(--grn)}.remote-hero.green::before{background:radial-gradient(ellipse at center,var(--gg),transparent 70%);opacity:1}
+    .remote-hero.purple{border-color:var(--pur)}.remote-hero.purple::before{background:radial-gradient(ellipse at center,var(--pg),transparent 70%);opacity:1}
+    .remote-hero.orange{border-color:var(--org)}.remote-hero.orange::before{background:radial-gradient(ellipse at center,var(--og),transparent 70%);opacity:1}
+    .remote-state{font-size:72px;font-weight:900;font-family:'Consolas',monospace;position:relative;z-index:1}
+    .remote-state.red{color:var(--red)}.remote-state.yellow{color:var(--yel)}.remote-state.green{color:var(--grn)}.remote-state.off{color:#1a1a30}
+    .remote-state.loose{color:var(--red);font-size:36px;animation:flash .7s infinite}
+    .remote-state.purple{color:var(--pur);font-size:42px}.remote-state.orange{color:var(--org);font-size:42px}
+    .remote-dist{font-size:28px;font-family:monospace;color:var(--t3);margin-top:10px;position:relative;z-index:1}
+    .remote-dir{font-size:16px;color:var(--blu);margin-top:8px;position:relative;z-index:1;font-weight:600;letter-spacing:2px}
+    .remote-time{font-size:10px;color:var(--t3);margin-top:12px;position:relative;z-index:1}
+
+    .conn-status{text-align:center;padding:10px;border-radius:var(--rs);font-size:11px;margin-bottom:16px;font-weight:600}
+    .conn-status.connected{background:var(--gg);color:var(--grn)}
+    .conn-status.waiting{background:var(--yg);color:var(--yel)}
+    .conn-status.disconnected{background:var(--rg);color:var(--red)}
+
+    .room-display{text-align:center;margin-bottom:16px;padding:12px;background:var(--card);border:1px solid var(--brd);border-radius:var(--rs)}
+    .room-display .room-label{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:2px;margin-bottom:4px}
+    .room-display .room-code{font-size:24px;font-weight:900;font-family:'Consolas',monospace;color:var(--grn);letter-spacing:6px}
+
+    .room-input-area{display:flex;gap:8px;margin-bottom:16px}
+    .room-input-area input{flex:1;padding:12px 16px;background:#0c0c18;border:2px solid var(--brd);color:var(--t1);border-radius:var(--rs);font-size:16px;font-family:'Consolas',monospace;text-align:center;letter-spacing:4px;text-transform:uppercase;outline:none}
+    .room-input-area input:focus{border-color:var(--grn)}
+    .room-input-area input::placeholder{color:var(--t3);letter-spacing:2px;font-size:13px}
+    .room-input-area button{padding:12px 24px;background:var(--ga);border:2px solid var(--grn);color:var(--grn);border-radius:var(--rs);font-size:13px;font-weight:700;cursor:pointer;letter-spacing:1px}
+
+    .server-status{text-align:center;padding:6px 12px;font-size:10px;color:var(--t3);font-family:monospace}
+    .server-status.ok{color:var(--grn)}.server-status.err{color:var(--red)}.server-status.warn{color:var(--yel)}
+
+    .latency-display{font-size:10px;color:var(--t3);text-align:center;margin-top:8px;font-family:monospace}
+    .latency-display b{color:var(--grn)}
+    .latency-display b.slow{color:var(--yel)}
+    .latency-display b.bad{color:var(--red)}
+    .fps-display{font-size:10px;color:var(--t3);font-family:monospace}
+    .fps-display b{color:var(--grn)}
+
+    .thr-slider-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+    .thr-slider-row label{font-size:11px;min-width:70px;font-weight:600}
+    .thr-slider-row label.rl{color:var(--red)}
+    .thr-slider-row label.yl{color:var(--yel)}
+    .thr-slider-row input[type=range]{flex:1;height:4px;-webkit-appearance:none;background:#1a1a30;border-radius:2px;outline:none}
+    .thr-slider-row input[type=range].red-range::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;background:var(--red);border-radius:50%;cursor:pointer;box-shadow:0 0 6px rgba(255,61,80,.4)}
+    .thr-slider-row input[type=range].yel-range::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;background:var(--yel);border-radius:50%;cursor:pointer;box-shadow:0 0 6px rgba(255,184,0,.4)}
+    .thr-slider-row .sv{font-size:12px;min-width:40px;text-align:right;font-family:'Consolas',monospace;font-weight:700}
+    .thr-slider-row .sv.rv{color:var(--red)}
+    .thr-slider-row .sv.yv{color:var(--yel)}
+    .thr-visual{display:flex;height:8px;border-radius:4px;overflow:hidden;margin:8px 0 4px;gap:1px}
+    .thr-visual .seg{transition:flex .3s}
+    .thr-visual .seg.rs{background:var(--red)}.thr-visual .seg.ys{background:var(--yel)}.thr-visual .seg.gs{background:var(--grn)}
+
+    .beep-dir-legend{margin-top:14px;padding:12px;background:#06060e;border:1px solid var(--brd);border-radius:var(--rs)}
+    .beep-dir-legend .bdl-title{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;font-weight:600}
+    .beep-dir-legend .bdl-row{display:flex;justify-content:space-between;padding:3px 0;font-size:11px;font-family:monospace}
+    .beep-dir-legend .bdl-dir{color:var(--blu);font-weight:600}
+    .beep-dir-legend .bdl-desc{color:var(--t3)}
+  </style>
+</head>
+
+<body>
+  <div class="overlay" id="overlay">
+    <div class="hero-t">ORION</div>
+    <div class="hero-s">DISTANCE TRACKING SYSTEM</div>
+    <div class="role-selector">
+      <button class="role-btn" onclick="chooseRole('host')">
+        <div class="role-icon">🖥️</div>HOST
+        <div class="role-sub">Screen capture + OCR</div>
+      </button>
+      <button class="role-btn" onclick="chooseRole('remote')">
+        <div class="role-icon">📱</div>REMOTE
+        <div class="role-sub">View status from another device</div>
+      </button>
+    </div>
+  </div>
+
+  <div class="overlay hidden" id="hostSetup">
+    <div class="hero-t">ORION</div>
+    <div class="hero-s">HOST MODE</div>
+    <div class="room-display">
+      <div class="room-label">Your Room Code</div>
+      <div class="room-code" id="hostRoomCode">——</div>
+    </div>
+    <div class="server-status warn" id="hostServerStatus">Connecting to relay...</div>
+    <div class="remote-clients" id="hostClientCount"></div>
+    <button class="start-btn" id="startBtn">SHARE<br>SCREEN</button>
+    <div class="start-info">
+      Share the room code with your teammate.<br>
+      They open <b>this same URL</b> and join as <b>REMOTE</b>.<br><br>
+      <div class="ex-box"><span class="na">EnemyPlayer </span><span class="br">(</span><span class="nm">428</span><span class="br">)</span></div><br>
+      <span class="r">RED ≤500</span> · <span class="y">YEL 501-600</span> · <b>GRN >600</b><br>
+      <b>?</b> → <span class="r">BALL LOOSE</span> · <b>middle</b> → ⚽ · <b>goal</b> → 🥅<br>
+      Directional beeps tell you where the enemy is
+    </div>
+  </div>
+
+  <div class="overlay hidden" id="remoteSetup">
+    <div class="hero-t">ORION</div>
+    <div class="hero-s">REMOTE MODE</div>
+    <div style="max-width:400px;width:100%">
+      <div class="room-input-area">
+        <input type="text" id="remoteRoomInput" placeholder="ROOM CODE" maxlength="6" autocomplete="off">
+        <button onclick="joinRoom()">JOIN</button>
+      </div>
+      <div class="server-status warn" id="remoteServerStatus">Connecting to relay...</div>
+      <div style="text-align:center;color:var(--t3);font-size:12px;margin-top:8px">
+        Enter the room code shown on the host device
+      </div>
+    </div>
+  </div>
+
+  <nav class="navbar hidden" id="navbar">
+    <div class="nav-brand"><div class="nav-logo">O</div>ORION</div>
+    <div class="nav-pills">
+      <span class="fps-display" id="fpsDisplay"></span>
+      <span id="resLabel" style="font-size:11px;color:var(--t3);font-family:monospace">—</span>
+      <div class="pill off" id="navPill"><span class="dot"></span><span id="pillTxt">OFFLINE</span></div>
+    </div>
+  </nav>
+
+  <div class="app hidden" id="mainUI">
+    <div class="main-col">
+      <div class="card">
+        <div class="card-h">
+          <span>📺 Screen Capture</span>
+          <span class="room-display" style="padding:4px 12px;margin:0;background:transparent;border:1px solid var(--grn);border-radius:12px">
+            <span style="font-size:9px;color:var(--t3)">ROOM </span>
+            <span style="font-size:12px;color:var(--grn);font-weight:700;font-family:monospace;letter-spacing:2px" id="hostRoomCodeSmall">——</span>
+          </span>
+        </div>
+        <div class="card-b">
+          <div class="mode-bar">
+            <button class="mode-btn act-dist" id="modeDistBtn" onclick="setMode('distance')"><span class="mdot"></span>📍 Distance</button>
+            <button class="mode-btn" id="modeDirBtn" onclick="setMode('direction')"><span class="mdot"></span>🧭 Direction</button>
+          </div>
+          <div class="video-container" id="videoContainer">
+            <video id="vid" playsinline muted></video>
+            <div class="drag-overlay" id="dragArea"></div>
+            <div class="sel-box dist-sel" id="distBox"></div>
+            <div class="sel-box dir-sel" id="dirBox"></div>
+            <div class="vid-hint" id="vidHint">Draw a <b>distance</b> box around <b>enemy name (number)</b></div>
+          </div>
+          <div class="presets-row">
+            <button class="pre-btn" onclick="setPreset('topLeft')">Top-Left</button>
+            <button class="pre-btn" onclick="setPreset('topCenter')">Top-Center</button>
+            <button class="pre-btn" onclick="setPreset('topRight')">Top-Right</button>
+            <button class="pre-btn" onclick="setPreset('center')">Center</button>
+            <button class="pre-btn" onclick="setPreset('bottom')">Bottom</button>
+            <button class="pre-btn dng" onclick="clearSel()">✕ Clear</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-h"><span>🔍 OCR Engine</span><span class="badge load" id="ocrBadge">LOADING</span></div>
+        <div class="card-b">
+          <div class="cap-grid">
+            <div class="cap-item"><div class="cap-lbl">📷 Captured</div><canvas id="rawCvs"></canvas></div>
+            <div class="cap-item"><div class="cap-lbl">⚙️ Processed</div><canvas id="procCvs"></canvas></div>
+          </div>
+          <div class="res-display" id="resultBox">
+            <div class="res-num none" id="resultNum">Select a region to begin</div>
+            <div class="res-lbl" id="resultLbl"></div>
+          </div>
+          <div class="dbg">
+            <div class="dbg-r"><span class="dbg-k">Raw OCR</span><span class="dbg-v" id="dbgRaw">—</span></div>
+            <div class="dbg-r"><span class="dbg-k">Lines</span><span class="dbg-v" id="dbgLines">—</span></div>
+            <div class="dbg-r"><span class="dbg-k">Bracket</span><span class="dbg-v" id="dbgBracket">—</span></div>
+            <div class="dbg-r"><span class="dbg-k">Number</span><span class="dbg-v" id="dbgNum">—</span></div>
+            <div class="dbg-r"><span class="dbg-k">Confidence</span><span class="dbg-v" id="dbgConf">—</span></div>
+            <div class="dbg-r"><span class="dbg-k">Strategy</span><span class="dbg-v" id="dbgStrat">—</span></div>
+            <div class="dbg-r"><span class="dbg-k">Region</span><span class="dbg-v" id="dbgReg">—</span></div>
+            <div class="dbg-r"><span class="dbg-k">OCR Time</span><span class="dbg-v" id="dbgTime">—</span></div>
+            <div class="dbg-r"><span class="dbg-k">Pipeline</span><span class="dbg-v" id="dbgPipe">—</span></div>
+            <div class="dbg-r"><span class="dbg-k">Special</span><span class="dbg-v" id="dbgSpecial">—</span></div>
+            <div class="dbg-r"><span class="dbg-k">Hysteresis</span><span class="dbg-v" id="dbgHyst">—</span></div>
+          </div>
+          <div class="info-c">
+            <span>✓</span> Finds numbers inside ( ) or [ ] brackets<br>
+            <span>✓</span> Any <b>?</b> → <b>BALL LOOSE</b><br>
+            <span>✓</span> <b>middle</b> → ⚽ BALL IN MIDDLE<br>
+            <span>✓</span> <b>goal</b> → 🥅 GOAL SCORED<br>
+            <span>✓</span> Directional beeps: LEFT/RIGHT stereo, pitch = direction<br>
+            <span>✓</span> Dual-worker pipeline · Instant WebSocket sync
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="side">
+      <div class="state-hero" id="stateBox">
+        <div class="st-lbl">Current State</div>
+        <div class="st-big off" id="stateVal">—</div>
+        <div class="st-dist" id="stateDist">Waiting...</div>
+        <div class="st-dir" id="stateDir"></div>
+
+        <div class="thr-bar" id="thrBar">
+          <div class="thr-i ri" id="thrRedLabel">RED ≤500</div>
+          <div class="thr-i yi" id="thrYelLabel">YEL 501-600</div>
+          <div class="thr-i gi" id="thrGrnLabel">GRN >600</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-h"><span>🎯 Thresholds</span></div>
+        <div class="card-b">
+          <div class="thr-slider-row">
+            <label class="rl">🔴 Red ≤</label>
+            <input type="range" class="red-range" id="redThrR" min="100" max="2000" step="10" value="500">
+            <span class="sv rv" id="redThrV">500</span>
+          </div>
+          <div class="thr-slider-row" id="yelThrRow">
+            <label class="yl">🟡 Yellow ≤</label>
+            <input type="range" class="yel-range" id="yelThrR" min="100" max="2500" step="10" value="600">
+            <span class="sv yv" id="yelThrV">600</span>
+          </div>
+          <label class="tgl" style="margin-top:8px"><input type="checkbox" id="skipYellowChk" onchange="toggleSkipYellow()"> Skip Yellow (Red/Green only)</label>
+          <div class="thr-visual">
+            <div class="seg rs" id="thrSegR" style="flex:500"></div>
+            <div class="seg ys" id="thrSegY" style="flex:100"></div>
+            <div class="seg gs" id="thrSegG" style="flex:400"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--t3);margin-top:2px;font-family:monospace">
+            <span>0</span>
+            <span id="thrMidLabel">500 | 600</span>
+            <span>1000+</span>
+          </div>
+          <div class="presets-row" style="margin-top:10px">
+            <button class="pre-btn" onclick="setThresholds(400,500)">400/500</button>
+            <button class="pre-btn" onclick="setThresholds(500,600)">500/600</button>
+            <button class="pre-btn" onclick="setThresholds(600,800)">600/800</button>
+            <button class="pre-btn" onclick="setThresholds(300,400)">300/400</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-h"><span>🔊 Beep Alerts</span></div>
+        <div class="card-b">
+          <div class="srow"><label>Volume</label><input type="range" id="volR" min="0" max="1" step="0.05" value="0.8"><span class="sv" id="volV">80%</span></div>
+          <div class="srow"><label>Speed</label><input type="range" id="repR" min="0.5" max="5" step="0.25" value="1.5"><span class="sv" id="repV">1.5s</span></div>
+
+          <div class="btn-row">
+            <button class="btn" onclick="testBeep()">🔊 Test Beep</button>
+            <button class="btn act" id="muteBtn" onclick="toggleMute()">🔊 On</button>
+          </div>
+          <div class="vstatus" id="voiceLine"></div>
+
+          <div class="beep-dir-legend">
+            <div class="bdl-title">Direction Sound Guide</div>
+            <div class="bdl-row"><span class="bdl-dir">← LEFT</span><span class="bdl-desc">Beep in left ear</span></div>
+            <div class="bdl-row"><span class="bdl-dir">→ RIGHT</span><span class="bdl-desc">Beep in right ear</span></div>
+            <div class="bdl-row"><span class="bdl-dir">↓ BEHIND</span><span class="bdl-desc">Low rumble tone</span></div>
+            <div class="bdl-row"><span class="bdl-dir">↑ IN FRONT</span><span class="bdl-desc">High sharp tone</span></div>
+            <div class="bdl-row"><span class="bdl-dir">⬆ ABOVE</span><span class="bdl-desc">Rising pitch sweep</span></div>
+            <div class="bdl-row"><span class="bdl-dir">⬇ BELOW</span><span class="bdl-desc">Falling pitch sweep</span></div>
+            <div class="bdl-row"><span class="bdl-dir">● RED</span><span class="bdl-desc">Fast double-beep, harsh</span></div>
+            <div class="bdl-row"><span class="bdl-dir">● YELLOW</span><span class="bdl-desc">Medium beep, softer</span></div>
+            <div class="bdl-row"><span class="bdl-dir">● GREEN</span><span class="bdl-desc">Slow gentle beep</span></div>
+            <div class="bdl-row"><span class="bdl-dir">● LOOSE</span><span class="bdl-desc">Rapid alarm warble</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-h"><span>🧭 Direction Callout</span></div>
+        <div class="card-b">
+          <label class="tgl"><input type="checkbox" id="dirChk" onchange="toggleDir()"> Enable auto-direction on RED</label>
+          <div id="dirUI" class="hidden">
+            <div style="font-size:11px;color:var(--t3);margin-bottom:10px;line-height:1.7">
+              Switch to <b style="color:var(--blu)">🧭 Direction Box</b> and draw around the direction text.
+            </div>
+            <div class="dir-result" id="dirResult">
+              <div class="dir-detected">Detected Direction</div>
+              <div class="dir-value none" id="dirValue">No direction box set</div>
+              <div class="dir-raw" id="dirRawText"></div>
+            </div>
+            <div class="dir-callout hidden" id="dirCallout">Callout: Red behind</div>
+            <div class="dir-manual">
+              <div style="font-size:10px;color:var(--t3);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px">Manual override</div>
+              <select id="dirManual" onchange="manualDir(this.value)">
+                <option value="">— Auto from OCR —</option>
+                <option value="behind">Behind</option>
+                <option value="in front">In Front</option>
+                <option value="left">Left</option>
+                <option value="right">Right</option>
+                <option value="above">Above</option>
+                <option value="below">Below</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-h"><span>⚙️ OCR Settings</span></div>
+        <div class="card-b">
+          <div class="srow"><label>Threshold</label><input type="range" id="thrR" min="20" max="235" value="128"><span class="sv" id="thrV">128</span></div>
+          <div class="srow"><label>Scale</label><input type="range" id="sclR" min="1" max="6" step="1" value="3"><span class="sv" id="sclV">3x</span></div>
+          <label class="tgl"><input type="checkbox" id="invChk"> Invert (light text on dark bg)</label>
+          <label class="tgl"><input type="checkbox" id="autoChk" checked> Auto-detect threshold</label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hidden" id="remoteUI">
+    <nav class="navbar">
+      <div class="nav-brand"><div class="nav-logo">O</div>ORION <span style="font-size:10px;color:var(--t3);letter-spacing:1px;margin-left:8px">REMOTE</span></div>
+      <div class="nav-pills">
+        <div class="pill" id="remotePill"><span class="dot"></span><span id="remotePillTxt">CONNECTING</span></div>
+      </div>
+    </nav>
+
+    <div class="remote-container">
+      <div class="conn-status waiting" id="connStatus">Connecting to host...</div>
+      <div class="room-display">
+        <div class="room-label">Connected Room</div>
+        <div class="room-code" id="remoteRoomDisplay">——</div>
+      </div>
+
+      <div class="latency-display" id="latencyDisplay"></div>
+
+      <div class="remote-hero" id="remoteHero">
+        <div class="remote-state off" id="remoteState">WAITING</div>
+        <div class="remote-dist" id="remoteDist">—</div>
+        <div class="remote-dir" id="remoteDir"></div>
+        <div class="remote-time" id="remoteTime"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-h"><span>🎯 Thresholds (Remote)</span></div>
+        <div class="card-b">
+          <div class="thr-slider-row">
+            <label class="rl">🔴 Red ≤</label>
+            <input type="range" class="red-range" id="rRedThrR" min="100" max="2000" step="10" value="500">
+            <span class="sv rv" id="rRedThrV">500</span>
+          </div>
+          <div class="thr-slider-row" id="rYelThrRow">
+            <label class="yl">🟡 Yellow ≤</label>
+            <input type="range" class="yel-range" id="rYelThrR" min="100" max="2500" step="10" value="600">
+            <span class="sv yv" id="rYelThrV">600</span>
+          </div>
+          <label class="tgl" style="margin-top:8px">
+            <input type="checkbox" id="rSkipYellowChk" onchange="rToggleSkipYellow()">
+            Skip Yellow (Red/Green only)
+          </label>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-h"><span>🔊 Beep Alerts</span></div>
+        <div class="card-b">
+          <div class="srow"><label>Volume</label><input type="range" id="rVolR" min="0" max="1" step="0.05" value="0.8"><span class="sv" id="rVolV">80%</span></div>
+          <div class="srow"><label>Speed</label><input type="range" id="rRepR" min="0.5" max="5" step="0.25" value="1.5"><span class="sv" id="rRepV">1.5s</span></div>
+
+          <div class="btn-row">
+            <button class="btn" onclick="rTestBeep()">🔊 Test Beep</button>
+            <button class="btn act" id="rMuteBtn" onclick="rToggleMute()">🔊 On</button>
+          </div>
+          <div class="vstatus" id="rVoiceLine"></div>
+
+          <div class="beep-dir-legend">
+            <div class="bdl-title">Direction Sound Guide</div>
+            <div class="bdl-row"><span class="bdl-dir">← LEFT</span><span class="bdl-desc">Beep in left ear</span></div>
+            <div class="bdl-row"><span class="bdl-dir">→ RIGHT</span><span class="bdl-desc">Beep in right ear</span></div>
+            <div class="bdl-row"><span class="bdl-dir">↓ BEHIND</span><span class="bdl-desc">Low rumble tone</span></div>
+            <div class="bdl-row"><span class="bdl-dir">↑ IN FRONT</span><span class="bdl-desc">High sharp tone</span></div>
+            <div class="bdl-row"><span class="bdl-dir">● RED</span><span class="bdl-desc">Fast double-beep, harsh</span></div>
+            <div class="bdl-row"><span class="bdl-dir">● YELLOW</span><span class="bdl-desc">Medium beep, softer</span></div>
+            <div class="bdl-row"><span class="bdl-dir">● GREEN</span><span class="bdl-desc">Slow gentle beep</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="log-c hidden" id="logBox"></div>
+  <canvas id="workCvs" style="display:none"></canvas>
+  <canvas id="workCvs2" style="display:none"></canvas>
+
+<script>
+  const $ = id => document.getElementById(id);
+
+  const vid = $('vid'), rawCvs = $('rawCvs'), procCvs = $('procCvs'), workCvs = $('workCvs'), workCvs2 = $('workCvs2');
+  const rawCtx = rawCvs.getContext('2d'), procCtx = procCvs.getContext('2d');
+  const workCtx = workCvs.getContext('2d', { willReadFrequently: true });
+  const workCtx2 = workCvs2.getContext('2d', { willReadFrequently: true });
+  const distBox = $('distBox'), dirBox = $('dirBox'), videoContainer = $('videoContainer');
+
+  let role = null, roomCode = '', running = false;
+
+  // host beep
+  let muted = false;
+
+  // remote beep
+  let rMuted = false;
+
+  // regions + state (host)
+  let distRegion = null, dirRegion = null;
+  let curState = 'OFF', lastNum = null;
+  let repTimer = null;
+
+  let vidW = 0, vidH = 0;
+  let lastGoodNum = null, lastGoodTime = 0, noDetectCount = 0;
+  let drawMode = 'distance', detectedDir = '', manualDirOverride = '', isBallLoose = false;
+  let recentReadings = []; const MAX_READINGS = 3;
+
+  let RED_MAX = 500, YEL_MAX = 600;
+  let skipYellow = false;
+
+  let isMiddle = false, isGoal = false;
+  let middleAnnounced = false, goalAnnounced = false;
+
+  // hysteresis (host)
+  let stateHistory = [];
+  const HYST_WINDOW = 4;
+
+  // audio context for beeps
+  let beepCtx = null;
+
+  // OCR
+  let ocrReady = false;
+  const DIST_WHITELIST = '0123456789()[]?ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz _-.|';
+  const DIR_WHITELIST  = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz ';
+  let ocrWorkers = [];
+  let ocrWorkerBusy = [false, false];
+  let ocrWorkerReady = [false, false];
+  let ocrFrameCount = 0, ocrFpsLastTime = Date.now(), ocrFps = 0;
+
+  // remote state + repeat
+  let rCurState = 'OFF', rRepTimer = null, rLastDir = '', rLastDist = '';
+
+  // remote ordering + clock-skew corrected delay
+  let rLastSeq = 0;
+  let rClockOffset = null;
+
+  // ===== Remote thresholds =====
+  let rRED_MAX = 500, rYEL_MAX = 600;
+  let rSkipYellow = false;
+  let rStateHistory = [];
+  const rHYST_WINDOW = 4;
+
+  function rToggleSkipYellow() {
+    rSkipYellow = $('rSkipYellowChk').checked;
+    $('rYelThrRow').style.display = rSkipYellow ? 'none' : 'flex';
+    rStateHistory = [];
+    rUpdateThresholdUI();
+    rUpdateFromThresholds();
+  }
+
+  function rUpdateThresholdUI() {
+    $('rRedThrV').textContent = rRED_MAX;
+    $('rYelThrV').textContent = rYEL_MAX;
+    $('rYelThrRow').style.display = rSkipYellow ? 'none' : 'flex';
+  }
+
+  function rGetStateRaw(n) {
+    if (n <= rRED_MAX) return 'RED';
+    if (rSkipYellow) return 'GREEN';
+    if (n <= rYEL_MAX) return 'YELLOW';
+    return 'GREEN';
+  }
+
+  function rGetStateWithHysteresis(n) {
+    const raw = rGetStateRaw(n);
+    rStateHistory.push(raw);
+    if (rStateHistory.length > rHYST_WINDOW) rStateHistory.shift();
+    if (rStateHistory.length < 2) return raw;
+
+    if (rSkipYellow) {
+      let weightRed = 0, weightGreen = 0;
+      for (let i = 0; i < rStateHistory.length; i++) {
+        const weight = i + 1;
+        if (rStateHistory[i] === 'RED') weightRed += weight; else weightGreen += weight;
+      }
+      const total = weightRed + weightGreen;
+      const redPct = total ? (weightRed / total) * 100 : 0;
+      if (raw === 'RED' && redPct < 30) return 'GREEN';
+      if (raw === 'GREEN' && redPct > 50) return 'RED';
+      return raw;
+    }
+
+    let wr=0, wy=0, wg=0;
+    for (let i = 0; i < rStateHistory.length; i++) {
+      const weight = i + 1;
+      const s = rStateHistory[i];
+      if (s === 'RED') wr += weight;
+      else if (s === 'YELLOW') wy += weight;
+      else wg += weight;
+    }
+    const tot = wr + wy + wg;
+    const redPct = tot ? (wr / tot) * 100 : 0;
+    const yelPct = tot ? (wy / tot) * 100 : 0;
+    const grnPct = tot ? (wg / tot) * 100 : 0;
+
+    if (raw === 'RED') {
+      if (redPct < 30 && (yelPct > 60 || grnPct > 60)) return yelPct > grnPct ? 'YELLOW' : 'GREEN';
+      return 'RED';
+    }
+    if (raw === 'YELLOW') {
+      if (redPct > 20) return 'RED';
+      if (grnPct > 60) return 'GREEN';
+      return 'YELLOW';
+    }
+    if (raw === 'GREEN') {
+      if (grnPct < 30 && redPct > 50) return 'RED';
+      if (grnPct < 40 && yelPct > 50) return 'YELLOW';
+      return 'GREEN';
+    }
+    return raw;
+  }
+
+  function rGetState(n) { return rGetStateWithHysteresis(n); }
+
+  function rUpdateFromThresholds() {
+    const n = (typeof rLastDist === 'number') ? rLastDist : parseInt(rLastDist, 10);
+    if (!isFinite(n)) return;
+    handleRemoteState({ state: 'GREEN', dist: n, dir: rLastDir, _fromLocal: true });
+  }
+
+  $('rRedThrR').oninput = e => {
+    let v = +e.target.value;
+    if (!rSkipYellow && v >= rYEL_MAX) { v = rYEL_MAX - 10; e.target.value = v; }
+    rRED_MAX = v;
+    rStateHistory = [];
+    rUpdateThresholdUI();
+    rUpdateFromThresholds();
+  };
+
+  $('rYelThrR').oninput = e => {
+    let v = +e.target.value;
+    if (v <= rRED_MAX) { v = rRED_MAX + 10; e.target.value = v; }
+    rYEL_MAX = v;
+    rStateHistory = [];
+    rUpdateThresholdUI();
+    rUpdateFromThresholds();
+  };
+
+  rUpdateThresholdUI();
+
+  // ===== audio unlock =====
+  let audioUnlocked = false;
+  function ensureBeepCtx() {
+    if (!beepCtx) beepCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (beepCtx.state === 'suspended') beepCtx.resume().catch(() => {});
+    return beepCtx;
+  }
+  function unlockAudio() {
+    if (audioUnlocked) return;
+    audioUnlocked = true;
+    try { ensureBeepCtx(); } catch (e) {}
+  }
+  document.addEventListener('pointerdown', unlockAudio, { once: true });
+
+  // ===== utility =====
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+
+  // ===== DIRECTIONAL BEEP SYSTEM =====
+
+  function dirToPan(dir) {
+    dir = (dir || '').toLowerCase();
+    if (dir === 'left') return -1;
+    if (dir === 'right') return 1;
+    return 0;
+  }
+
+  function dirToBaseFreq(dir) {
+    dir = (dir || '').toLowerCase();
+    if (dir === 'behind') return 280;
+    if (dir === 'in front') return 880;
+    if (dir === 'above') return 600;   // will sweep up
+    if (dir === 'below') return 600;   // will sweep down
+    if (dir === 'left') return 520;
+    if (dir === 'right') return 520;
+    return 520;
+  }
+
+  function stateToWaveform(state) {
+    if (state === 'RED') return 'square';
+    if (state === 'YELLOW') return 'triangle';
+    return 'sine';
+  }
+
+  function beepIntervalForDistance(n, state, repSeconds, redMax, yelMax, skipY) {
+    redMax = redMax || RED_MAX;
+    yelMax = yelMax || YEL_MAX;
+    skipY = skipY !== undefined ? skipY : skipYellow;
+    const repMult = clamp((repSeconds || 1.5) / 1.5, 0.2, 3);
+    if (typeof n !== 'number' || !isFinite(n)) return Math.round(800 * repMult);
+
+    let ms = 1000;
+
+    if (skipY) {
+      if (state === 'RED') {
+        const t = clamp(n / Math.max(1, redMax), 0, 1);
+        ms = 100 + t * 500;
+      } else {
+        const span = 800;
+        const t = clamp((n - redMax) / span, 0, 1);
+        ms = 500 + t * 1500;
+      }
+    } else {
+      if (state === 'RED') {
+        const t = clamp(n / Math.max(1, redMax), 0, 1);
+        ms = 100 + t * 500;
+      } else if (state === 'YELLOW') {
+        const span = Math.max(1, yelMax - redMax);
+        const t = clamp((n - redMax) / span, 0, 1);
+        ms = 300 + t * 900;
+      } else {
+        const span = 1000;
+        const t = clamp((n - yelMax) / span, 0, 1);
+        ms = 600 + t * 1600;
+      }
+    }
+
+    ms = ms * repMult;
+    return Math.round(clamp(ms, 80, 2500));
+  }
+
+  function playDirectionalBeep(dir, volume, state, lineEl, intervalMs) {
+    if (volume <= 0) return;
+
+    const ctx = ensureBeepCtx();
+    const now = ctx.currentTime;
+    const isRed = (state === 'RED');
+    const isLoose = (state === 'BALL LOOSE');
+
+    const dur = isLoose ? 0.08 : clamp((intervalMs * 0.45) / 1000, 0.04, 0.15);
+    const attack = Math.min(0.008, dur * 0.2);
+    const release = Math.min(0.04, dur * 0.4);
+
+    const baseFreq = dirToBaseFreq(dir);
+    const waveform = isLoose ? 'sawtooth' : stateToWaveform(state);
+    const pan = dirToPan(dir);
+    const peak = Math.min(1, Math.max(0, volume)) * (isRed ? 0.45 : isLoose ? 0.5 : 0.3);
+
+    const dirLower = (dir || '').toLowerCase();
+    const isSweepUp = (dirLower === 'above');
+    const isSweepDown = (dirLower === 'below');
+
+    function makeBeep(startTime, freq, beepDur) {
+      const osc = ctx.createOscillator();
+      osc.type = waveform;
+
+      if (isSweepUp) {
+        osc.frequency.setValueAtTime(freq - 200, startTime);
+        osc.frequency.linearRampToValueAtTime(freq + 200, startTime + beepDur);
+      } else if (isSweepDown) {
+        osc.frequency.setValueAtTime(freq + 200, startTime);
+        osc.frequency.linearRampToValueAtTime(freq - 200, startTime + beepDur);
+      } else {
+        osc.frequency.setValueAtTime(freq, startTime);
+      }
+
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0, startTime);
+      gain.gain.linearRampToValueAtTime(peak, startTime + attack);
+      gain.gain.setValueAtTime(peak, startTime + beepDur - release);
+      gain.gain.linearRampToValueAtTime(0, startTime + beepDur);
+
+      let outNode = gain;
+      if (ctx.createStereoPanner) {
+        const p = ctx.createStereoPanner();
+        p.pan.setValueAtTime(pan, startTime);
+        gain.connect(p);
+        outNode = p;
+      }
+
+      osc.connect(gain);
+      outNode.connect(ctx.destination);
+
+      osc.start(startTime);
+      osc.stop(startTime + beepDur + 0.01);
+
+      osc.onended = () => {
+        try { osc.disconnect(); } catch(e) {}
+        try { gain.disconnect(); } catch(e) {}
+        try { outNode.disconnect(); } catch(e) {}
+      };
+    }
+
+    if (isLoose) {
+      // Rapid alarm warble: 3 fast alternating tones
+      makeBeep(now, 700, 0.06);
+      makeBeep(now + 0.08, 500, 0.06);
+      makeBeep(now + 0.16, 700, 0.06);
+    } else if (isRed) {
+      // Double beep for urgency
+      makeBeep(now, baseFreq, dur);
+      makeBeep(now + dur + 0.05, baseFreq * 1.15, dur * 0.8);
+    } else {
+      // Single beep
+      makeBeep(now, baseFreq, dur);
+    }
+
+    if (lineEl) {
+      const d = (dir || 'center').toUpperCase();
+      const stateLabel = state || '';
+      lineEl.textContent = '🔊 ' + stateLabel + (d !== 'CENTER' ? ' ' + d : '');
+      lineEl.className = 'vstatus talk';
+      setTimeout(() => {
+        if (lineEl.textContent.startsWith('🔊')) {
+          lineEl.textContent = '✓';
+          lineEl.className = 'vstatus ok';
+        }
+      }, Math.min(250, intervalMs));
+    }
+  }
+
+  // ===== direction helpers (host) =====
+  function manualDir(v) { manualDirOverride = v; updateDirDisplay(); }
+  function getActiveDir() { return manualDirOverride || detectedDir; }
+
+  function updateStateDirLine() {
+    const el = $('stateDir');
+    if (!el) return;
+    if (!$('dirChk').checked) { el.textContent = ''; return; }
+    const d = getActiveDir();
+    if (d) el.textContent = 'DIR: ' + d.toUpperCase();
+    else if (dirRegion) el.textContent = 'DIR: SCANNING';
+    else el.textContent = '';
+  }
+
+  function toggleDir() {
+    const on = $('dirChk').checked;
+    $('dirUI').classList.toggle('hidden', !on);
+    if (!on) {
+      dirRegion = null;
+      dirBox.classList.remove('show');
+      detectedDir = '';
+      updateDirDisplay();
+    }
+    updateStateDirLine();
+  }
+
+  function updateDirDisplay() {
+    const d = getActiveDir(), dv = $('dirValue');
+    if (d) {
+      dv.textContent = d.toUpperCase();
+      dv.className = 'dir-value';
+      $('dirCallout').textContent = 'Callout: Red ' + d;
+      $('dirCallout').classList.remove('hidden');
+    } else if (dirRegion) {
+      dv.textContent = 'Scanning...';
+      dv.className = 'dir-value none';
+      $('dirCallout').classList.add('hidden');
+    } else {
+      dv.textContent = 'No direction box set';
+      dv.className = 'dir-value none';
+      $('dirCallout').classList.add('hidden');
+    }
+    updateStateDirLine();
+  }
+
+  // ===== thresholds / hysteresis (host) =====
+  function toggleSkipYellow() {
+    skipYellow = $('skipYellowChk').checked;
+    $('yelThrRow').style.display = skipYellow ? 'none' : 'flex';
+    $('thrYelLabel').style.display = skipYellow ? 'none' : '';
+    updateThresholdUI();
+    stateHistory = [];
+    if (lastNum !== null && !isBallLoose && !isMiddle && !isGoal) applyState(getState(lastNum), lastNum);
+  }
+
+  function getStateRaw(n) {
+    if (n <= RED_MAX) return 'RED';
+    if (skipYellow) return 'GREEN';
+    if (n <= YEL_MAX) return 'YELLOW';
+    return 'GREEN';
+  }
+
+  function getStateWithHysteresis(n) {
+    const raw = getStateRaw(n);
+    stateHistory.push(raw);
+    if (stateHistory.length > HYST_WINDOW) stateHistory.shift();
+
+    if (stateHistory.length < 2) {
+      $('dbgHyst').textContent = `Raw: ${raw}`;
+      $('dbgHyst').className = 'dbg-v';
+      return raw;
+    }
+
+    if (skipYellow) {
+      let weightRed = 0, weightGreen = 0;
+      for (let i = 0; i < stateHistory.length; i++) {
+        const weight = i + 1;
+        if (stateHistory[i] === 'RED') weightRed += weight; else weightGreen += weight;
+      }
+      const totalWeight = weightRed + weightGreen;
+      const redPct = (weightRed / totalWeight) * 100;
+
+      if (raw === 'RED' && redPct < 30) { $('dbgHyst').textContent = `RED→GRN (R:${Math.round(redPct)}%)`; $('dbgHyst').className = 'dbg-v ok'; return 'GREEN'; }
+      if (raw === 'GREEN' && redPct > 50) { $('dbgHyst').textContent = `GRN→RED (R:${Math.round(redPct)}%)`; $('dbgHyst').className = 'dbg-v bad'; return 'RED'; }
+
+      $('dbgHyst').textContent = `${raw} (R:${Math.round(redPct)}%)`;
+      $('dbgHyst').className = raw === 'RED' ? 'dbg-v bad' : 'dbg-v ok';
+      return raw;
+    }
+
+    let weightRed = 0, weightYellow = 0, weightGreen = 0;
+    for (let i = 0; i < stateHistory.length; i++) {
+      const weight = i + 1;
+      const s = stateHistory[i];
+      if (s === 'RED') weightRed += weight;
+      else if (s === 'YELLOW') weightYellow += weight;
+      else weightGreen += weight;
+    }
+    const totalWeight = weightRed + weightYellow + weightGreen;
+    const redPct = (weightRed / totalWeight) * 100;
+    const yellowPct = (weightYellow / totalWeight) * 100;
+    const greenPct = (weightGreen / totalWeight) * 100;
+
+    if (raw === 'RED') {
+      if (redPct < 30 && (yellowPct > 60 || greenPct > 60)) {
+        $('dbgHyst').textContent = `RED→${yellowPct > greenPct ? 'YEL' : 'GRN'} (R:${Math.round(redPct)}%)`;
+        $('dbgHyst').className = 'dbg-v warn';
+        return yellowPct > greenPct ? 'YELLOW' : 'GREEN';
+      }
+      $('dbgHyst').textContent = `RED (${Math.round(redPct)}%)`;
+      $('dbgHyst').className = 'dbg-v bad';
+      return 'RED';
+    }
+
+    if (raw === 'YELLOW') {
+      if (redPct > 20) { $('dbgHyst').textContent = `YEL→RED (R:${Math.round(redPct)}%)`; $('dbgHyst').className = 'dbg-v bad'; return 'RED'; }
+      if (greenPct > 60) { $('dbgHyst').textContent = `YEL→GRN (G:${Math.round(greenPct)}%)`; $('dbgHyst').className = 'dbg-v ok'; return 'GREEN'; }
+      $('dbgHyst').textContent = `YELLOW (Y:${Math.round(yellowPct)}%)`;
+      $('dbgHyst').className = 'dbg-v warn';
+      return 'YELLOW';
+    }
+
+    if (raw === 'GREEN') {
+      if (greenPct < 30 && redPct > 50) { $('dbgHyst').textContent = `GRN→RED (R:${Math.round(redPct)}%)`; $('dbgHyst').className = 'dbg-v bad'; return 'RED'; }
+      if (greenPct < 40 && yellowPct > 50) { $('dbgHyst').textContent = `GRN→YEL (Y:${Math.round(yellowPct)}%)`; $('dbgHyst').className = 'dbg-v warn'; return 'YELLOW'; }
+      $('dbgHyst').textContent = `GREEN (${Math.round(greenPct)}%)`;
+      $('dbgHyst').className = 'dbg-v ok';
+      return 'GREEN';
+    }
+
+    return raw;
+  }
+
+  function getState(n) { return getStateWithHysteresis(n); }
+
+  function updateThresholdUI() {
+    $('redThrV').textContent = RED_MAX;
+    $('yelThrV').textContent = YEL_MAX;
+
+    if (skipYellow) {
+      $('thrRedLabel').textContent = 'RED ≤' + RED_MAX;
+      $('thrYelLabel').style.display = 'none';
+      $('thrGrnLabel').textContent = 'GRN >' + RED_MAX;
+      $('thrMidLabel').textContent = RED_MAX + '';
+      $('thrSegR').style.flex = RED_MAX;
+      $('thrSegY').style.flex = 0;
+      $('thrSegY').style.display = 'none';
+      const total = Math.max(RED_MAX + 400, 1000);
+      $('thrSegG').style.flex = total - RED_MAX;
+    } else {
+      $('thrRedLabel').textContent = 'RED ≤' + RED_MAX;
+      $('thrYelLabel').textContent = 'YEL ' + (RED_MAX + 1) + '-' + YEL_MAX;
+      $('thrYelLabel').style.display = '';
+      $('thrGrnLabel').textContent = 'GRN >' + YEL_MAX;
+      $('thrMidLabel').textContent = RED_MAX + ' | ' + YEL_MAX;
+      const total = Math.max(YEL_MAX + 400, 1000);
+      $('thrSegR').style.flex = RED_MAX;
+      $('thrSegY').style.flex = YEL_MAX - RED_MAX;
+      $('thrSegY').style.display = '';
+      $('thrSegG').style.flex = total - YEL_MAX;
+    }
+  }
+
+  $('redThrR').oninput = e => {
+    let v = +e.target.value;
+    if (!skipYellow && v >= YEL_MAX) { v = YEL_MAX - 10; e.target.value = v; }
+    RED_MAX = v; updateThresholdUI(); stateHistory = [];
+    if (lastNum !== null && !isBallLoose && !isMiddle && !isGoal) applyState(getState(lastNum), lastNum);
+  };
+  $('yelThrR').oninput = e => {
+    let v = +e.target.value;
+    if (v <= RED_MAX) { v = RED_MAX + 10; e.target.value = v; }
+    YEL_MAX = v; updateThresholdUI(); stateHistory = [];
+    if (lastNum !== null && !isBallLoose && !isMiddle && !isGoal) applyState(getState(lastNum), lastNum);
+  };
+  function setThresholds(r, y) {
+    RED_MAX = r; YEL_MAX = y;
+    $('redThrR').value = r; $('yelThrR').value = y;
+    updateThresholdUI(); stateHistory = [];
+    if (lastNum !== null && !isBallLoose && !isMiddle && !isGoal) applyState(getState(lastNum), lastNum);
+  }
+  updateThresholdUI();
+
+  // ===== DIR OCR keyword map =====
+  const DIR_KEYWORDS = {
+    behind:'behind', back:'behind', rear:'behind',
+    front:'in front', ahead:'in front', forward:'in front',
+    left:'left', right:'right',
+    above:'above', up:'above', top:'above',
+    below:'below', down:'below', bottom:'below', under:'below'
+  };
+
+  // ===== MQTT relay =====
+  let mqttWs = null, mqttConnected = false, mqttReconnectTimer = null;
+  let mqttClientId = 'orion-' + Math.random().toString(36).substr(2, 9);
+  let mqttPingInterval = null;
+
+  function mqttConnect(onConnect, onMessage) {
+    if (mqttWs) { try { mqttWs.close(); } catch (e) { } }
+    mqttConnected = false;
+    const url = 'wss://broker.hivemq.com:8884/mqtt';
+    log('WS connecting...', 'w');
+    try {
+      mqttWs = new WebSocket(url, 'mqtt');
+      mqttWs.binaryType = 'arraybuffer';
+    } catch (e) {
+      log('WS fail: ' + e.message, 'e');
+      scheduleReconnect(onConnect, onMessage);
+      return;
+    }
+    mqttWs.onopen = () => {
+      const cid = mqttClientId, cl = cid.length, rl = 10 + 2 + cl;
+      const p = new Uint8Array(2 + rl);
+      let i = 0;
+      p[i++]=0x10;p[i++]=rl;p[i++]=0;p[i++]=4;p[i++]=77;p[i++]=81;p[i++]=84;p[i++]=84;
+      p[i++]=4;p[i++]=2;p[i++]=0;p[i++]=60;p[i++]=(cl>>8)&0xFF;p[i++]=cl&0xFF;
+      for(let c=0;c<cl;c++)p[i++]=cid.charCodeAt(c);
+      mqttWs.send(p.buffer);
+    };
+    mqttWs.onmessage = evt => {
+      const d = new Uint8Array(evt.data);
+      if(!d.length)return;
+      const t = d[0] >> 4;
+      if (t === 2) {
+        mqttConnected = true;
+        log('MQTT connected!', 'g');
+        if (mqttPingInterval) clearInterval(mqttPingInterval);
+        mqttPingInterval = setInterval(() => {
+          if (mqttWs && mqttWs.readyState === 1) mqttWs.send(new Uint8Array([0xC0, 0]).buffer);
+        }, 25000);
+        if (onConnect) onConnect();
+      } else if (t === 3) {
+        let idx=1,r=0,m=1;
+        do{const b=d[idx++];r+=(b&127)*m;m*=128;if(!(b&128))break;}while(idx<d.length);
+        const tl=(d[idx]<<8)|d[idx+1];idx+=2;idx+=tl;
+        const pl=new TextDecoder().decode(d.slice(idx));
+        if(onMessage)onMessage(pl);
+      }
+    };
+    mqttWs.onclose = () => {
+      mqttConnected=false;
+      if(mqttPingInterval){clearInterval(mqttPingInterval);mqttPingInterval=null;}
+      log('MQTT disconnected','e');
+      scheduleReconnect(onConnect,onMessage);
+    };
+    mqttWs.onerror = () => { log('MQTT error', 'e'); };
+  }
+  function scheduleReconnect(a, b) {
+    if (mqttReconnectTimer) return;
+    mqttReconnectTimer = setTimeout(() => {
+      mqttReconnectTimer = null;
+      mqttConnect(a, b);
+    }, 2000);
+  }
+  function mqttSubscribe(topic) {
+    if (!mqttWs || !mqttConnected) return;
+    const tb=new TextEncoder().encode(topic),tl=tb.length,rl=2+2+tl+1;
+    const p=new Uint8Array(2+rl);let i=0;
+    p[i++]=0x82;p[i++]=rl;p[i++]=0;p[i++]=1;p[i++]=(tl>>8)&0xFF;p[i++]=tl&0xFF;
+    for(let c=0;c<tl;c++)p[i++]=tb[c];p[i++]=0;
+    mqttWs.send(p.buffer);
+    log('Sub: '+topic,'g');
+  }
+  function mqttPublish(topic, payload) {
+    if (!mqttWs || !mqttConnected) return;
+    const tb=new TextEncoder().encode(topic),pb=new TextEncoder().encode(payload),tl=tb.length,pl=pb.length,rl=2+tl+pl;
+    const rb=[];let r=rl;do{let b=r%128;r=Math.floor(r/128);if(r>0)b|=128;rb.push(b);}while(r>0);
+    const p=new Uint8Array(1+rb.length+2+tl+pl);let i=0;
+    p[i++]=0x30;for(const b of rb)p[i++]=b;p[i++]=(tl>>8)&0xFF;p[i++]=tl&0xFF;
+    for(let c=0;c<tl;c++)p[i++]=tb[c];for(let c=0;c<pl;c++)p[i++]=pb[c];
+    mqttWs.send(p.buffer);
+  }
+  function getMqttTopic(code) { return 'orion/room/' + code.toLowerCase(); }
+
+  // ===== Local BroadcastChannel =====
+  let bc = null;
+  function initLocalBroadcast(code) {
+    try { bc = new BroadcastChannel('orion-room-' + code); } catch (e) { }
+    return bc;
+  }
+
+  // ===== Network throttling + sequencing =====
+  let netSeq = 0;
+  let lastNetSend = 0;
+  let lastNetSent = { s: '', d: null, r: '' };
+  const NET_MIN_MS = 200;
+  const NET_HEARTBEAT_MS = 1200;
+
+  function normDistForNet(d) {
+    if (typeof d === 'number' && isFinite(d)) return Math.round(d / 5) * 5;
+    return d;
+  }
+
+  function broadcastState(state, dist, dir) {
+    const now = Date.now();
+    const dQ = normDistForNet(dist);
+    const r = dir || '';
+    const changed = (state !== lastNetSent.s || dQ !== lastNetSent.d || r !== lastNetSent.r);
+    const minGap = changed ? NET_MIN_MS : NET_HEARTBEAT_MS;
+    if (now - lastNetSend < minGap) return;
+
+    lastNetSend = now;
+    lastNetSent = { s: state, d: dQ, r };
+    const q = ++netSeq;
+    const payload = JSON.stringify({ s: state, d: dQ, r, t: now, q });
+    if (mqttConnected) mqttPublish(getMqttTopic(roomCode), payload);
+    localBroadcast(state, dQ, r, now, q);
+  }
+
+  function localBroadcast(s, d, r, t, q) {
+    if (bc) {
+      try { bc.postMessage({ s, d, r, t, q }); } catch (e) {}
+    }
+  }
+
+  // ===== Room code / roles =====
+  function genRoom() {
+    const c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let r = '';
+    for (let i = 0; i < 5; i++) r += c[Math.floor(Math.random() * c.length)];
+    return r;
+  }
+
+  function chooseRole(r) {
+    role = r;
+    $('overlay').classList.add('hidden');
+
+    if (r === 'host') {
+      roomCode = genRoom();
+      $('hostRoomCode').textContent = roomCode;
+      $('hostRoomCodeSmall').textContent = roomCode;
+      $('hostSetup').classList.remove('hidden');
+      initLocalBroadcast(roomCode);
+      $('hostServerStatus').textContent = 'Connecting...';
+      $('hostServerStatus').className = 'server-status warn';
+      mqttConnect(() => {
+        $('hostServerStatus').textContent = '✓ Connected';
+        $('hostServerStatus').className = 'server-status ok';
+        mqttSubscribe(getMqttTopic(roomCode));
+      }, () => {});
+      log('Host. Room: ' + roomCode, 'g');
+    } else {
+      $('remoteSetup').classList.remove('hidden');
+      $('remoteServerStatus').textContent = 'Ready';
+      $('remoteServerStatus').className = 'server-status ok';
+    }
+  }
+
+  function joinRoom() {
+    unlockAudio();
+    const code = $('remoteRoomInput').value.trim().toUpperCase();
+    if (code.length < 3) { alert('Enter room code'); return; }
+
+    roomCode = code;
+    $('remoteRoomDisplay').textContent = code;
+    $('remoteSetup').classList.add('hidden');
+    $('remoteUI').classList.remove('hidden');
+    $('connStatus').textContent = 'Connecting...';
+    $('connStatus').className = 'conn-status waiting';
+
+    rLastSeq = 0;
+    rClockOffset = null;
+
+    mqttConnect(() => {
+      mqttSubscribe(getMqttTopic(code));
+      $('connStatus').textContent = '✓ Waiting for host...';
+      $('connStatus').className = 'conn-status waiting';
+      $('remotePill').className = 'pill live';
+      $('remotePillTxt').textContent = 'CONNECTED';
+    }, (msg) => {
+      try {
+        const d = JSON.parse(msg);
+        if (d.s === undefined) return;
+        if (typeof d.q === 'number') {
+          if (d.q <= rLastSeq) return;
+          rLastSeq = d.q;
+        }
+        if (typeof d.t === 'number') {
+          if (rClockOffset === null) rClockOffset = Date.now() - d.t;
+          const age = Date.now() - (d.t + rClockOffset);
+          const l = Math.max(0, Math.round(age));
+          const c = l < 120 ? '' : l > 800 ? 'bad' : 'slow';
+          $('latencyDisplay').innerHTML = 'Delay: <b class="' + c + '">' + l + 'ms</b>';
+        }
+        if (!$('connStatus').classList.contains('connected')) {
+          $('connStatus').textContent = '✓ LIVE';
+          $('connStatus').className = 'conn-status connected';
+          $('remotePill').className = 'pill live';
+          $('remotePillTxt').textContent = 'LIVE';
+        }
+        handleRemoteState({ state: d.s, dist: d.d, dir: d.r });
+      } catch (e) {}
+    });
+
+    const lbc = initLocalBroadcast(code);
+    if (lbc) {
+      lbc.onmessage = e => {
+        const d = e.data;
+        if (!d || d.s === undefined) return;
+        if (typeof d.q === 'number') {
+          if (d.q <= rLastSeq) return;
+          rLastSeq = d.q;
+        }
+        handleRemoteState({ state: d.s, dist: d.d, dir: d.r });
+      };
+    }
+
+    log('Remote: ' + code, 'g');
+  }
+
+  // ===== Remote UI + beep =====
+  function handleRemoteState(data) {
+    const { state: rawState, dist, dir } = data;
+
+    rLastDir = dir || '';
+    rLastDist = dist || '';
+
+    let effectiveState = rawState;
+    const n = (typeof dist === 'number') ? dist : parseInt(dist, 10);
+    if ((rawState === 'RED' || rawState === 'YELLOW' || rawState === 'GREEN') && isFinite(n)) {
+      effectiveState = rGetState(n);
+    } else {
+      rStateHistory = [];
+    }
+
+    const hero = $('remoteHero'), stEl = $('remoteState'), distEl = $('remoteDist'), dirEl = $('remoteDir'), timeEl = $('remoteTime');
+    hero.className = 'remote-hero';
+
+    if (effectiveState === 'MIDDLE') {
+      hero.classList.add('purple');
+      stEl.textContent = '⚽ MIDDLE';
+      stEl.className = 'remote-state purple';
+      distEl.textContent = 'Ball in middle';
+    } else if (effectiveState === 'GOAL') {
+      hero.classList.add('orange');
+      stEl.textContent = '🥅 GOAL';
+      stEl.className = 'remote-state orange';
+      distEl.textContent = 'Goal scored!';
+    } else if (effectiveState === 'BALL LOOSE') {
+      hero.classList.add('red');
+      stEl.textContent = 'BALL LOOSE';
+      stEl.className = 'remote-state loose';
+      distEl.textContent = '? — No Lock';
+    } else if (effectiveState === 'RED') {
+      hero.classList.add('red');
+      stEl.textContent = 'RED';
+      stEl.className = 'remote-state red';
+      distEl.textContent = dist;
+    } else if (effectiveState === 'YELLOW') {
+      hero.classList.add('yellow');
+      stEl.textContent = 'YELLOW';
+      stEl.className = 'remote-state yellow';
+      distEl.textContent = dist;
+    } else if (effectiveState === 'GREEN') {
+      hero.classList.add('green');
+      stEl.textContent = 'GREEN';
+      stEl.className = 'remote-state green';
+      distEl.textContent = dist;
+    } else {
+      stEl.textContent = 'WAITING';
+      stEl.className = 'remote-state off';
+      distEl.textContent = '—';
+    }
+
+    dirEl.textContent = dir ? ('↗ ' + dir.toUpperCase()) : '';
+    timeEl.textContent = 'Updated: ' + new Date().toLocaleTimeString();
+
+    if (effectiveState !== rCurState) {
+      rCurState = effectiveState;
+
+      if (effectiveState === 'MIDDLE' || effectiveState === 'GOAL') {
+        rStopRep();
+        // Play a notification beep
+        if (!rMuted) {
+          const ctx = ensureBeepCtx();
+          const now = ctx.currentTime;
+          const osc = ctx.createOscillator();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(effectiveState === 'GOAL' ? 1000 : 600, now);
+          const gain = ctx.createGain();
+          gain.gain.setValueAtTime(0, now);
+          gain.gain.linearRampToValueAtTime(+$('rVolR').value * 0.3, now + 0.02);
+          gain.gain.linearRampToValueAtTime(0, now + 0.3);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.35);
+        }
+      } else {
+        if (!rMuted && (effectiveState === 'RED' || effectiveState === 'YELLOW' || effectiveState === 'GREEN' || effectiveState === 'BALL LOOSE')) {
+          const ms = (effectiveState === 'BALL LOOSE') ? 400 : beepIntervalForDistance(
+            isFinite(n) ? n : null, effectiveState, +$('rRepR').value, rRED_MAX, rYEL_MAX, rSkipYellow
+          );
+          playDirectionalBeep(dir || '', +$('rVolR').value, effectiveState, $('rVoiceLine'), ms);
+        }
+        rStartRep();
+      }
+    }
+  }
+
+  function rTestBeep() {
+    unlockAudio();
+    playDirectionalBeep('left', +$('rVolR').value, 'RED', $('rVoiceLine'), 300);
+    setTimeout(() => playDirectionalBeep('right', +$('rVolR').value, 'YELLOW', $('rVoiceLine'), 500), 500);
+    setTimeout(() => playDirectionalBeep('behind', +$('rVolR').value, 'GREEN', $('rVoiceLine'), 800), 1100);
+    setTimeout(() => playDirectionalBeep('in front', +$('rVolR').value, 'RED', $('rVoiceLine'), 300), 2000);
+    setTimeout(() => playDirectionalBeep('', +$('rVolR').value, 'BALL LOOSE', $('rVoiceLine'), 400), 2500);
+  }
+
+  function rToggleMute() {
+    rMuted = !rMuted;
+    $('rMuteBtn').textContent = rMuted ? '🔇 Off' : '🔊 On';
+    $('rMuteBtn').classList.toggle('act', !rMuted);
+    if (rMuted) rStopRep();
+    else rStartRep();
+  }
+
+  function rStartRep() {
+    rStopRep();
+    if (rMuted || rCurState === 'OFF' || rCurState === 'MIDDLE' || rCurState === 'GOAL') return;
+
+    const tick = () => {
+      if (rMuted) { rStopRep(); return; }
+      if (rCurState === 'OFF' || rCurState === 'MIDDLE' || rCurState === 'GOAL') { rStopRep(); return; }
+
+      const n = (typeof rLastDist === 'number') ? rLastDist : parseInt(rLastDist, 10);
+
+      const ms = (rCurState === 'BALL LOOSE') ? 400 : beepIntervalForDistance(
+        isFinite(n) ? n : null, rCurState, +$('rRepR').value, rRED_MAX, rYEL_MAX, rSkipYellow
+      );
+      playDirectionalBeep(rLastDir || '', +$('rVolR').value, rCurState, $('rVoiceLine'), ms);
+      rRepTimer = setTimeout(tick, ms);
+    };
+
+    const n = (typeof rLastDist === 'number') ? rLastDist : parseInt(rLastDist, 10);
+    const firstMs = (rCurState === 'BALL LOOSE') ? 400 : beepIntervalForDistance(
+      isFinite(n) ? n : null, rCurState, +$('rRepR').value, rRED_MAX, rYEL_MAX, rSkipYellow
+    );
+    rRepTimer = setTimeout(tick, firstMs);
+  }
+
+  function rStopRep() { if (rRepTimer) { clearTimeout(rRepTimer); rRepTimer = null; } }
+
+  // ===== Host beep =====
+  function testBeep() {
+    unlockAudio();
+    playDirectionalBeep('left', +$('volR').value, 'RED', $('voiceLine'), 300);
+    setTimeout(() => playDirectionalBeep('right', +$('volR').value, 'YELLOW', $('voiceLine'), 500), 500);
+    setTimeout(() => playDirectionalBeep('behind', +$('volR').value, 'GREEN', $('voiceLine'), 800), 1100);
+    setTimeout(() => playDirectionalBeep('in front', +$('volR').value, 'RED', $('voiceLine'), 300), 2000);
+    setTimeout(() => playDirectionalBeep('', +$('volR').value, 'BALL LOOSE', $('voiceLine'), 400), 2500);
+  }
+
+  function toggleMute() {
+    muted = !muted;
+    $('muteBtn').textContent = muted ? '🔇 Off' : '🔊 On';
+    $('muteBtn').classList.toggle('act', !muted);
+    if (muted) stopRep();
+    else startRep();
+  }
+
+  function startRep() {
+    stopRep();
+    if (muted || curState === 'OFF' || curState === 'MIDDLE' || curState === 'GOAL') return;
+
+    const tick = () => {
+      if (muted) { stopRep(); return; }
+      if (curState === 'OFF' || curState === 'MIDDLE' || curState === 'GOAL') { stopRep(); return; }
+
+      const dir = $('dirChk').checked ? getActiveDir() : '';
+      const n = lastNum;
+
+      const ms = (curState === 'BALL LOOSE') ? 400 : beepIntervalForDistance(n, curState, +$('repR').value);
+      playDirectionalBeep(dir, +$('volR').value, curState, $('voiceLine'), ms);
+      repTimer = setTimeout(tick, ms);
+    };
+
+    const n = lastNum;
+    const firstMs = (curState === 'BALL LOOSE') ? 400 : beepIntervalForDistance(n, curState, +$('repR').value);
+    repTimer = setTimeout(tick, firstMs);
+  }
+
+  function stopRep() { if (repTimer) { clearTimeout(repTimer); repTimer = null; } }
+  function restartRep() { if (curState !== 'OFF' && curState !== 'MIDDLE' && curState !== 'GOAL') startRep(); }
+
+  // ===== sliders =====
+  $('volR').oninput = e => $('volV').textContent = Math.round(e.target.value * 100) + '%';
+  $('repR').oninput = e => { $('repV').textContent = (+e.target.value).toFixed(2) + 's'; restartRep(); };
+  $('thrR').oninput = e => $('thrV').textContent = e.target.value;
+  $('sclR').oninput = e => $('sclV').textContent = e.target.value + 'x';
+
+  $('rVolR').oninput = e => $('rVolV').textContent = Math.round(e.target.value * 100) + '%';
+  $('rRepR').oninput = e => { $('rRepV').textContent = (+e.target.value).toFixed(2) + 's'; rStartRep(); };
+
+  // ===== logger =====
+  function log(msg, t = '') {
+    const ts = new Date().toLocaleTimeString();
+    const c = t === 'g' ? 'lg' : t === 'e' ? 'le' : t === 'w' ? 'lw' : '';
+    $('logBox').innerHTML = `<div class="${c}">${ts} ${msg}</div>` + $('logBox').innerHTML;
+  }
+
+  // ===== drawing =====
+  function setMode(m) {
+    drawMode = m;
+    $('modeDistBtn').className = 'mode-btn' + (m === 'distance' ? ' act-dist' : '');
+    $('modeDirBtn').className = 'mode-btn' + (m === 'direction' ? ' act-dir' : '');
+    $('vidHint').innerHTML = m === 'distance'
+      ? 'Draw a <b>distance</b> box around <b>enemy name (number)</b>'
+      : 'Draw a <b style="color:var(--blu)">direction</b> box around <b style="color:var(--blu)">direction text</b>';
+  }
+
+  let dragging = false, sx = 0, sy = 0, activeBox = null;
+  function getPos(e) {
+    const r = videoContainer.getBoundingClientRect();
+    return {
+      x: Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)),
+      y: Math.max(0, Math.min(1, (e.clientY - r.top) / r.height))
+    };
+  }
+
+  $('dragArea').onmousedown = e => {
+    dragging = true;
+    const p = getPos(e);
+    sx = p.x; sy = p.y;
+    activeBox = (drawMode === 'direction') ? dirBox : distBox;
+    activeBox.style.left = (p.x * 100) + '%';
+    activeBox.style.top = (p.y * 100) + '%';
+    activeBox.style.width = '0';
+    activeBox.style.height = '0';
+    activeBox.classList.add('show', 'dragging');
+  };
+
+  document.onmousemove = e => {
+    if (!dragging || !activeBox) return;
+    const p = getPos(e);
+    const x = Math.min(sx, p.x), y = Math.min(sy, p.y), w = Math.abs(p.x - sx), h = Math.abs(p.y - sy);
+    activeBox.style.left = (x * 100) + '%';
+    activeBox.style.top = (y * 100) + '%';
+    activeBox.style.width = (w * 100) + '%';
+    activeBox.style.height = (h * 100) + '%';
+  };
+
+  document.onmouseup = e => {
+    if (!dragging || !activeBox) return;
+    dragging = false;
+    activeBox.classList.remove('dragging');
+
+    const p = getPos(e);
+    const x = Math.min(sx, p.x), y = Math.min(sy, p.y), w = Math.abs(p.x - sx), h = Math.abs(p.y - sy);
+
+    if (w < 0.005 || h < 0.003) {
+      activeBox.classList.remove('show');
+      if (drawMode === 'distance') { distRegion = null; resetDistDisplay(); }
+      else { dirRegion = null; detectedDir = ''; updateDirDisplay(); }
+      activeBox = null;
+      return;
+    }
+
+    const reg = { x, y, w, h };
+
+    if (drawMode === 'distance') {
+      distRegion = reg;
+      recentReadings = [];
+      lastGoodNum = null;
+      noDetectCount = 0;
+      isBallLoose = false;
+      isMiddle = false;
+      isGoal = false;
+      middleAnnounced = false;
+      goalAnnounced = false;
+      stateHistory = [];
+      log(`Dist: ${Math.round(w * vidW)}×${Math.round(h * vidH)}px`, 'g');
+    } else {
+      dirRegion = reg;
+      log(`Dir: ${Math.round(w * vidW)}×${Math.round(h * vidH)}px`, 'g');
+      updateDirDisplay();
+    }
+
+    activeBox.classList.add('show');
+    activeBox = null;
+  };
+
+  function clearSel() {
+    distRegion = null; dirRegion = null;
+    distBox.classList.remove('show'); dirBox.classList.remove('show');
+    resetDistDisplay();
+    detectedDir = '';
+    updateDirDisplay();
+    recentReadings = [];
+    lastGoodNum = null;
+    noDetectCount = 0;
+    isBallLoose = false;
+    isMiddle = false;
+    isGoal = false;
+    middleAnnounced = false;
+    goalAnnounced = false;
+    stateHistory = [];
+    curState = 'OFF';
+    stopRep();
+  }
+
+  function resetDistDisplay() {
+    $('resultNum').textContent = 'Select a region to begin';
+    $('resultNum').className = 'res-num none';
+    $('resultLbl').textContent = '';
+    $('resultBox').className = 'res-display';
+    $('stateBox').className = 'state-hero';
+    $('stateVal').className = 'st-big off';
+    $('stateVal').textContent = '—';
+    $('stateDist').textContent = 'Waiting...';
+    $('stateDir').textContent = '';
+    ['dbgRaw','dbgLines','dbgBracket','dbgNum','dbgConf','dbgStrat','dbgReg','dbgTime','dbgPipe','dbgSpecial','dbgHyst'].forEach(id => {
+      $(id).textContent = '—';
+      $(id).className = 'dbg-v';
+    });
+  }
+
+  function setPreset(name) {
+    const presets = {
+      topLeft:[.01,.01,.25,.06], topCenter:[.30,.01,.40,.06], topRight:[.65,.01,.30,.06],
+      center:[.30,.45,.40,.10], bottom:[.25,.90,.50,.08]
+    };
+    const p = presets[name]; if (!p) return;
+
+    distRegion = { x: p[0], y: p[1], w: p[2], h: p[3] };
+    distBox.style.left = (p[0]*100)+'%';
+    distBox.style.top = (p[1]*100)+'%';
+    distBox.style.width = (p[2]*100)+'%';
+    distBox.style.height = (p[3]*100)+'%';
+    distBox.classList.add('show');
+
+    recentReadings = [];
+    lastGoodNum = null;
+    noDetectCount = 0;
+    isBallLoose = false;
+    isMiddle = false;
+    isGoal = false;
+    middleAnnounced = false;
+    goalAnnounced = false;
+    stateHistory = [];
+  }
+
+  // ===== screen capture =====
+  $('startBtn').onclick = async () => {
+    try {
+      unlockAudio();
+
+      const stream = await navigator.mediaDevices.getDisplayMedia({ video: { cursor: 'never' }, audio: false });
+      vid.srcObject = stream;
+      await vid.play();
+      await new Promise(r => vid.readyState >= 1 ? r() : vid.onloadedmetadata = r);
+
+      vidW = vid.videoWidth; vidH = vid.videoHeight;
+      $('resLabel').textContent = vidW + '×' + vidH;
+      videoContainer.style.aspectRatio = `${vidW}/${vidH}`;
+
+      stream.getVideoTracks()[0].onended = () => {
+        running = false;
+        $('hostSetup').classList.remove('hidden');
+        $('navbar').classList.add('hidden');
+        $('mainUI').classList.add('hidden');
+        $('logBox').classList.add('hidden');
+        $('navPill').className = 'pill off';
+        $('pillTxt').textContent = 'OFFLINE';
+        curState = 'OFF';
+        stopRep();
+      };
+
+      running = true;
+      $('hostSetup').classList.add('hidden');
+      $('navbar').classList.remove('hidden');
+      $('mainUI').classList.remove('hidden');
+      $('logBox').classList.remove('hidden');
+      $('navPill').className = 'pill live';
+      $('pillTxt').textContent = 'LIVE';
+
+      log(`Capture: ${vidW}×${vidH}`, 'g');
+      initOCR();
+    } catch (e) {
+      log('Error: ' + e.message, 'e');
+    }
+  };
+
+  // ===== OCR init / pipeline =====
+  async function initOCR() {
+    const b = $('ocrBadge');
+    b.textContent = 'LOADING';
+    b.className = 'badge load';
+
+    try {
+      if (typeof Tesseract === 'undefined') {
+        await new Promise((res, rej) => {
+          const s = document.createElement('script');
+          s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+          s.onload = res;
+          s.onerror = () => rej(new Error('Failed to load Tesseract'));
+          document.head.appendChild(s);
+        });
+      }
+
+      const wo = { tessedit_char_whitelist: DIST_WHITELIST, tessedit_pageseg_mode: '7' };
+
+      b.textContent = 'W1...';
+      const w1 = await Tesseract.createWorker('eng', 1, { logger: () => {} });
+      await w1.setParameters(wo);
+      ocrWorkers[0] = w1;
+      ocrWorkerReady[0] = true;
+
+      b.textContent = 'W2...';
+      const w2 = await Tesseract.createWorker('eng', 1, { logger: () => {} });
+      await w2.setParameters(wo);
+      ocrWorkers[1] = w2;
+      ocrWorkerReady[1] = true;
+
+      ocrReady = true;
+      b.textContent = '✓ 2x';
+      b.className = 'badge rdy';
+      log('Dual OCR ready', 'g');
+      pipelineLoop();
+    } catch (e) {
+      b.textContent = '✗';
+      b.className = 'badge fail';
+      log('OCR err: ' + e.message, 'e');
+    }
+  }
+
+  let dirOcrTimer = 0, lastDistProcessTime = 0;
+  const MIN_OCR_INTERVAL = 50;
+
+  function getFirstFreeWorker() {
+    if (!ocrWorkerBusy[0] && ocrWorkerReady[0]) return 0;
+    if (!ocrWorkerBusy[1] && ocrWorkerReady[1]) return 1;
+    return -1;
+  }
+
+  function pipelineLoop() {
+    if (!running || !ocrReady) { if (running) setTimeout(pipelineLoop, 50); return; }
+    const now = Date.now();
+
+    if (distRegion && now - lastDistProcessTime >= MIN_OCR_INTERVAL) {
+      const fi = getFirstFreeWorker();
+      if (fi !== -1) {
+        lastDistProcessTime = now;
+        const cd = captureDistFrame();
+        if (cd) dispatchDistOCR(fi, cd);
+      }
+    }
+
+    if ($('dirChk').checked && dirRegion && now - dirOcrTimer > 200) {
+      const fi = getFirstFreeWorker();
+      if (fi !== -1) {
+        dirOcrTimer = now;
+        dispatchDirOCR(fi);
+      }
+    }
+
+    ocrFrameCount++;
+    if (now - ocrFpsLastTime >= 1000) {
+      ocrFps = ocrFrameCount;
+      ocrFrameCount = 0;
+      ocrFpsLastTime = now;
+      $('fpsDisplay').innerHTML = 'OCR: <b>' + ocrFps + '</b>';
+      $('dbgPipe').textContent = ocrFps + ' fps';
+      $('dbgPipe').className = ocrFps >= 10 ? 'dbg-v ok' : ocrFps >= 5 ? 'dbg-v warn' : 'dbg-v bad';
+    }
+
+    const delay = (ocrWorkerBusy[0] && ocrWorkerBusy[1]) ? 10 : 5;
+    setTimeout(pipelineLoop, delay);
+  }
+
+  function getScale(pw,ph){
+    const b=+$('sclR').value,m=Math.max(pw,ph);
+    if(m<50)return Math.min(b,3);
+    if(m<100)return Math.min(b,2);
+    if(m<200)return Math.min(b,1.5);
+    return 1;
+  }
+
+  function processImg(img){
+    const d=img.data,thr=+$('thrR').value,inv=$('invChk').checked,autoT=$('autoChk').checked;
+    let useThr=thr;
+
+    if(autoT){
+      const h=new Array(256).fill(0);
+      for(let i=0;i<d.length;i+=4){
+        const g=Math.round(0.299*d[i]+0.587*d[i+1]+0.114*d[i+2]);
+        h[g]++;
+      }
+      const tot=d.length/4;let sum=0;for(let i=0;i<256;i++)sum+=i*h[i];
+      let sumB=0,wB=0,wF=0,maxV=0,bestT=thr;
+      for(let t=0;t<256;t++){
+        wB+=h[t];if(wB===0)continue;
+        wF=tot-wB;if(wF===0)break;
+        sumB+=t*h[t];
+        const mB=sumB/wB,mF=(sum-sumB)/wF,v=wB*wF*(mB-mF)*(mB-mF);
+        if(v>maxV){maxV=v;bestT=t;}
+      }
+      useThr=bestT;
+    }
+
+    for(let i=0;i<d.length;i+=4){
+      const g=0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];
+      let v=g>useThr?255:0;
+      if(inv)v=255-v;
+      d[i]=d[i+1]=d[i+2]=v;
+    }
+  }
+
+  function captureDistFrame() {
+    if (!distRegion) return null;
+    const reg = distRegion;
+    const px = Math.round(reg.x*vidW), py = Math.round(reg.y*vidH),
+          pw = Math.max(1,Math.round(reg.w*vidW)), ph = Math.max(1,Math.round(reg.h*vidH));
+
+    const sc = getScale(pw,ph), sw = pw*sc, sh = ph*sc;
+    const maxDim = 300, scale = Math.min(1, maxDim/Math.max(sw,sh));
+    const finalW = Math.round(sw*scale), finalH = Math.round(sh*scale);
+
+    workCvs.width = finalW; workCvs.height = finalH;
+    workCtx.imageSmoothingEnabled = true;
+    workCtx.imageSmoothingQuality = 'medium';
+    workCtx.drawImage(vid, px, py, pw, ph, 0, 0, finalW, finalH);
+
+    rawCvs.width = Math.min(pw,200);
+    rawCvs.height = Math.min(ph,50);
+    rawCtx.imageSmoothingEnabled = false;
+    rawCtx.drawImage(vid, px, py, pw, ph, 0, 0, rawCvs.width, rawCvs.height);
+
+    const img = workCtx.getImageData(0,0,finalW,finalH);
+    processImg(img);
+    workCtx.putImageData(img,0,0);
+
+    procCvs.width = Math.min(finalW,200);
+    procCvs.height = Math.min(finalH,50);
+    procCtx.imageSmoothingEnabled = false;
+    procCtx.drawImage(workCvs,0,0,procCvs.width,procCvs.height);
+
+    $('dbgReg').textContent = pw+'×'+ph+'→'+finalW+'×'+finalH;
+    $('dbgReg').className = 'dbg-v ok';
+
+    const oc = document.createElement('canvas');
+    oc.width = finalW; oc.height = finalH;
+    oc.getContext('2d').drawImage(workCvs,0,0);
+    return { canvas: oc };
+  }
+
+  async function dispatchDistOCR(wi, cd) {
+    ocrWorkerBusy[wi] = true;
+    const t0 = performance.now();
+    try {
+      const w = ocrWorkers[wi];
+      await w.setParameters({ tessedit_char_whitelist: DIST_WHITELIST, tessedit_pageseg_mode: '7' });
+      const res = await w.recognize(cd.canvas);
+      const el = Math.round(performance.now()-t0);
+      $('dbgTime').textContent = el+'ms (W'+(wi+1)+')';
+      $('dbgTime').className = el<80?'dbg-v ok':el<150?'dbg-v warn':'dbg-v bad';
+      processDistResult(res);
+    } catch (e) {
+      log('W'+(wi+1)+' err: '+e.message,'e');
+    }
+    ocrWorkerBusy[wi] = false;
+  }
+
+  const MIDDLE_WORDS = ['middle','middie','midd1e','m1ddle','rniddle','middl','mlddle','mid'];
+  const GOAL_WORDS = ['goal','goa1','g0al','goai','qoal','g0a1'];
+
+  function detectMiddle(raw, lines) {
+    const all = [raw, ...lines].map(s => s.toLowerCase());
+    for (const s of all) for (const w of MIDDLE_WORDS) if (s.includes(w)) return true;
+    return false;
+  }
+  function detectGoal(raw, lines) {
+    const all = [raw, ...lines].map(s => s.toLowerCase());
+    for (const s of all) for (const w of GOAL_WORDS) if (s.includes(w)) return true;
+    return false;
+  }
+
+  function hasQuestionMark(raw,lines){
+    if(raw.includes('?'))return true;
+    for(const l of lines)if(l.includes('?'))return true;
+    return false;
+  }
+
+  function findBracket(text){
+    if(!text)return null;
+    for(const p of[/\((\d{1,4})\)/,/\[(\d{1,4})\]/,/\((\d{1,4})\s*\)/,/\(\s*(\d{1,4})\)/]){
+      const m=text.match(p);
+      if(m&&m[1]){
+        const n=parseInt(m[1],10);
+        if(n>=10&&n<=9999)return n;
+      }
+    }
+    let cl=text.replace(/\{/g,'(').replace(/\}/g,')').replace(/\[/g,'(').replace(/\]/g,')').replace(/\|/g,'1');
+    cl=cl.replace(/\(([^)]*)\)/g,(_,inner)=>{
+      let f=inner.replace(/[oO]/g,'0').replace(/[lI|!]/g,'1').replace(/[sS$]/g,'5').replace(/[zZ]/g,'2').replace(/[Bb]/g,'8')
+                 .replace(/[gG]/g,'9').replace(/[Aa@]/g,'4').replace(/[qQ]/g,'9').replace(/\s/g,'');
+      return '('+f+')';
+    });
+    for(const p of[/\((\d{1,4})\)/,/\(\s*(\d{1,4})\s*\)/]){
+      const m=cl.match(p);
+      if(m&&m[1]){
+        const n=parseInt(m[1],10);
+        if(n>=10&&n<=9999)return n;
+      }
+    }
+    return null;
+  }
+
+  function findAny(text){
+    if(!text)return null;
+    if(!/[0-9]/.test(text))return null;
+    let cl=text.replace(/[oOQ]/g,'0').replace(/[lIi|!]/g,'1').replace(/[sS$]/g,'5').replace(/[zZ]/g,'2')
+               .replace(/[Bb]/g,'8').replace(/[gG]/g,'9').replace(/[Aa@]/g,'4');
+    const ms=cl.match(/\d{2,4}/g);if(!ms)return null;
+    const cands=[];
+    for(const m of ms){
+      const n=parseInt(m,10);
+      if(n>=10&&n<=9999)cands.push(n);
+    }
+    if(!cands.length)return null;
+
+    if(lastGoodNum!==null&&(Date.now()-lastGoodTime)<5000){
+      let best=cands[0],bd=Math.abs(cands[0]-lastGoodNum);
+      for(let i=1;i<cands.length;i++){
+        const df=Math.abs(cands[i]-lastGoodNum);
+        if(df<bd){bd=df;best=cands[i];}
+      }
+      return best;
+    }
+    return cands[0];
+  }
+
+  function stabilize(num){
+    recentReadings.push(num);
+    if(recentReadings.length>MAX_READINGS)recentReadings.shift();
+    if(recentReadings.length>=2){
+      const sorted=[...recentReadings].sort((a,b)=>a-b);
+      const med=sorted[Math.floor(sorted.length/2)];
+      const avg=recentReadings.reduce((a,b)=>a+b,0)/recentReadings.length;
+      const stdDev=Math.sqrt(recentReadings.map(x=>Math.pow(x-avg,2)).reduce((a,b)=>a+b,0)/recentReadings.length);
+      if(stdDev<30)return Math.round(avg);
+      return med;
+    }
+    return num;
+  }
+
+  function processDistResult(res) {
+    const raw = res.data.text.trim(), conf = Math.round(res.data.confidence);
+    $('dbgRaw').textContent = raw ? `"${raw.substring(0,80)}"` : '(empty)';
+    $('dbgConf').textContent = conf+'%';
+    $('dbgConf').className = conf>=60?'dbg-v ok':conf>=30?'dbg-v warn':'dbg-v bad';
+
+    const lines = raw.split('\n').map(l=>l.trim()).filter(l=>l.length>0);
+    $('dbgLines').textContent = lines.length+': '+lines.map(l=>`"${l}"`).join(', ').substring(0,100);
+
+    if (!raw) {
+      noDetectCount++;
+      $('dbgNum').textContent = 'Empty (' + noDetectCount + ')';
+      $('dbgNum').className = 'dbg-v bad';
+      $('dbgStrat').textContent = 'empty';
+      $('dbgStrat').className = 'dbg-v bad';
+      return;
+    }
+
+    if (detectGoal(raw,lines)) {
+      $('dbgSpecial').textContent='GOAL'; $('dbgSpecial').className='dbg-v warn';
+      $('dbgStrat').textContent='goal-word'; $('dbgStrat').className='dbg-v ok';
+      isGoal=true;isMiddle=false;isBallLoose=false;lastNum=null;
+
+      $('resultNum').textContent='🥅 GOAL'; $('resultNum').className='res-num goal';
+      $('resultLbl').textContent='GOAL SCORED'; $('resultLbl').className='res-lbl orange';
+      $('resultBox').className='res-display orange';
+
+      applyState('GOAL','goal');
+      return;
+    }
+
+    if (detectMiddle(raw,lines)) {
+      $('dbgSpecial').textContent='MIDDLE'; $('dbgSpecial').className='dbg-v warn';
+      $('dbgStrat').textContent='middle-word'; $('dbgStrat').className='dbg-v ok';
+      isMiddle=true;isGoal=false;isBallLoose=false;lastNum=null;
+
+      $('resultNum').textContent='⚽ MIDDLE'; $('resultNum').className='res-num middle';
+      $('resultLbl').textContent='BALL IN MIDDLE'; $('resultLbl').className='res-lbl purple';
+      $('resultBox').className='res-display purple';
+
+      applyState('MIDDLE','middle');
+      return;
+    }
+
+    if(isMiddle){isMiddle=false;middleAnnounced=false;}
+    if(isGoal){isGoal=false;goalAnnounced=false;}
+
+    if (hasQuestionMark(raw,lines)) {
+      $('dbgNum').textContent='?→LOOSE'; $('dbgNum').className='dbg-v bad';
+      $('dbgBracket').textContent='?'; $('dbgBracket').className='dbg-v bad';
+      $('dbgStrat').textContent='question-mark'; $('dbgStrat').className='dbg-v warn';
+      $('dbgSpecial').textContent='—';
+      isBallLoose=true;lastNum=null;stateHistory=[];
+
+      $('resultNum').textContent='BALL LOOSE'; $('resultNum').className='res-num loose';
+      $('resultLbl').textContent='NO LOCK'; $('resultLbl').className='res-lbl loose';
+      $('resultBox').className='res-display red';
+
+      applyState('BALL LOOSE','?');
+      return;
+    }
+
+    isBallLoose=false;
+    $('dbgSpecial').textContent='—'; $('dbgSpecial').className='dbg-v';
+
+    if (!/[0-9]/.test(raw)) {
+      noDetectCount++;
+      $('dbgNum').textContent = 'No digits (' + noDetectCount + ')';
+      $('dbgNum').className = 'dbg-v bad';
+      $('dbgBracket').textContent = 'None';
+      $('dbgBracket').className = 'dbg-v warn';
+      $('dbgStrat').textContent = 'no-digits';
+      $('dbgStrat').className = 'dbg-v bad';
+      return;
+    }
+
+    let num=null, strat='none';
+    for(const l of lines){const n=findBracket(l);if(n!==null){num=n;strat='bracket-line';break;}}
+    if(num===null){const n=findBracket(raw);if(n!==null){num=n;strat='bracket-full';}}
+    if(num===null){const n=findAny(raw);if(n!==null){num=n;strat='any-full';}}
+
+    $('dbgBracket').textContent=(strat.startsWith('bracket')&&num!==null)?num:'None';
+    $('dbgBracket').className=(strat.startsWith('bracket')&&num!==null)?'dbg-v ok':'dbg-v warn';
+    $('dbgStrat').textContent=strat;
+    $('dbgStrat').className=num!==null?'dbg-v ok':'dbg-v bad';
+
+    if (num !== null) {
+      num = stabilize(num);
+      $('dbgNum').textContent=num;
+      $('dbgNum').className='dbg-v ok';
+
+      lastNum=num;
+      lastGoodNum=num;
+      lastGoodTime=Date.now();
+      noDetectCount=0;
+
+      const st = getState(num);
+      $('resultNum').textContent=num;
+      $('resultNum').className='res-num '+st.toLowerCase();
+      $('resultLbl').textContent=st;
+      $('resultLbl').className='res-lbl '+st.toLowerCase();
+      $('resultBox').className='res-display '+st.toLowerCase();
+
+      applyState(st,num);
+    } else {
+      noDetectCount++;
+      $('dbgNum').textContent='Not found ('+noDetectCount+')';
+      $('dbgNum').className='dbg-v bad';
+    }
+  }
+
+  async function dispatchDirOCR(wi) {
+    if (!dirRegion) return;
+    ocrWorkerBusy[wi] = true;
+    try {
+      const reg=dirRegion;
+      const px=Math.round(reg.x*vidW),py=Math.round(reg.y*vidH),
+            pw=Math.max(1,Math.round(reg.w*vidW)),ph=Math.max(1,Math.round(reg.h*vidH));
+      const sw=Math.min(pw,200),sh=Math.min(ph,60);
+
+      workCvs2.width=sw;workCvs2.height=sh;
+      workCtx2.imageSmoothingEnabled=true;workCtx2.imageSmoothingQuality='medium';
+      workCtx2.drawImage(vid,px,py,pw,ph,0,0,sw,sh);
+
+      const img=workCtx2.getImageData(0,0,sw,sh);
+      processImg(img);
+      workCtx2.putImageData(img,0,0);
+
+      const w=ocrWorkers[wi];
+      await w.setParameters({ tessedit_char_whitelist: DIR_WHITELIST, tessedit_pageseg_mode:'7' });
+
+      const res=await w.recognize(workCvs2);
+      const raw=res.data.text.trim().toLowerCase();
+      $('dirRawText').textContent=raw?'OCR: "'+raw.substring(0,60)+'"':'';
+
+      if(!manualDirOverride){
+        let found='';
+        for(const[k,v]of Object.entries(DIR_KEYWORDS)){ if(raw.includes(k)){found=v;break;} }
+        if(found!==detectedDir){
+          detectedDir=found;
+          if(found)log('Dir: '+found,'g');
+          updateDirDisplay();
+          restartRep();
+        }
+      }
+    } catch(e){ log('Dir err: '+e.message,'e'); }
+    ocrWorkerBusy[wi]=false;
+  }
+
+  // ===== Apply state (host UI + network + beep) =====
+  function applyState(state, dist) {
+    const dir = getActiveDir();
+    broadcastState(state, dist, $('dirChk').checked ? dir : '');
+    updateStateDirLine();
+
+    if (state === 'MIDDLE') {
+      $('stateBox').className='state-hero purple';
+      $('stateVal').className='st-big purple';
+      $('stateVal').textContent='⚽ MIDDLE';
+      $('stateDist').textContent='Ball in middle';
+
+      if (curState !== 'MIDDLE') {
+        log(curState+' → MIDDLE','w');
+        curState='MIDDLE';
+        stopRep();
+        if (!muted && !middleAnnounced) {
+          // notification beep
+          const ctx = ensureBeepCtx();
+          const now = ctx.currentTime;
+          const osc = ctx.createOscillator();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(600, now);
+          const gain = ctx.createGain();
+          gain.gain.setValueAtTime(0, now);
+          gain.gain.linearRampToValueAtTime(+$('volR').value * 0.3, now + 0.02);
+          gain.gain.linearRampToValueAtTime(0, now + 0.3);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.35);
+          middleAnnounced=true;
+        }
+      }
+      goalAnnounced=false;
+      return;
+    }
+
+    if (state === 'GOAL') {
+      $('stateBox').className='state-hero orange';
+      $('stateVal').className='st-big orange';
+      $('stateVal').textContent='🥅 GOAL';
+      $('stateDist').textContent='Goal scored!';
+
+      if (curState !== 'GOAL') {
+        log(curState+' → GOAL','w');
+        curState='GOAL';
+        stopRep();
+        if (!muted && !goalAnnounced) {
+          const ctx = ensureBeepCtx();
+          const now = ctx.currentTime;
+          const osc = ctx.createOscillator();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(1000, now);
+          const gain = ctx.createGain();
+          gain.gain.setValueAtTime(0, now);
+          gain.gain.linearRampToValueAtTime(+$('volR').value * 0.3, now + 0.02);
+          gain.gain.linearRampToValueAtTime(0, now + 0.3);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.35);
+          goalAnnounced=true;
+        }
+      }
+      middleAnnounced=false;
+      return;
+    }
+
+    if (state === 'BALL LOOSE') {
+      $('stateBox').className='state-hero red';
+      $('stateVal').className='st-big loose';
+      $('stateVal').textContent='BALL LOOSE';
+      $('stateDist').textContent='? — No Lock';
+
+      if (curState !== 'BALL LOOSE') {
+        log(curState+' → BALL LOOSE','w');
+        curState='BALL LOOSE';
+        if (!muted) {
+          playDirectionalBeep('', +$('volR').value, 'BALL LOOSE', $('voiceLine'), 400);
+        }
+        startRep();
+      }
+      return;
+    }
+
+    const sl = state.toLowerCase();
+    $('stateBox').className='state-hero '+sl;
+    $('stateVal').className='st-big '+sl;
+    $('stateVal').textContent=state;
+    $('stateDist').textContent=dist;
+
+    if (state !== curState) {
+      log(curState+' → '+state+' ('+dist+')','w');
+      curState = state;
+
+      if (!muted) {
+        const d = $('dirChk').checked ? getActiveDir() : '';
+        const n = (typeof dist === 'number') ? dist : lastNum;
+        const ms = beepIntervalForDistance(n, state, +$('repR').value);
+        playDirectionalBeep(d, +$('volR').value, state, $('voiceLine'), ms);
+      }
+
+      startRep();
+    }
+  }
+
+  // ===== logger init =====
+  log('ORION ready');
+</script>
+</body>
+</html>
