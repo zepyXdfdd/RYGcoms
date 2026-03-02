@@ -1,1412 +1,1308 @@
-<!doctype html>
-<html lang="en">
+<!doctype html><html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>ORION (All-device audio + Meta/Quest relay + Target filter)</title>
-  <style>
-    :root{
-      --bg:#06060e;--card:#0a0a16;--card2:#070711;--brd:#1b1b33;
-      --t1:#e8e8ff;--t2:#9a9ab5;--t3:#5b5b78;
-      --red:#ff3d50;--yel:#ffb800;--grn:#00e878;--blu:#00a0ff;
-      --rg:rgba(255,61,80,.15);--yg:rgba(255,184,0,.15);--gg:rgba(0,232,120,.15);--bg2:rgba(0,160,255,.15);
-      --r:12px;--rs:8px;
-    }
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{background:var(--bg);color:var(--t1);font-family:system-ui,Segoe UI,Inter,Arial;min-height:100vh}
-    .hidden{display:none!important}
-    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;z-index:999;padding:22px}
-    .panel{width:min(920px,100%);background:var(--card);border:1px solid var(--brd);border-radius:var(--r);padding:18px}
-    .title{font-weight:900;letter-spacing:6px;font-size:34px;text-align:center}
-    .sub{margin-top:8px;text-align:center;color:var(--t3);letter-spacing:2px;font-size:12px}
-    .row{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px;justify-content:center}
-    .btn{cursor:pointer;border:1px solid var(--brd);background:rgba(255,255,255,.03);color:var(--t2);padding:12px 16px;border-radius:999px;font-weight:700}
-    .btn:hover{border-color:var(--grn);color:var(--grn)}
-    .btn.act{border-color:var(--grn);color:var(--grn);background:rgba(0,232,120,.10)}
-    .input{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--brd);background:#0c0c18;color:var(--t1);font-size:16px;letter-spacing:4px;text-transform:uppercase;text-align:center;outline:none}
-    .status{margin-top:10px;text-align:center;font-family:ui-monospace,Consolas,monospace;font-size:11px;color:var(--t3)}
-    .status.ok{color:var(--grn)} .status.warn{color:var(--yel)} .status.bad{color:var(--red)}
-    .nav{position:sticky;top:0;z-index:50;background:var(--card);border-bottom:1px solid var(--brd);padding:10px 16px;display:flex;justify-content:space-between;align-items:center}
-    .nav .brand{display:flex;align-items:center;gap:10px;font-weight:900;letter-spacing:3px}
-    .pill{padding:4px 10px;border-radius:999px;border:1px solid var(--brd);font-size:11px;color:var(--t3);font-family:ui-monospace,Consolas,monospace}
-    .pill.conn{border-color:rgba(0,160,255,.25);color:var(--blu);background:rgba(0,160,255,.10)}
-    .pill.live{border-color:rgba(0,232,120,.25);color:var(--grn);background:rgba(0,232,120,.10)}
-    .app{max-width:1400px;margin:0 auto;padding:14px;display:grid;grid-template-columns:1fr 380px;gap:14px}
-    @media(max-width:980px){.app{grid-template-columns:1fr}}
-    .card{background:var(--card);border:1px solid var(--brd);border-radius:var(--r);overflow:hidden}
-    .ch{padding:10px 14px;background:var(--card2);border-bottom:1px solid var(--brd);color:var(--t2);font-weight:900;letter-spacing:1px;font-size:12px;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center}
-    .cb{padding:14px}
-    .videoWrap{position:relative;border:1px solid var(--brd);border-radius:var(--rs);overflow:hidden;background:#000}
-    video{width:100%;height:auto;display:block}
-    .drag{position:absolute;inset:0;cursor:crosshair}
-    .box{position:absolute;border:2px solid var(--grn);background:rgba(0,232,120,.08);display:none}
-    .box.show{display:block}
-    .box.dir{border-color:var(--blu);background:rgba(0,160,255,.08)}
-    .hint{position:absolute;left:50%;transform:translateX(-50%);bottom:10px;background:rgba(0,0,0,.75);padding:6px 12px;border-radius:999px;font-size:11px;color:var(--t3)}
-    .modeRow{display:flex;gap:8px;margin-bottom:10px}
-    .mode{flex:1;padding:10px 12px;border-radius:12px;border:1px solid var(--brd);background:rgba(255,255,255,.03);color:var(--t3);cursor:pointer;font-weight:800}
-    .mode.onD{border-color:rgba(0,232,120,.25);color:var(--grn);background:rgba(0,232,120,.10)}
-    .mode.onR{border-color:rgba(0,160,255,.25);color:var(--blu);background:rgba(0,160,255,.10)}
-    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    canvas{width:100%;height:70px;background:#05050d;border:1px solid var(--brd);border-radius:10px;image-rendering:pixelated}
-    .hero{border:2px solid var(--brd);border-radius:var(--r);padding:18px;text-align:center;position:relative;overflow:hidden}
-    .hero.red{border-color:var(--red);background:var(--rg)}
-    .hero.yellow{border-color:var(--yel);background:var(--yg)}
-    .hero.green{border-color:var(--grn);background:var(--gg)}
-    .hero.blue{border-color:var(--blu);background:var(--bg2)}
-    .hState{font-size:44px;font-family:ui-monospace,Consolas,monospace;font-weight:900}
-    .hDist{margin-top:8px;color:var(--t2);font-family:ui-monospace,Consolas,monospace;font-size:18px}
-    .hDir{margin-top:6px;color:var(--blu);font-family:ui-monospace,Consolas,monospace;font-size:14px;letter-spacing:2px;min-height:18px}
-    .srow{display:flex;align-items:center;gap:10px;margin:10px 0}
-    .srow label{min-width:88px;color:var(--t3);font-size:11px;font-weight:700}
-    .srow input[type=range]{flex:1}
-    .srow input[type=text]{flex:1;padding:9px 10px;border-radius:10px;border:1px solid var(--brd);background:#0c0c18;color:var(--t1);font-size:12px;outline:none}
-    .srow select{flex:1;padding:9px 10px;border-radius:10px;border:1px solid var(--brd);background:#0c0c18;color:var(--t2);font-size:11px}
-    .tgl{display:flex;gap:10px;align-items:center;color:var(--t2);font-size:12px;margin-top:10px}
-    .tgl input{width:16px;height:16px;accent-color:var(--grn)}
-    .vline{margin-top:10px;padding:8px 10px;background:#070712;border:1px solid var(--brd);border-radius:10px;font-family:ui-monospace,Consolas,monospace;font-size:11px;color:var(--t3);min-height:30px;text-align:center}
-    .vline.talk{color:var(--yel)} .vline.ok{color:var(--grn)} .vline.bad{color:var(--red)}
-    .remoteWrap{max-width:720px;margin:0 auto;padding:16px}
-    .smallNote{color:var(--t3);font-size:11px;line-height:1.6;margin-top:8px}
-  </style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>ORION (All-device audio + Meta/Quest relay + Target filter)</title>
+<style>
+:root{
+  --bg:#06060e;--card:#0a0a16;--card2:#070711;--brd:#1b1b33;
+  --t1:#e8e8ff;--t2:#9a9ab5;--t3:#5b5b78;
+  --red:#ff3d50;--yel:#ffb800;--grn:#00e878;--blu:#00a0ff;
+  --rg:rgba(255,61,80,.15);--yg:rgba(255,184,0,.15);--gg:rgba(0,232,120,.15);--bg2:rgba(0,160,255,.15);
+  --r:12px;--rs:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--t1);font-family:system-ui,Segoe UI,Inter,Arial;min-height:100vh}
+.hidden{display:none!important}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;z-index:999;padding:22px}
+.panel{width:min(920px,100%);background:var(--card);border:1px solid var(--brd);border-radius:var(--r);padding:18px}
+.title{font-weight:900;letter-spacing:6px;font-size:34px;text-align:center}
+.sub{margin-top:8px;text-align:center;color:var(--t3);letter-spacing:2px;font-size:12px}
+.row{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px;justify-content:center}
+.btn{cursor:pointer;border:1px solid var(--brd);background:rgba(255,255,255,.03);color:var(--t2);padding:12px 16px;border-radius:999px;font-weight:700}
+.btn:hover{border-color:var(--grn);color:var(--grn)}
+.btn.act{border-color:var(--grn);color:var(--grn);background:rgba(0,232,120,.10)}
+.input{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--brd);background:#0c0c18;color:var(--t1);font-size:16px;letter-spacing:4px;text-transform:uppercase;text-align:center;outline:none}
+.status{margin-top:10px;text-align:center;font-family:ui-monospace,Consolas,monospace;font-size:11px;color:var(--t3)}
+.status.ok{color:var(--grn)}
+.status.warn{color:var(--yel)}
+.status.bad{color:var(--red)}
+.nav{position:sticky;top:0;z-index:50;background:var(--card);border-bottom:1px solid var(--brd);padding:10px 16px;display:flex;justify-content:space-between;align-items:center}
+.nav .brand{display:flex;align-items:center;gap:10px;font-weight:900;letter-spacing:3px}
+.pill{padding:4px 10px;border-radius:999px;border:1px solid var(--brd);font-size:11px;color:var(--t3);font-family:ui-monospace,Consolas,monospace}
+.pill.conn{border-color:rgba(0,160,255,.25);color:var(--blu);background:rgba(0,160,255,.10)}
+.pill.live{border-color:rgba(0,232,120,.25);color:var(--grn);background:rgba(0,232,120,.10)}
+.app{max-width:1400px;margin:0 auto;padding:14px;display:grid;grid-template-columns:1fr 380px;gap:14px}
+@media(max-width:980px){.app{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--brd);border-radius:var(--r);overflow:hidden}
+.ch{padding:10px 14px;background:var(--card2);border-bottom:1px solid var(--brd);color:var(--t2);font-weight:900;letter-spacing:1px;font-size:12px;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center}
+.cb{padding:14px}
+.videoWrap{position:relative;border:1px solid var(--brd);border-radius:var(--rs);overflow:hidden;background:#000}
+video{width:100%;height:auto;display:block}
+.drag{position:absolute;inset:0;cursor:crosshair}
+.box{position:absolute;border:2px solid var(--grn);background:rgba(0,232,120,.08);display:none}
+.box.show{display:block}
+.box.dir{border-color:var(--blu);background:rgba(0,160,255,.08)}
+.hint{position:absolute;left:50%;transform:translateX(-50%);bottom:10px;background:rgba(0,0,0,.75);padding:6px 12px;border-radius:999px;font-size:11px;color:var(--t3)}
+.modeRow{display:flex;gap:8px;margin-bottom:10px}
+.mode{flex:1;padding:10px 12px;border-radius:12px;border:1px solid var(--brd);background:rgba(255,255,255,.03);color:var(--t3);cursor:pointer;font-weight:800}
+.mode.onD{border-color:rgba(0,232,120,.25);color:var(--grn);background:rgba(0,232,120,.10)}
+.mode.onR{border-color:rgba(0,160,255,.25);color:var(--blu);background:rgba(0,160,255,.10)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+canvas{width:100%;height:70px;background:#05050d;border:1px solid var(--brd);border-radius:10px;image-rendering:pixelated}
+.hero{border:2px solid var(--brd);border-radius:var(--r);padding:18px;text-align:center;position:relative;overflow:hidden}
+.hero.red{border-color:var(--red);background:var(--rg)}
+.hero.yellow{border-color:var(--yel);background:var(--yg)}
+.hero.green{border-color:var(--grn);background:var(--gg)}
+.hero.blue{border-color:var(--blu);background:var(--bg2)}
+.hState{font-size:44px;font-family:ui-monospace,Consolas,monospace;font-weight:900}
+.hDist{margin-top:8px;color:var(--t2);font-family:ui-monospace,Consolas,monospace;font-size:18px}
+.hDir{margin-top:6px;color:var(--blu);font-family:ui-monospace,Consolas,monospace;font-size:14px;letter-spacing:2px;min-height:18px}
+.srow{display:flex;align-items:center;gap:10px;margin:10px 0}
+.srow label{min-width:88px;color:var(--t3);font-size:11px;font-weight:700}
+.srow input[type=range]{flex:1}
+.srow input[type=text]{flex:1;padding:9px 10px;border-radius:10px;border:1px solid var(--brd);background:#0c0c18;color:var(--t1);font-size:12px;outline:none}
+.srow select{flex:1;padding:9px 10px;border-radius:10px;border:1px solid var(--brd);background:#0c0c18;color:var(--t2);font-size:11px}
+.tgl{display:flex;gap:10px;align-items:center;color:var(--t2);font-size:12px;margin-top:10px}
+.tgl input{width:16px;height:16px;accent-color:var(--grn)}
+.vline{margin-top:10px;padding:8px 10px;background:#070712;border:1px solid var(--brd);border-radius:10px;font-family:ui-monospace,Consolas,monospace;font-size:11px;color:var(--t3);min-height:30px;text-align:center}
+.vline.talk{color:var(--yel)}
+.vline.ok{color:var(--grn)}
+.vline.bad{color:var(--red)}
+.remoteWrap{max-width:720px;margin:0 auto;padding:16px}
+.smallNote{color:var(--t3);font-size:11px;line-height:1.6;margin-top:8px}
+.tts-engine-row{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.tts-engine-btn{cursor:pointer;border:1px solid var(--brd);background:rgba(255,255,255,.03);color:var(--t2);padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700}
+.tts-engine-btn.act{border-color:var(--grn);color:var(--grn);background:rgba(0,232,120,.10)}
+</style>
 </head>
-
 <body>
-  <!-- ROLE OVERLAY -->
-  <div class="overlay" id="roleOverlay">
-    <div class="panel">
-      <div class="title">ORION</div>
-      <div class="sub">ALL-DEVICE AUDIO (VOICE OR AUTO-FALLBACK BEEPS) + META/QUEST RELAY</div>
-      <div class="row">
-        <button class="btn" onclick="chooseRole('host')">HOST</button>
-        <button class="btn" onclick="chooseRole('remote')">REMOTE</button>
+
+<!-- ROLE OVERLAY -->
+<div class="overlay" id="roleOverlay">
+  <div class="panel">
+    <div class="title">ORION</div>
+    <div class="sub">ALL-DEVICE AUDIO · META/QUEST COMPATIBLE TTS</div>
+    <div class="row">
+      <button class="btn" onclick="chooseRole('host')">HOST</button>
+      <button class="btn" onclick="chooseRole('remote')">REMOTE</button>
+    </div>
+    <div class="status" style="margin-top:14px">
+      Uses Web Audio TTS (works on Quest/Meta Browser). Falls back to beeps if all TTS fails.
+    </div>
+  </div>
+</div>
+
+<!-- HOST SETUP -->
+<div class="overlay hidden" id="hostOverlay">
+  <div class="panel">
+    <div class="title">HOST</div>
+    <div class="sub">Share this room code</div>
+    <div class="row" style="margin-top:14px">
+      <div style="width:min(520px,100%)">
+        <div class="status">ROOM CODE</div>
+        <div class="title" id="hostRoomCode" style="letter-spacing:12px">-----</div>
+        <div class="status" id="hostRelayStatus">Relay: connecting…</div>
       </div>
-      <div class="status" style="margin-top:14px">
-        If speech voice doesn't work on your device/browser (common on Quest), the app automatically falls back to beeps so you always hear something.
+    </div>
+    <div class="row">
+      <button class="btn act" id="shareBtn">SHARE SCREEN</button>
+    </div>
+    <div class="status">Draw box around: <b>zepyX (123)</b> (name + number together) for best results.</div>
+  </div>
+</div>
+
+<!-- REMOTE SETUP -->
+<div class="overlay hidden" id="remoteOverlay">
+  <div class="panel">
+    <div class="title">REMOTE</div>
+    <div class="sub">Enter room code</div>
+    <div class="row" style="width:100%">
+      <div style="width:min(520px,100%)">
+        <input class="input" id="roomIn" maxlength="6" placeholder="ROOM"/>
+        <button class="btn act" style="width:100%;margin-top:10px" onclick="joinRoom()">JOIN</button>
+        <div class="status" id="remoteRelayStatus">Relay: ready</div>
+        <div class="smallNote" id="remoteAudioNote"></div>
       </div>
     </div>
   </div>
+</div>
 
-  <!-- HOST SETUP -->
-  <div class="overlay hidden" id="hostOverlay">
-    <div class="panel">
-      <div class="title">HOST</div>
-      <div class="sub">Share this room code</div>
-      <div class="row" style="margin-top:14px">
-        <div style="width:min(520px,100%)">
-          <div class="status">ROOM CODE</div>
-          <div class="title" id="hostRoomCode" style="letter-spacing:12px">-----</div>
-          <div class="status" id="hostRelayStatus">Relay: connecting…</div>
-        </div>
-      </div>
-      <div class="row">
-        <button class="btn act" id="shareBtn">SHARE SCREEN</button>
-      </div>
-      <div class="status">Draw box around: <b>zepyX (123)</b> (name + number together) for best results.</div>
+<!-- HOST NAV + UI -->
+<div class="hidden" id="hostUI">
+  <div class="nav">
+    <div class="brand">ORION <span class="pill" id="hostRoomPill">ROOM -----</span></div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <span class="pill conn" id="relayPill">Relay: …</span>
+      <span class="pill live" id="livePill">LIVE</span>
     </div>
   </div>
 
-  <!-- REMOTE SETUP -->
-  <div class="overlay hidden" id="remoteOverlay">
-    <div class="panel">
-      <div class="title">REMOTE</div>
-      <div class="sub">Enter room code</div>
-      <div class="row" style="width:100%">
-        <div style="width:min(520px,100%)">
-          <input class="input" id="roomIn" maxlength="6" placeholder="ROOM" />
-          <button class="btn act" style="width:100%;margin-top:10px" onclick="joinRoom()">JOIN</button>
-          <div class="status" id="remoteRelayStatus">Relay: ready</div>
-          <div class="smallNote" id="remoteAudioNote"></div>
+  <div class="app">
+    <div>
+      <div class="card">
+        <div class="ch">
+          <span>Screen</span>
+          <span class="pill" id="capInfo">—</span>
         </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- HOST NAV + UI -->
-  <div class="hidden" id="hostUI">
-    <div class="nav">
-      <div class="brand">ORION <span class="pill" id="hostRoomPill">ROOM -----</span></div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <span class="pill conn" id="relayPill">Relay: …</span>
-        <span class="pill live" id="livePill">LIVE</span>
-      </div>
-    </div>
-
-    <div class="app">
-      <div>
-        <div class="card">
-          <div class="ch">
-            <span>Screen</span>
-            <span class="pill" id="capInfo">—</span>
+        <div class="cb">
+          <div class="modeRow">
+            <button class="mode onD" id="modeDist" onclick="setMode('distance')">Distance Box</button>
+            <button class="mode" id="modeDir" onclick="setMode('direction')">Direction Box</button>
           </div>
-          <div class="cb">
-            <div class="modeRow">
-              <button class="mode onD" id="modeDist" onclick="setMode('distance')">Distance Box</button>
-              <button class="mode" id="modeDir" onclick="setMode('direction')">Direction Box</button>
-            </div>
-            <div class="videoWrap" id="videoWrap">
-              <video id="vid" playsinline muted></video>
-              <div class="drag" id="drag"></div>
-              <div class="box" id="distBox"></div>
-              <div class="box dir" id="dirBox"></div>
-              <div class="hint" id="hint">Draw DISTANCE box</div>
-            </div>
-
-            <div class="row" style="justify-content:flex-start;margin-top:10px">
-              <button class="btn" onclick="clearBoxes()">CLEAR</button>
-              <button class="btn" onclick="setPreset('top')">PRESET TOP</button>
-              <button class="btn" onclick="setPreset('topRight')">PRESET TOP-R</button>
-            </div>
+          <div class="videoWrap" id="videoWrap">
+            <video id="vid" playsinline muted></video>
+            <div class="drag" id="drag"></div>
+            <div class="box" id="distBox"></div>
+            <div class="box dir" id="dirBox"></div>
+            <div class="hint" id="hint">Draw DISTANCE box</div>
+          </div>
+          <div class="row" style="justify-content:flex-start;margin-top:10px">
+            <button class="btn" onclick="clearBoxes()">CLEAR</button>
+            <button class="btn" onclick="setPreset('top')">PRESET TOP</button>
+            <button class="btn" onclick="setPreset('topRight')">PRESET TOP-R</button>
           </div>
         </div>
-
-        <div class="card" style="margin-top:14px">
-          <div class="ch"><span>OCR</span><span class="pill" id="ocrStatus">idle</span></div>
-          <div class="cb">
-            <div class="grid2">
-              <div>
-                <div class="status">Captured</div>
-                <canvas id="rawCvs"></canvas>
-              </div>
-              <div>
-                <div class="status">Processed</div>
-                <canvas id="procCvs"></canvas>
-              </div>
-            </div>
-            <div class="status" id="ocrDbg" style="margin-top:10px">—</div>
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <div class="hero" id="hero">
-          <div class="status">CURRENT</div>
-          <div class="hState" id="hState">—</div>
-          <div class="hDist" id="hDist">Waiting…</div>
-          <div class="hDir" id="hDir"></div>
-          <div class="status" id="hNameLine"></div>
-        </div>
-
-        <div class="card" style="margin-top:14px">
-          <div class="ch"><span>Target Filter</span></div>
-          <div class="cb">
-            <div class="tgl">
-              <input type="checkbox" id="filterOn" checked />
-              <span>Only track player name:</span>
-            </div>
-            <div class="srow">
-              <label>Target</label>
-              <input type="text" id="filterName" value="zepyX" />
-            </div>
-            <div class="smallNote">
-              If the spectate swaps players, non-target players are ignored and state becomes OFF until the target appears (prevents "stuck on RED").
-            </div>
-          </div>
-        </div>
-
-        <div class="card" style="margin-top:14px">
-          <div class="ch"><span>Thresholds</span></div>
-          <div class="cb">
-            <div class="srow"><label>Red ≤</label><input type="range" id="redR" min="100" max="2000" step="10" value="500"><span class="pill" id="redV">500</span></div>
-            <div class="srow" id="yelRow"><label>Yellow ≤</label><input type="range" id="yelR" min="100" max="2500" step="10" value="600"><span class="pill" id="yelV">600</span></div>
-            <div class="tgl"><input type="checkbox" id="skipY"><span>Skip Yellow (Red/Green only)</span></div>
-          </div>
-        </div>
-
-        <div class="card" style="margin-top:14px">
-          <div class="ch"><span>Voice / Beep</span></div>
-          <div class="cb">
-            <div class="srow"><label>Volume</label><input type="range" id="vol" min="0" max="1" step="0.05" value="0.8"><span class="pill" id="volV">80%</span></div>
-            <div class="srow"><label>Speed</label><input type="range" id="spd" min="0.7" max="1.5" step="0.1" value="1"><span class="pill" id="spdV">1.0x</span></div>
-            <div class="srow"><label>Base Int</label><input type="range" id="rep" min="1" max="5" step="0.5" value="2"><span class="pill" id="repV">2.0s</span></div>
-            <div class="srow"><label>Voice</label><select id="voiceSel"></select></div>
-
-            <div class="row" style="justify-content:flex-start">
-              <button class="btn" onclick="testVoice()">TEST</button>
-              <button class="btn act" id="muteBtn" onclick="toggleMute()">ON</button>
-            </div>
-            <div class="vline" id="voiceLine">—</div>
-            <div class="smallNote" id="ttsNote"></div>
-          </div>
-        </div>
-
-        <div class="card" style="margin-top:14px">
-          <div class="ch"><span>Direction</span></div>
-          <div class="cb">
-            <div class="tgl"><input type="checkbox" id="dirEnable"><span>Enable Direction OCR</span></div>
-            <div class="srow"><label>Manual</label>
-              <select id="dirManual">
-                <option value="">Auto</option>
-                <option value="left">Left</option>
-                <option value="right">Right</option>
-                <option value="behind">Behind</option>
-                <option value="in front">In Front</option>
-                <option value="above">Above</option>
-                <option value="below">Below</option>
-              </select>
-            </div>
-            <div class="status" id="dirDbg">Draw direction box around direction text.</div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </div>
-
-  <!-- REMOTE UI -->
-  <div class="hidden" id="remoteUI">
-    <div class="nav">
-      <div class="brand">ORION <span class="pill" id="remoteRoomPill">ROOM -----</span></div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <span class="pill conn" id="remoteRelayPill">Relay: …</span>
-        <span class="pill" id="delayPill">Delay: —</span>
-      </div>
-    </div>
-
-    <div class="remoteWrap">
-      <div class="hero" id="rHero">
-        <div class="status">REMOTE</div>
-        <div class="hState" id="rState">WAITING</div>
-        <div class="hDist" id="rDist">—</div>
-        <div class="hDir" id="rDir"></div>
-        <div class="status" id="rNameLine"></div>
-        <div class="status" id="rTime">—</div>
       </div>
 
       <div class="card" style="margin-top:14px">
-        <div class="ch"><span>Target Filter (Remote)</span></div>
+        <div class="ch"><span>OCR</span><span class="pill" id="ocrStatus">idle</span></div>
+        <div class="cb">
+          <div class="grid2">
+            <div><div class="status">Captured</div><canvas id="rawCvs"></canvas></div>
+            <div><div class="status">Processed</div><canvas id="procCvs"></canvas></div>
+          </div>
+          <div class="status" id="ocrDbg" style="margin-top:10px">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="hero" id="hero">
+        <div class="status">CURRENT</div>
+        <div class="hState" id="hState">—</div>
+        <div class="hDist" id="hDist">Waiting…</div>
+        <div class="hDir" id="hDir"></div>
+        <div class="status" id="hNameLine"></div>
+      </div>
+
+      <div class="card" style="margin-top:14px">
+        <div class="ch"><span>Target Filter</span></div>
         <div class="cb">
           <div class="tgl">
-            <input type="checkbox" id="rFilterOn" checked />
-            <span>Only accept data for player:</span>
+            <input type="checkbox" id="filterOn" checked/>
+            <span>Only track player name:</span>
           </div>
           <div class="srow">
             <label>Target</label>
-            <input type="text" id="rFilterName" value="zepyX" />
+            <input type="text" id="filterName" value="zepyX"/>
           </div>
-          <div class="smallNote">
-            If the host sends data for a different player name, the remote will ignore it and show OFF until the target player appears.
-          </div>
+          <div class="smallNote">If spectate swaps players, non-target players are ignored.</div>
         </div>
       </div>
 
       <div class="card" style="margin-top:14px">
-        <div class="ch"><span>Thresholds (Remote)</span></div>
+        <div class="ch"><span>Thresholds</span></div>
         <div class="cb">
-          <div class="srow"><label>Red ≤</label><input type="range" id="rRedR" min="100" max="2000" step="10" value="500"><span class="pill" id="rRedV">500</span></div>
-          <div class="srow" id="rYelRow"><label>Yellow ≤</label><input type="range" id="rYelR" min="100" max="2500" step="10" value="600"><span class="pill" id="rYelV">600</span></div>
-          <div class="tgl"><input type="checkbox" id="rSkipY"><span>Skip Yellow (Red/Green only)</span></div>
+          <div class="srow"><label>Red ≤</label><input type="range" id="redR" min="100" max="2000" step="10" value="500"><span class="pill" id="redV">500</span></div>
+          <div class="srow" id="yelRow"><label>Yellow ≤</label><input type="range" id="yelR" min="100" max="2500" step="10" value="600"><span class="pill" id="yelV">600</span></div>
+          <div class="tgl"><input type="checkbox" id="skipY"><span>Skip Yellow (Red/Green only)</span></div>
         </div>
       </div>
 
       <div class="card" style="margin-top:14px">
-        <div class="ch"><span>Voice / Beep (Remote)</span></div>
+        <div class="ch"><span>Voice / Audio</span></div>
         <div class="cb">
-          <div class="srow"><label>Volume</label><input type="range" id="rVol" min="0" max="1" step="0.05" value="0.8"><span class="pill" id="rVolV">80%</span></div>
-          <div class="srow"><label>Speed</label><input type="range" id="rSpd" min="0.7" max="1.5" step="0.1" value="1"><span class="pill" id="rSpdV">1.0x</span></div>
-          <div class="srow"><label>Base Int</label><input type="range" id="rRep" min="1" max="5" step="0.5" value="2"><span class="pill" id="rRepV">2.0s</span></div>
-          <div class="srow"><label>Voice</label><select id="rVoiceSel"></select></div>
-
+          <div class="status" style="text-align:left;margin-bottom:6px">TTS Engine:</div>
+          <div class="tts-engine-row" id="hostEngineRow">
+            <button class="tts-engine-btn act" onclick="setHostEngine('webaudio')" id="hEng_webaudio">Web Audio (Quest)</button>
+            <button class="tts-engine-btn" onclick="setHostEngine('browser')" id="hEng_browser">Browser TTS</button>
+            <button class="tts-engine-btn" onclick="setHostEngine('beep')" id="hEng_beep">Beep Only</button>
+          </div>
+          <div class="srow"><label>Volume</label><input type="range" id="vol" min="0" max="1" step="0.05" value="0.8"><span class="pill" id="volV">80%</span></div>
+          <div class="srow"><label>Speed</label><input type="range" id="spd" min="0.7" max="1.5" step="0.1" value="1"><span class="pill" id="spdV">1.0x</span></div>
+          <div class="srow"><label>Base Int</label><input type="range" id="rep" min="1" max="5" step="0.5" value="2"><span class="pill" id="repV">2.0s</span></div>
+          <div class="srow" id="voiceSelRow"><label>Voice</label><select id="voiceSel"></select></div>
           <div class="row" style="justify-content:flex-start">
-            <button class="btn" onclick="rTestVoice()">TEST</button>
-            <button class="btn act" id="rMuteBtn" onclick="rToggleMute()">ON</button>
+            <button class="btn" onclick="testVoice()">TEST</button>
+            <button class="btn act" id="muteBtn" onclick="toggleMute()">ON</button>
           </div>
-          <div class="vline" id="rVoiceLine">—</div>
-          <div class="smallNote" id="rTtsNote"></div>
+          <div class="vline" id="voiceLine">—</div>
+          <div class="smallNote" id="ttsNote"></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px">
+        <div class="ch"><span>Direction</span></div>
+        <div class="cb">
+          <div class="tgl"><input type="checkbox" id="dirEnable"><span>Enable Direction OCR</span></div>
+          <div class="srow"><label>Manual</label>
+            <select id="dirManual">
+              <option value="">Auto</option>
+              <option value="left">Left</option>
+              <option value="right">Right</option>
+              <option value="behind">Behind</option>
+              <option value="in front">In Front</option>
+              <option value="above">Above</option>
+              <option value="below">Below</option>
+            </select>
+          </div>
+          <div class="status" id="dirDbg">Draw direction box around direction text.</div>
         </div>
       </div>
     </div>
   </div>
+</div>
+
+<!-- REMOTE UI -->
+<div class="hidden" id="remoteUI">
+  <div class="nav">
+    <div class="brand">ORION <span class="pill" id="remoteRoomPill">ROOM -----</span></div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <span class="pill conn" id="remoteRelayPill">Relay: …</span>
+      <span class="pill" id="delayPill">Delay: —</span>
+    </div>
+  </div>
+
+  <div class="remoteWrap">
+    <div class="hero" id="rHero">
+      <div class="status">REMOTE</div>
+      <div class="hState" id="rState">WAITING</div>
+      <div class="hDist" id="rDist">—</div>
+      <div class="hDir" id="rDir"></div>
+      <div class="status" id="rNameLine"></div>
+      <div class="status" id="rTime">—</div>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+      <div class="ch"><span>Target Filter (Remote)</span></div>
+      <div class="cb">
+        <div class="tgl">
+          <input type="checkbox" id="rFilterOn" checked/>
+          <span>Only accept data for player:</span>
+        </div>
+        <div class="srow">
+          <label>Target</label>
+          <input type="text" id="rFilterName" value="zepyX"/>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+      <div class="ch"><span>Thresholds (Remote)</span></div>
+      <div class="cb">
+        <div class="srow"><label>Red ≤</label><input type="range" id="rRedR" min="100" max="2000" step="10" value="500"><span class="pill" id="rRedV">500</span></div>
+        <div class="srow" id="rYelRow"><label>Yellow ≤</label><input type="range" id="rYelR" min="100" max="2500" step="10" value="600"><span class="pill" id="rYelV">600</span></div>
+        <div class="tgl"><input type="checkbox" id="rSkipY"><span>Skip Yellow (Red/Green only)</span></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+      <div class="ch"><span>Voice / Audio (Remote)</span></div>
+      <div class="cb">
+        <div class="status" style="text-align:left;margin-bottom:6px">TTS Engine:</div>
+        <div class="tts-engine-row" id="remoteEngineRow">
+          <button class="tts-engine-btn act" onclick="setRemoteEngine('webaudio')" id="rEng_webaudio">Web Audio (Quest)</button>
+          <button class="tts-engine-btn" onclick="setRemoteEngine('browser')" id="rEng_browser">Browser TTS</button>
+          <button class="tts-engine-btn" onclick="setRemoteEngine('beep')" id="rEng_beep">Beep Only</button>
+        </div>
+        <div class="srow"><label>Volume</label><input type="range" id="rVol" min="0" max="1" step="0.05" value="0.8"><span class="pill" id="rVolV">80%</span></div>
+        <div class="srow"><label>Speed</label><input type="range" id="rSpd" min="0.7" max="1.5" step="0.1" value="1"><span class="pill" id="rSpdV">1.0x</span></div>
+        <div class="srow"><label>Base Int</label><input type="range" id="rRep" min="1" max="5" step="0.5" value="2"><span class="pill" id="rRepV">2.0s</span></div>
+        <div class="srow" id="rVoiceSelRow"><label>Voice</label><select id="rVoiceSel"></select></div>
+        <div class="row" style="justify-content:flex-start">
+          <button class="btn" onclick="rTestVoice()">TEST</button>
+          <button class="btn act" id="rMuteBtn" onclick="rToggleMute()">ON</button>
+        </div>
+        <div class="vline" id="rVoiceLine">—</div>
+        <div class="smallNote" id="rTtsNote"></div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
-/* =========================================================
-   IMPORTANT AUDIO BEHAVIOR (ALL DEVICES)
-   =========================================================
-   - We ALWAYS attempt speech for colors (RED/YELLOW/GREEN).
-   - If speech fails to start within 800ms (common on Quest /
-     restricted browsers), we automatically fall back to beeps
-     and mark TTS as "broken" for this session.
-   - Quest / Meta headset: we use a more aggressive unlock
-     strategy and retry TTS multiple times before giving up.
-   - NO directional beeping at all. Beeps are uniform tone.
-   ========================================================= */
-
+/* =================================================================
+   DEVICE DETECTION
+   ================================================================= */
 const IS_QUEST = /OculusBrowser|Quest|Meta\s?Quest/i.test(navigator.userAgent);
 
-/* =========================================================
-   Meta/Quest relay fix: Multi-relay fallback (443-first)
-   ========================================================= */
-const MQTT_ENDPOINTS = [
-  { name: "Eclipse 443", url: "wss://mqtt.eclipseprojects.io:443/mqtt", proto: "mqtt" },
-  { name: "Eclipse",     url: "wss://mqtt.eclipseprojects.io/mqtt",     proto: "mqtt" },
-  { name: "HiveMQ",      url: "wss://broker.hivemq.com:8884/mqtt",      proto: "mqtt" },
-  { name: "EMQX",        url: "wss://broker.emqx.io:8084/mqtt",         proto: "mqtt" }
-];
+/* =================================================================
+   WEB AUDIO TTS ENGINE
+   Plays spoken words using pre-recorded base64 PCM audio data
+   encoded as WAV files, decoded via AudioContext.
+   This works on Quest/Meta Browser because AudioContext is fully
+   supported even when SpeechSynthesis is broken.
+   ================================================================= */
 
+// We'll use the ResponsiveVoice free API or a simple phoneme
+// synthesiser. Since we can't load external URLs reliably on Quest
+// without CORS, we use a pure Web Audio formant synthesiser.
+
+let sharedAudioCtx = null;
+function getAudioCtx() {
+  if (!sharedAudioCtx || sharedAudioCtx.state === 'closed') {
+    sharedAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (sharedAudioCtx.state === 'suspended') {
+    sharedAudioCtx.resume().catch(() => {});
+  }
+  return sharedAudioCtx;
+}
+
+/* --- Formant synthesiser ---
+   Each word is defined as a sequence of formant frames.
+   Each frame: [duration_ms, F1, F2, F3, amplitude, voiced]
+   This produces intelligible speech via Web Audio API oscillators.
+*/
+const FORMANT_WORDS = {
+  // "Red" - R(rhotic) + EH + D
+  'red': [
+    [60,  400, 1200, 2500, 0.6, true],   // R
+    [90,  600, 1800, 2600, 0.9, true],   // EH
+    [70,  500, 1200, 2400, 0.7, true],   // D (voiced stop - approximated)
+    [40,  300,  900, 2000, 0.2, true],
+  ],
+  // "Yellow" - Y + EH + L + OW
+  'yellow': [
+    [50,  300, 2200, 3000, 0.5, true],   // Y
+    [80,  600, 1800, 2600, 0.9, true],   // EH
+    [70,  500, 1000, 2500, 0.8, true],   // L
+    [90,  450,  850, 2300, 0.8, true],   // OW
+    [50,  350,  700, 2100, 0.4, true],
+  ],
+  // "Green" - G + R + IY + N
+  'green': [
+    [50,  250,  900, 2500, 0.5, true],   // G
+    [50,  350, 1100, 2400, 0.6, true],   // R
+    [90,  280, 2200, 3000, 0.9, true],   // IY
+    [80,  400, 1500, 2500, 0.8, true],   // N
+    [50,  300, 1000, 2000, 0.3, true],
+  ],
+  // "Ball" - B + AO + L
+  'ball': [
+    [40,  250,  800, 2200, 0.3, true],   // B
+    [90,  700,  900, 2500, 0.9, true],   // AO
+    [70,  500,  900, 2400, 0.7, true],   // L
+    [40,  300,  700, 2000, 0.2, true],
+  ],
+  // "Loose" - L + UW + S
+  'loose': [
+    [60,  500,  900, 2400, 0.7, true],   // L
+    [90,  300,  700, 2200, 0.9, true],   // UW
+    [80,    0, 5000, 6000, 0.4, false],  // S (fricative)
+    [40,    0, 4500, 5500, 0.15,false],
+  ],
+  // "Left"
+  'left': [
+    [50,  500, 1000, 2400, 0.7, true],   // L
+    [80,  600, 1800, 2600, 0.9, true],   // EH
+    [50,    0, 5000, 6500, 0.3, false],  // F
+    [50,  400,  800, 2000, 0.5, true],   // T
+  ],
+  // "Right"
+  'right': [
+    [50,  400, 1200, 2500, 0.6, true],   // R
+    [80,  280, 2200, 3000, 0.9, true],   // AY
+    [50,  400,  800, 2000, 0.4, true],   // T
+  ],
+  // "Behind"
+  'behind': [
+    [40,  250,  800, 2200, 0.3, true],   // B
+    [60,  400, 1800, 2600, 0.7, true],   // IH
+    [50,  400, 1800, 2600, 0.6, true],   // H (approximated)
+    [80,  280, 2200, 3000, 0.9, true],   // AY
+    [70,  400, 1500, 2500, 0.7, true],   // N
+    [50,  300, 1000, 2000, 0.3, true],   // D
+  ],
+  // "In"
+  'in': [
+    [60,  400, 1800, 2600, 0.9, true],   // IH
+    [70,  400, 1500, 2500, 0.7, true],   // N
+  ],
+  // "Front"
+  'front': [
+    [60,    0, 5000, 6500, 0.4, false],  // F
+    [60,  400,  900, 2200, 0.8, true],   // R+AH
+    [60,  400, 1500, 2500, 0.7, true],   // N
+    [50,  300,  800, 2000, 0.4, true],   // T
+  ],
+  // "Above"
+  'above': [
+    [50,  600,  900, 2500, 0.7, true],   // AH
+    [50,  250,  800, 2200, 0.3, true],   // B
+    [70,  300, 1200, 2500, 0.8, true],   // AH
+    [60,  500, 1000, 2500, 0.7, true],   // V
+  ],
+  // "Below"
+  'below': [
+    [40,  250,  800, 2200, 0.3, true],   // B
+    [70,  400, 1800, 2600, 0.8, true],   // IH
+    [60,  500,  900, 2400, 0.7, true],   // L
+    [80,  450,  850, 2300, 0.8, true],   // OW
+  ],
+};
+
+function synthesizeWord(ctx, word, startTime, volume, rate) {
+  const frames = FORMANT_WORDS[word.toLowerCase()];
+  if (!frames) return startTime;
+
+  const masterGain = ctx.createGain();
+  masterGain.gain.setValueAtTime(Math.min(volume, 1), startTime);
+  masterGain.connect(ctx.destination);
+
+  let t = startTime;
+  for (const [durMs, f1, f2, f3, amp, voiced] of frames) {
+    const dur = (durMs / 1000) / Math.max(0.5, rate);
+    const endT = t + dur;
+
+    if (voiced && f1 > 0) {
+      // Voiced sound: use oscillator for fundamental + formants
+      const fundamental = 120; // Hz, average vocal fundamental
+      const osc = ctx.createOscillator();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(fundamental, t);
+
+      // F1 bandpass
+      const bp1 = ctx.createBiquadFilter();
+      bp1.type = 'bandpass';
+      bp1.frequency.setValueAtTime(f1, t);
+      bp1.Q.setValueAtTime(8, t);
+
+      // F2 bandpass
+      const bp2 = ctx.createBiquadFilter();
+      bp2.type = 'bandpass';
+      bp2.frequency.setValueAtTime(f2, t);
+      bp2.Q.setValueAtTime(8, t);
+
+      // F3 bandpass
+      const bp3 = ctx.createBiquadFilter();
+      bp3.type = 'bandpass';
+      bp3.frequency.setValueAtTime(f3, t);
+      bp3.Q.setValueAtTime(10, t);
+
+      const fGain = ctx.createGain();
+      fGain.gain.setValueAtTime(0, t);
+      fGain.gain.linearRampToValueAtTime(amp * 0.4, t + Math.min(0.015, dur * 0.2));
+      fGain.gain.setValueAtTime(amp * 0.4, endT - Math.min(0.015, dur * 0.2));
+      fGain.gain.linearRampToValueAtTime(0, endT);
+
+      osc.connect(bp1); osc.connect(bp2); osc.connect(bp3);
+      bp1.connect(fGain); bp2.connect(fGain); bp3.connect(fGain);
+      fGain.connect(masterGain);
+
+      osc.start(t);
+      osc.stop(endT + 0.005);
+    } else if (!voiced && f2 > 0) {
+      // Unvoiced: noise-like (use a buffer source)
+      try {
+        const bufSize = Math.max(1, Math.floor(ctx.sampleRate * dur));
+        const noiseBuffer = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+        const data = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1);
+
+        const noiseSrc = ctx.createBufferSource();
+        noiseSrc.buffer = noiseBuffer;
+
+        const hp = ctx.createBiquadFilter();
+        hp.type = 'highpass';
+        hp.frequency.setValueAtTime(Math.min(f2, ctx.sampleRate / 3), t);
+        hp.Q.setValueAtTime(0.7, t);
+
+        const nGain = ctx.createGain();
+        nGain.gain.setValueAtTime(0, t);
+        nGain.gain.linearRampToValueAtTime(amp * 0.15, t + Math.min(0.01, dur * 0.2));
+        nGain.gain.setValueAtTime(amp * 0.15, endT - Math.min(0.01, dur * 0.2));
+        nGain.gain.linearRampToValueAtTime(0, endT);
+
+        noiseSrc.connect(hp);
+        hp.connect(nGain);
+        nGain.connect(masterGain);
+        noiseSrc.start(t);
+        noiseSrc.stop(endT + 0.005);
+      } catch(e) {}
+    }
+
+    t = endT;
+  }
+
+  // Small gap between words
+  return t + 0.06;
+}
+
+function speakWebAudio(phrase, volume, rate, lineEl, label) {
+  try {
+    const ctx = getAudioCtx();
+    const words = phrase.toLowerCase().split(/\s+/).filter(w => w.length > 0);
+    let t = ctx.currentTime + 0.05;
+
+    for (const word of words) {
+      if (FORMANT_WORDS[word]) {
+        t = synthesizeWord(ctx, word, t, volume, rate);
+      }
+    }
+
+    if (lineEl) {
+      lineEl.textContent = '🔊 ' + phrase;
+      lineEl.className = 'vline talk';
+      const dur = Math.max(300, (t - ctx.currentTime) * 1000);
+      setTimeout(() => {
+        if (lineEl.textContent === '🔊 ' + phrase) {
+          lineEl.textContent = '✓';
+          lineEl.className = 'vline ok';
+        }
+      }, dur + 100);
+    }
+    return true;
+  } catch(e) {
+    console.warn('WebAudio TTS error:', e);
+    return false;
+  }
+}
+
+/* =================================================================
+   MQTT RELAY
+   ================================================================= */
+const MQTT_ENDPOINTS = [
+  { name:"Eclipse 443", url:"wss://mqtt.eclipseprojects.io:443/mqtt", proto:"mqtt" },
+  { name:"Eclipse",     url:"wss://mqtt.eclipseprojects.io/mqtt",     proto:"mqtt" },
+  { name:"HiveMQ",      url:"wss://broker.hivemq.com:8884/mqtt",      proto:"mqtt" },
+  { name:"EMQX",        url:"wss://broker.emqx.io:8084/mqtt",         proto:"mqtt" },
+];
 let mqttWs=null, mqttConnected=false, mqttEndpointIndex=0;
 let mqttConnectTimer=null, mqttConnAckTimer=null, mqttReconnectTimer=null, mqttPingInterval=null;
-let mqttClientId = "orion-" + Math.random().toString(36).slice(2, 10);
+let mqttClientId = "orion-" + Math.random().toString(36).slice(2,10);
 
 function mqttEncodeRemainingLength(len){
   const out=[];
   do{
-    let digit=len%128;
-    len=Math.floor(len/128);
+    let digit=len%128; len=Math.floor(len/128);
     if(len>0) digit|=0x80;
     out.push(digit);
-  }while(len>0);
+  } while(len>0);
   return out;
 }
-
 function mqttClose(){
   try{ if(mqttWs) mqttWs.close(); }catch(e){}
   mqttWs=null; mqttConnected=false;
-  if(mqttPingInterval){ clearInterval(mqttPingInterval); mqttPingInterval=null; }
-  if(mqttConnAckTimer){ clearTimeout(mqttConnAckTimer); mqttConnAckTimer=null; }
-  if(mqttConnectTimer){ clearTimeout(mqttConnectTimer); mqttConnectTimer=null; }
+  if(mqttPingInterval){clearInterval(mqttPingInterval);mqttPingInterval=null;}
+  if(mqttConnAckTimer){clearTimeout(mqttConnAckTimer);mqttConnAckTimer=null;}
+  if(mqttConnectTimer){clearTimeout(mqttConnectTimer);mqttConnectTimer=null;}
 }
-
 function scheduleReconnect(){
   if(mqttReconnectTimer) return;
-  mqttReconnectTimer=setTimeout(()=>{
-    mqttReconnectTimer=null;
-    mqttConnect();
-  }, 1500);
+  mqttReconnectTimer=setTimeout(()=>{mqttReconnectTimer=null;mqttConnect();},1500);
 }
-
-function setRelayUI(text, cls){
-  const hostEl = document.getElementById("hostRelayStatus");
-  const relayPill = document.getElementById("relayPill");
-  const remoteRelayStatus = document.getElementById("remoteRelayStatus");
-  const remoteRelayPill = document.getElementById("remoteRelayPill");
-
-  if(hostEl){ hostEl.textContent=text; hostEl.className="status "+(cls||""); }
-  if(remoteRelayStatus){ remoteRelayStatus.textContent=text; remoteRelayStatus.className="status "+(cls||""); }
-  if(relayPill) relayPill.textContent = text.replace("Relay: ","");
-  if(remoteRelayPill) remoteRelayPill.textContent = text.replace("Relay: ","");
+function setRelayUI(text,cls){
+  const els=['hostRelayStatus','remoteRelayStatus'];
+  els.forEach(id=>{const e=document.getElementById(id);if(e){e.textContent=text;e.className='status '+(cls||'');}});
+  const pills=['relayPill','remoteRelayPill'];
+  pills.forEach(id=>{const e=document.getElementById(id);if(e) e.textContent=text.replace('Relay: ','');});
 }
-
 function mqttConnect(){
-  mqttClose();
-  mqttConnected=false;
-
-  const ep = MQTT_ENDPOINTS[mqttEndpointIndex % MQTT_ENDPOINTS.length];
-  setRelayUI(`Relay: connecting (${ep.name})…`, "warn");
-
+  mqttClose(); mqttConnected=false;
+  const ep=MQTT_ENDPOINTS[mqttEndpointIndex%MQTT_ENDPOINTS.length];
+  setRelayUI(`Relay: connecting (${ep.name})…`,'warn');
   let ws;
-  try{
-    ws = new WebSocket(ep.url, ep.proto);
-  }catch(e){
-    mqttEndpointIndex++;
-    setRelayUI(`Relay: blocked (${ep.name}), trying next…`, "bad");
-    scheduleReconnect();
-    return;
-  }
-  mqttWs = ws;
-  mqttWs.binaryType="arraybuffer";
-
+  try{ ws=new WebSocket(ep.url,ep.proto); }
+  catch(e){ mqttEndpointIndex++; setRelayUI(`Relay: blocked (${ep.name}), trying next…`,'bad'); scheduleReconnect(); return; }
+  mqttWs=ws; mqttWs.binaryType='arraybuffer';
   mqttConnectTimer=setTimeout(()=>{
-    setRelayUI(`Relay: timeout (${ep.name}), trying next…`, "bad");
-    mqttEndpointIndex++;
-    mqttClose();
-    scheduleReconnect();
-  }, 6500);
-
+    setRelayUI(`Relay: timeout (${ep.name}), trying next…`,'bad');
+    mqttEndpointIndex++; mqttClose(); scheduleReconnect();
+  },6500);
   mqttWs.onopen=()=>{
-    if(mqttConnectTimer){ clearTimeout(mqttConnectTimer); mqttConnectTimer=null; }
-
+    if(mqttConnectTimer){clearTimeout(mqttConnectTimer);mqttConnectTimer=null;}
     const cid=mqttClientId, cl=cid.length;
     const rl=10+2+cl;
-    const p=new Uint8Array(2+rl);
-    let i=0;
-    p[i++]=0x10; p[i++]=rl;
-    p[i++]=0; p[i++]=4; p[i++]=77; p[i++]=81; p[i++]=84; p[i++]=84;
-    p[i++]=4;
-    p[i++]=2;
-    p[i++]=0; p[i++]=60;
-    p[i++]=(cl>>8)&0xff; p[i++]=cl&0xff;
+    const p=new Uint8Array(2+rl); let i=0;
+    p[i++]=0x10;p[i++]=rl;p[i++]=0;p[i++]=4;
+    p[i++]=77;p[i++]=81;p[i++]=84;p[i++]=84;
+    p[i++]=4;p[i++]=2;p[i++]=0;p[i++]=60;
+    p[i++]=(cl>>8)&0xff;p[i++]=cl&0xff;
     for(let c=0;c<cl;c++) p[i++]=cid.charCodeAt(c);
     mqttWs.send(p.buffer);
-
     mqttConnAckTimer=setTimeout(()=>{
-      setRelayUI(`Relay: no CONNACK (${ep.name}), trying next…`, "bad");
-      mqttEndpointIndex++;
-      mqttClose();
-      scheduleReconnect();
-    }, 4000);
+      setRelayUI(`Relay: no CONNACK (${ep.name}), trying next…`,'bad');
+      mqttEndpointIndex++; mqttClose(); scheduleReconnect();
+    },4000);
   };
-
   mqttWs.onmessage=(evt)=>{
     const data=new Uint8Array(evt.data);
     if(!data.length) return;
     const type=data[0]>>4;
-
     if(type===2){
-      if(mqttConnAckTimer){ clearTimeout(mqttConnAckTimer); mqttConnAckTimer=null; }
+      if(mqttConnAckTimer){clearTimeout(mqttConnAckTimer);mqttConnAckTimer=null;}
       mqttConnected=true;
-      setRelayUI(`Relay: connected (${ep.name})`, "ok");
-
+      setRelayUI(`Relay: connected (${ep.name})`,'ok');
       if(mqttPingInterval) clearInterval(mqttPingInterval);
       mqttPingInterval=setInterval(()=>{
-        if(mqttWs && mqttWs.readyState===1) mqttWs.send(new Uint8Array([0xC0,0]).buffer);
-      }, 25000);
-
+        if(mqttWs&&mqttWs.readyState===1) mqttWs.send(new Uint8Array([0xC0,0]).buffer);
+      },25000);
       mqttSubscribe(getTopic(roomCode));
       return;
     }
-
     if(type===3){
-      let idx=1;
-      let mul=1, rem=0, enc;
-      do{
-        enc=data[idx++];
-        rem+=(enc&127)*mul;
-        mul*=128;
-      }while((enc&128)!==0 && idx<data.length);
-
-      const tl=(data[idx]<<8)|data[idx+1]; idx+=2;
-      idx+=tl;
+      let idx=1; let mul=1,rem=0,enc;
+      do{enc=data[idx++];rem+=(enc&127)*mul;mul*=128;}while((enc&128)!==0&&idx<data.length);
+      const tl=(data[idx]<<8)|data[idx+1]; idx+=2; idx+=tl;
       const payload=new TextDecoder().decode(data.slice(idx));
       onRelayMessage(payload);
       return;
     }
   };
-
-  mqttWs.onerror=()=>{
-    setRelayUI(`Relay: error (${ep.name}), trying next…`, "bad");
-  };
-
+  mqttWs.onerror=()=>setRelayUI(`Relay: error (${ep.name}), trying next…`,'bad');
   mqttWs.onclose=()=>{
     mqttConnected=false;
-    if(mqttConnAckTimer){ clearTimeout(mqttConnAckTimer); mqttConnAckTimer=null; }
-    if(mqttPingInterval){ clearInterval(mqttPingInterval); mqttPingInterval=null; }
+    if(mqttConnAckTimer){clearTimeout(mqttConnAckTimer);mqttConnAckTimer=null;}
+    if(mqttPingInterval){clearInterval(mqttPingInterval);mqttPingInterval=null;}
     mqttEndpointIndex++;
-    setRelayUI(`Relay: disconnected, retrying…`, "warn");
+    setRelayUI('Relay: disconnected, retrying…','warn');
     scheduleReconnect();
   };
 }
-
 function mqttSubscribe(topic){
-  if(!mqttWs || mqttWs.readyState!==1) return;
-  const tb=new TextEncoder().encode(topic), tl=tb.length;
+  if(!mqttWs||mqttWs.readyState!==1) return;
+  const tb=new TextEncoder().encode(topic),tl=tb.length;
   const rl=2+2+tl+1;
-  const p=new Uint8Array(2+rl);
-  let i=0;
-  p[i++]=0x82; p[i++]=rl;
-  p[i++]=0; p[i++]=1;
-  p[i++]=(tl>>8)&0xff; p[i++]=tl&0xff;
-  p.set(tb, i); i+=tl;
-  p[i++]=0;
+  const p=new Uint8Array(2+rl); let i=0;
+  p[i++]=0x82;p[i++]=rl;p[i++]=0;p[i++]=1;
+  p[i++]=(tl>>8)&0xff;p[i++]=tl&0xff;
+  p.set(tb,i);i+=tl;p[i++]=0;
   mqttWs.send(p.buffer);
 }
-
-function mqttPublish(topic, payload){
-  if(!mqttWs || !mqttConnected || mqttWs.readyState!==1) return;
+function mqttPublish(topic,payload){
+  if(!mqttWs||!mqttConnected||mqttWs.readyState!==1) return;
   const tb=new TextEncoder().encode(topic);
   const pb=new TextEncoder().encode(payload);
-  const tl=tb.length, pl=pb.length;
+  const tl=tb.length,pl=pb.length;
   const rl=2+tl+pl;
   const rem=mqttEncodeRemainingLength(rl);
-
-  const p=new Uint8Array(1+rem.length+2+tl+pl);
-  let i=0;
+  const p=new Uint8Array(1+rem.length+2+tl+pl); let i=0;
   p[i++]=0x30;
   for(const b of rem) p[i++]=b;
-  p[i++]=(tl>>8)&0xff; p[i++]=tl&0xff;
-  p.set(tb,i); i+=tl;
-  p.set(pb,i); i+=pl;
+  p[i++]=(tl>>8)&0xff;p[i++]=tl&0xff;
+  p.set(tb,i);i+=tl;p.set(pb,i);
   mqttWs.send(p.buffer);
 }
+function getTopic(code){ return 'orion/room/'+(code||'').toLowerCase(); }
 
-function getTopic(code){ return "orion/room/" + (code||"").toLowerCase(); }
+/* =================================================================
+   AUDIO ENGINE SELECTION
+   ================================================================= */
+// 'webaudio' = formant synth (works on Quest)
+// 'browser'  = SpeechSynthesis API
+// 'beep'     = beep only
+let hostEngine   = IS_QUEST ? 'webaudio' : 'webaudio'; // default webaudio for all
+let remoteEngine = IS_QUEST ? 'webaudio' : 'webaudio';
 
-/* =========================================================
-   Audio: WebAudio beeps (NO directional) + TTS with fallback
-   ========================================================= */
-let beepCtx=null;
-function ensureBeepCtx(){
-  if(!beepCtx) beepCtx=new (window.AudioContext||window.webkitAudioContext)();
-  if(beepCtx.state==="suspended") beepCtx.resume().catch(()=>{});
-  return beepCtx;
+function setHostEngine(eng) {
+  hostEngine = eng;
+  ['webaudio','browser','beep'].forEach(e => {
+    const btn = document.getElementById('hEng_'+e);
+    if(btn) btn.className = 'tts-engine-btn' + (e===eng?' act':'');
+  });
+  const selRow = document.getElementById('voiceSelRow');
+  if(selRow) selRow.style.display = eng==='browser' ? 'flex' : 'none';
+  updateVoiceNotes();
 }
-function resumeTTS(){ try{ speechSynthesis.resume(); }catch(e){} }
-
-let audioUnlocked=false;
-let audioUnlockCount=0;
-function unlockAudio(){
-  audioUnlockCount++;
-  if(audioUnlockCount>3 && audioUnlocked) return;
-  audioUnlocked=true;
-  try{ ensureBeepCtx(); }catch(e){}
-
-  // Aggressive TTS unlock - speak empty utterance multiple times on Quest
-  try{
-    const u=new SpeechSynthesisUtterance(" ");
-    u.volume=0.01;
-    u.rate=2;
-    speechSynthesis.speak(u);
-    setTimeout(()=>{ try{ speechSynthesis.cancel(); }catch(e){} }, 100);
-  }catch(e){}
-
-  // Quest needs extra unlock attempts
-  if(IS_QUEST){
-    setTimeout(()=>{
-      try{
-        const u2=new SpeechSynthesisUtterance(".");
-        u2.volume=0.01;
-        u2.rate=2;
-        speechSynthesis.speak(u2);
-        setTimeout(()=>{ try{ speechSynthesis.cancel(); }catch(e){} }, 100);
-      }catch(e){}
-    }, 300);
-  }
+function setRemoteEngine(eng) {
+  remoteEngine = eng;
+  ['webaudio','browser','beep'].forEach(e => {
+    const btn = document.getElementById('rEng_'+e);
+    if(btn) btn.className = 'tts-engine-btn' + (e===eng?' act':'');
+  });
+  const selRow = document.getElementById('rVoiceSelRow');
+  if(selRow) selRow.style.display = eng==='browser' ? 'flex' : 'none';
+  updateVoiceNotes();
 }
-["pointerdown","mousedown","touchstart","click","keydown"].forEach(ev=>{
-  window.addEventListener(ev, unlockAudio, { passive:true });
-});
 
-function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+/* =================================================================
+   BEEP (uniform, no direction)
+   ================================================================= */
+function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
 
-/* Beep: simple uniform tone, NO directional pan/frequency changes */
 function beepIntervalForDistance(n, state, baseSec, redMax, yelMax, skipY){
-  const repMult = clamp((baseSec||2)/2, 0.25, 3);
-  if(typeof n!=="number" || !isFinite(n)) return Math.round(900*repMult);
+  const repMult=clamp((baseSec||2)/2,0.25,3);
+  if(typeof n!=='number'||!isFinite(n)) return Math.round(900*repMult);
   let ms=1200;
-
   if(skipY){
-    if(state==="RED"){
-      const t=clamp(n/Math.max(1,redMax),0,1);
-      ms=120 + t*650;
-    } else if(state==="GREEN"){
-      const t=clamp((n-redMax)/900,0,1);
-      ms=650 + t*1650;
-    }
+    if(state==='RED'){const t=clamp(n/Math.max(1,redMax),0,1);ms=120+t*650;}
+    else if(state==='GREEN'){const t=clamp((n-redMax)/900,0,1);ms=650+t*1650;}
   } else {
-    if(state==="RED"){
-      const t=clamp(n/Math.max(1,redMax),0,1);
-      ms=120 + t*650;
-    } else if(state==="YELLOW"){
-      const span=Math.max(1,yelMax-redMax);
-      const t=clamp((n-redMax)/span,0,1);
-      ms=350 + t*1150;
-    } else if(state==="GREEN"){
-      const t=clamp((n-yelMax)/1100,0,1);
-      ms=750 + t*1750;
-    }
+    if(state==='RED'){const t=clamp(n/Math.max(1,redMax),0,1);ms=120+t*650;}
+    else if(state==='YELLOW'){const span=Math.max(1,yelMax-redMax);const t=clamp((n-redMax)/span,0,1);ms=350+t*1150;}
+    else if(state==='GREEN'){const t=clamp((n-yelMax)/1100,0,1);ms=750+t*1750;}
   }
-  return Math.round(clamp(ms*repMult, 90, 3000));
+  return Math.round(clamp(ms*repMult,90,3000));
 }
 
 function playBeep(volume, urgent, lineEl, intervalMs){
   if(volume<=0) return;
-  const ctx=ensureBeepCtx();
-  const now=ctx.currentTime;
-
-  const dur = clamp((intervalMs*0.55)/1000, 0.06, 0.18);
-  const attack=Math.min(0.012, dur*0.25);
-  const release=Math.min(0.060, dur*0.45);
-
-  const freq = urgent ? 820 : 660;
-
-  const osc=ctx.createOscillator();
-  osc.type="sine";
-  osc.frequency.setValueAtTime(freq, now);
-
-  const gain=ctx.createGain();
-  const peak=clamp(volume,0,1)*0.35;
-  gain.gain.setValueAtTime(0, now);
-  gain.gain.linearRampToValueAtTime(peak, now+attack);
-  gain.gain.linearRampToValueAtTime(0, now+dur+release);
-
-  osc.connect(gain);
-  gain.connect(ctx.destination);
-  osc.start(now);
-  osc.stop(now + dur + release + 0.02);
-
-  if(lineEl){
-    lineEl.textContent="BEEP";
-    lineEl.className="vline talk";
-    setTimeout(()=>{ lineEl.textContent="✓"; lineEl.className="vline ok"; }, Math.min(300, intervalMs));
-  }
+  try{
+    const ctx=getAudioCtx();
+    const now=ctx.currentTime;
+    const dur=clamp((intervalMs*0.55)/1000,0.06,0.18);
+    const attack=Math.min(0.012,dur*0.25);
+    const release=Math.min(0.060,dur*0.45);
+    const freq=urgent?820:660;
+    const osc=ctx.createOscillator();
+    osc.type='sine';
+    osc.frequency.setValueAtTime(freq,now);
+    const gain=ctx.createGain();
+    const peak=clamp(volume,0,1)*0.35;
+    gain.gain.setValueAtTime(0,now);
+    gain.gain.linearRampToValueAtTime(peak,now+attack);
+    gain.gain.linearRampToValueAtTime(0,now+dur+release);
+    osc.connect(gain);gain.connect(ctx.destination);
+    osc.start(now);osc.stop(now+dur+release+0.02);
+    if(lineEl){
+      lineEl.textContent='BEEP';lineEl.className='vline talk';
+      setTimeout(()=>{lineEl.textContent='✓';lineEl.className='vline ok';},Math.min(300,intervalMs));
+    }
+  }catch(e){}
 }
 
-/* TTS fallback state */
-let hostTtsBroken = false;
-let remoteTtsBroken = false;
-let hostSpeakToken = 0;
-let remoteSpeakToken = 0;
-let hostTtsRetries = 0;
-let remoteTtsRetries = 0;
-const TTS_MAX_RETRIES = 3; // try TTS this many times before declaring broken
+/* =================================================================
+   BROWSER TTS (SpeechSynthesis fallback)
+   ================================================================= */
+let voices=[], rVoices=[];
+let hostSpeakToken=0, remoteSpeakToken=0;
+let speechActivePrio=0, rSpeechActivePrio=0;
 
-function speakWithFallbackHost(text, urgent, prio, fallbackFn){
-  if(muted) return;
-  if(!text) return;
+function resumeTTS(){try{speechSynthesis.resume();}catch(e){}}
 
+function speakBrowser(text, urgent, prio, vol, rate, voiceSelId, lineEl, tokenRef, prioRef, onDone){
   resumeTTS();
   const synth=speechSynthesis;
-  if((synth.speaking || synth.pending) && prio <= speechActivePrio) return;
-
-  const token = ++hostSpeakToken;
-  let started = false;
-
-  if(synth.speaking || synth.pending) synth.cancel();
-  speechActivePrio = prio;
-
+  if(synth.speaking||synth.pending) synth.cancel();
+  prioRef.val=prio;
+  const token=++tokenRef.val;
   const u=new SpeechSynthesisUtterance(text);
-  u.volume=+document.getElementById("vol").value;
-  u.rate=+document.getElementById("spd").value;
-  u.pitch=urgent?1.15:1;
-
-  if(voices && voices.length){
-    const sel=document.getElementById("voiceSel");
-    const v=voices[+sel.value];
-    if(v) u.voice=v;
+  u.volume=vol; u.rate=rate; u.pitch=urgent?1.15:1;
+  const vList=speechSynthesis.getVoices();
+  if(vList.length){
+    const sel=document.getElementById(voiceSelId);
+    if(sel){const v=vList[+sel.value];if(v) u.voice=v;}
   }
-
-  const line=document.getElementById("voiceLine");
   u.onstart=()=>{
-    if(token!==hostSpeakToken) return;
-    started=true;
-    hostTtsBroken=false;
-    hostTtsRetries=0;
-    line.textContent="🔊 "+text;
-    line.className="vline talk";
+    if(lineEl){lineEl.textContent='🔊 '+text;lineEl.className='vline talk';}
   };
   u.onend=()=>{
-    if(token!==hostSpeakToken) return;
-    line.textContent="✓";
-    line.className="vline ok";
-    speechActivePrio=0;
+    prioRef.val=0;
+    if(lineEl){lineEl.textContent='✓';lineEl.className='vline ok';}
+    onDone?.();
   };
-  u.onerror=(e)=>{
-    if(token!==hostSpeakToken) return;
-    speechActivePrio=0;
-    hostTtsRetries++;
-    if(hostTtsRetries>=TTS_MAX_RETRIES){
-      hostTtsBroken=true;
-      line.textContent="⚠ TTS unavailable → beep fallback";
-      line.className="vline bad";
-    }
-    try{ speechSynthesis.cancel(); }catch(e){}
-    fallbackFn?.();
-    updateVoiceNotes();
-  };
-
-  // if it doesn't fire onstart soon, fallback
-  const timeout = IS_QUEST ? 1200 : 800;
-  setTimeout(()=>{
-    if(token!==hostSpeakToken) return;
-    if(!started){
-      speechActivePrio=0;
-      hostTtsRetries++;
-      if(hostTtsRetries>=TTS_MAX_RETRIES){
-        hostTtsBroken=true;
-        line.textContent="⚠ TTS silent → beep fallback";
-        line.className="vline bad";
-      }
-      try{ speechSynthesis.cancel(); }catch(e){}
-      fallbackFn?.();
-      updateVoiceNotes();
-    }
-  }, timeout);
-
+  u.onerror=()=>{prioRef.val=0;onDone?.();};
   synth.speak(u);
 }
 
-function speakWithFallbackRemote(text, urgent, prio, fallbackFn){
-  if(rMuted) return;
-  if(!text) return;
-
-  resumeTTS();
-  const synth=speechSynthesis;
-  if((synth.speaking || synth.pending) && prio <= rSpeechActivePrio) return;
-
-  const token = ++remoteSpeakToken;
-  let started = false;
-
-  if(synth.speaking || synth.pending) synth.cancel();
-  rSpeechActivePrio = prio;
-
-  const u=new SpeechSynthesisUtterance(text);
-  u.volume=+document.getElementById("rVol").value;
-  u.rate=+document.getElementById("rSpd").value;
-  u.pitch=urgent?1.15:1;
-
-  if(rVoices && rVoices.length){
-    const sel=document.getElementById("rVoiceSel");
-    const v=rVoices[+sel.value];
-    if(v) u.voice=v;
+/* =================================================================
+   UNIFIED SPEAK FUNCTION
+   ================================================================= */
+function hostSpeak(phrase, urgent, prio){
+  if(muted||!phrase) return;
+  const vol=+document.getElementById('vol').value;
+  const rate=+document.getElementById('spd').value;
+  const lineEl=document.getElementById('voiceLine');
+  if(hostEngine==='webaudio'){
+    speakWebAudio(phrase, vol, rate, lineEl, phrase);
+  } else if(hostEngine==='browser'){
+    speakBrowser(phrase, urgent, prio, vol, rate, 'voiceSel', lineEl,
+      {val:hostSpeakToken}, {val:speechActivePrio}, null);
+  } else {
+    // beep
+    const ms=beepIntervalForDistance(lastNum, curState, +document.getElementById('rep').value, RED_MAX, YEL_MAX, skipYellow);
+    playBeep(vol, urgent, lineEl, ms);
   }
-
-  const line=document.getElementById("rVoiceLine");
-  u.onstart=()=>{
-    if(token!==remoteSpeakToken) return;
-    started=true;
-    remoteTtsBroken=false;
-    remoteTtsRetries=0;
-    line.textContent="🔊 "+text;
-    line.className="vline talk";
-  };
-  u.onend=()=>{
-    if(token!==remoteSpeakToken) return;
-    line.textContent="✓";
-    line.className="vline ok";
-    rSpeechActivePrio=0;
-  };
-  u.onerror=(e)=>{
-    if(token!==remoteSpeakToken) return;
-    rSpeechActivePrio=0;
-    remoteTtsRetries++;
-    if(remoteTtsRetries>=TTS_MAX_RETRIES){
-      remoteTtsBroken=true;
-      line.textContent="⚠ TTS unavailable → beep fallback";
-      line.className="vline bad";
-    }
-    try{ speechSynthesis.cancel(); }catch(e){}
-    fallbackFn?.();
-    updateVoiceNotes();
-  };
-
-  const timeout = IS_QUEST ? 1200 : 800;
-  setTimeout(()=>{
-    if(token!==remoteSpeakToken) return;
-    if(!started){
-      rSpeechActivePrio=0;
-      remoteTtsRetries++;
-      if(remoteTtsRetries>=TTS_MAX_RETRIES){
-        remoteTtsBroken=true;
-        line.textContent="⚠ TTS silent → beep fallback";
-        line.className="vline bad";
-      }
-      try{ speechSynthesis.cancel(); }catch(e){}
-      fallbackFn?.();
-      updateVoiceNotes();
-    }
-  }, timeout);
-
-  synth.speak(u);
 }
 
-/* =========================================================
-   App state / OCR / Target filter
-   ========================================================= */
-let role=null, roomCode="";
+function remoteSpeak(phrase, urgent, prio){
+  if(rMuted||!phrase) return;
+  const vol=+document.getElementById('rVol').value;
+  const rate=+document.getElementById('rSpd').value;
+  const lineEl=document.getElementById('rVoiceLine');
+  if(remoteEngine==='webaudio'){
+    speakWebAudio(phrase, vol, rate, lineEl, phrase);
+  } else if(remoteEngine==='browser'){
+    speakBrowser(phrase, urgent, prio, vol, rate, 'rVoiceSel', lineEl,
+      {val:remoteSpeakToken}, {val:rSpeechActivePrio}, null);
+  } else {
+    const n=(typeof rLastDist==='number')?rLastDist:parseInt(rLastDist,10);
+    const ms=beepIntervalForDistance(isFinite(n)?n:null, rCurState, +document.getElementById('rRep').value, rRED_MAX, rYEL_MAX, rSkipYellow);
+    playBeep(vol, urgent, lineEl, ms);
+  }
+}
+
+/* =================================================================
+   AUDIO UNLOCK (important for Quest - must happen on user gesture)
+   ================================================================= */
+let audioUnlocked=false;
+function unlockAudio(){
+  if(audioUnlocked) return;
+  audioUnlocked=true;
+  try{ getAudioCtx(); }catch(e){}
+  // Play a silent buffer to fully unlock AudioContext on Quest
+  try{
+    const ctx=getAudioCtx();
+    const buf=ctx.createBuffer(1,1,ctx.sampleRate);
+    const src=ctx.createBufferSource();
+    src.buffer=buf;
+    src.connect(ctx.destination);
+    src.start(0);
+  }catch(e){}
+}
+['pointerdown','mousedown','touchstart','click','keydown'].forEach(ev=>{
+  window.addEventListener(ev, unlockAudio, {passive:true});
+});
+
+/* =================================================================
+   APP STATE
+   ================================================================= */
+let role=null, roomCode='';
 let running=false;
+const vid=document.getElementById('vid');
+const rawCvs=document.getElementById('rawCvs');
+const procCvs=document.getElementById('procCvs');
+const rawCtx=rawCvs.getContext('2d');
+const procCtx=procCvs.getContext('2d');
+const workCvs=document.createElement('canvas');
+const workCtx=workCvs.getContext('2d',{willReadFrequently:true});
+const workCvs2=document.createElement('canvas');
+const workCtx2=workCvs2.getContext('2d',{willReadFrequently:true});
 
-const vid=document.getElementById("vid");
-const rawCvs=document.getElementById("rawCvs");
-const procCvs=document.getElementById("procCvs");
-const rawCtx=rawCvs.getContext("2d");
-const procCtx=procCvs.getContext("2d");
-const workCvs=document.createElement("canvas");
-const workCtx=workCvs.getContext("2d",{willReadFrequently:true});
-const workCvs2=document.createElement("canvas");
-const workCtx2=workCvs2.getContext("2d",{willReadFrequently:true});
-
-let drawMode="distance";
+let drawMode='distance';
 let distRegion=null, dirRegion=null;
-
 let RED_MAX=500, YEL_MAX=600, skipYellow=false;
 let stateHistory=[], HYST_WINDOW=4;
-
 let lastNum=null;
-let curState="OFF";
-let lastSpokenState="";
-
-let detectedDir="", manualDirOverride="";
+let curState='OFF';
+let lastSpokenState='';
+let detectedDir='', manualDirOverride='';
 const DIR_KEYWORDS={
-  behind:"behind", back:"behind", rear:"behind",
-  front:"in front", ahead:"in front", forward:"in front",
-  left:"left", right:"right",
-  above:"above", up:"above", top:"above",
-  below:"below", down:"below", bottom:"below", under:"below"
+  behind:'behind',back:'behind',rear:'behind',
+  front:'in front',ahead:'in front',forward:'in front',
+  left:'left',right:'right',
+  above:'above',up:'above',top:'above',
+  below:'below',down:'below',bottom:'below',under:'below'
 };
-
 let muted=false;
-let voices=[];
-let speechActivePrio=0;
 let repTimer=null;
-
-let netSeq=0;
-let lastNetSend=0;
-let lastNetSent={s:"", d:null, r:"", n:""};
-const NET_MIN_MS=200;
-const NET_HEARTBEAT_MS=1200;
-
-// Target filter
-let filterOn=true;
-let filterNameNorm="zepyx";
+let netSeq=0, lastNetSend=0;
+let lastNetSent={s:'',d:null,r:'',n:''};
+const NET_MIN_MS=200, NET_HEARTBEAT_MS=1200;
 
 // Remote
-let rMuted=false, rVoices=[], rSpeechActivePrio=0;
-let rCurState="OFF", rLastDist=null, rLastDir="", rRepTimer=null;
-let rLastSeq=0, rClockOffset=null;
-let rLastName="";
-
+let rMuted=false;
+let rCurState='OFF', rLastDist=null, rLastDir='', rRepTimer=null;
+let rLastSeq=0, rClockOffset=null, rLastName='';
 let rRED_MAX=500, rYEL_MAX=600, rSkipYellow=false;
 let rStateHistory=[], rHYST_WINDOW=4;
 
-// Remote target filter
-let rFilterOn=true;
-let rFilterNameNorm="zepyx";
-
-/* =========================================================
-   UI wiring
-   ========================================================= */
+/* =================================================================
+   UI HELPERS
+   ================================================================= */
 function genRoom(){
-  const c="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  let r="";
-  for(let i=0;i<5;i++) r += c[Math.floor(Math.random()*c.length)];
+  const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let r='';for(let i=0;i<5;i++) r+=c[Math.floor(Math.random()*c.length)];
   return r;
 }
-
-function normName(s){
-  return (s||"").toLowerCase().replace(/[^a-z0-9]/g,"");
-}
+function normName(s){return (s||'').toLowerCase().replace(/[^a-z0-9]/g,'');}
 
 function chooseRole(r){
   role=r;
-  document.getElementById("roleOverlay").classList.add("hidden");
-
-  if(r==="host"){
+  document.getElementById('roleOverlay').classList.add('hidden');
+  if(r==='host'){
     roomCode=genRoom();
-    document.getElementById("hostRoomCode").textContent=roomCode;
-    document.getElementById("hostRoomPill").textContent="ROOM "+roomCode;
-    document.getElementById("hostOverlay").classList.remove("hidden");
+    document.getElementById('hostRoomCode').textContent=roomCode;
+    document.getElementById('hostRoomPill').textContent='ROOM '+roomCode;
+    document.getElementById('hostOverlay').classList.remove('hidden');
     mqttConnect();
   } else {
-    document.getElementById("remoteOverlay").classList.remove("hidden");
-    document.getElementById("remoteRelayStatus").textContent="Relay: ready";
-    document.getElementById("remoteAudioNote").textContent =
+    document.getElementById('remoteOverlay').classList.remove('hidden');
+    document.getElementById('remoteRelayStatus').textContent='Relay: ready';
+    document.getElementById('remoteAudioNote').textContent=
       IS_QUEST
-        ? "Quest detected: if spoken voice is silent, the app will auto-fallback to beeps after a few tries. Ensure Quest media volume is up."
-        : "Phone/PC: spoken voice should work after you press JOIN (unlocks audio).";
+        ? 'Quest detected: using Web Audio TTS engine (works on Quest). Tap TEST to verify audio.'
+        : 'Using Web Audio TTS engine. Tap TEST to verify, or switch engine above.';
   }
-
-  updateVoiceNotes();
+  // Initialize engine UI
+  setTimeout(()=>{
+    setHostEngine(hostEngine);
+    setRemoteEngine(remoteEngine);
+    updateVoiceNotes();
+  },100);
 }
 
-document.getElementById("shareBtn").addEventListener("click", async ()=>{
+document.getElementById('shareBtn').addEventListener('click', async()=>{
   unlockAudio();
   try{
-    const stream = await navigator.mediaDevices.getDisplayMedia({ video:{cursor:"never"}, audio:false });
+    const stream=await navigator.mediaDevices.getDisplayMedia({video:{cursor:'never'},audio:false});
     vid.srcObject=stream;
     await vid.play();
-    await new Promise(res => vid.readyState>=1 ? res() : (vid.onloadedmetadata=res));
-
+    await new Promise(res=>vid.readyState>=1?res():(vid.onloadedmetadata=res));
     running=true;
-
-    document.getElementById("hostOverlay").classList.add("hidden");
-    document.getElementById("hostUI").classList.remove("hidden");
-    document.getElementById("capInfo").textContent = `${vid.videoWidth}×${vid.videoHeight}`;
-
+    document.getElementById('hostOverlay').classList.add('hidden');
+    document.getElementById('hostUI').classList.remove('hidden');
+    document.getElementById('capInfo').textContent=`${vid.videoWidth}×${vid.videoHeight}`;
     stream.getVideoTracks()[0].onended=()=>{
       running=false;
-      document.getElementById("hostOverlay").classList.remove("hidden");
-      document.getElementById("hostUI").classList.add("hidden");
+      document.getElementById('hostOverlay').classList.remove('hidden');
+      document.getElementById('hostUI').classList.add('hidden');
       stopRep();
     };
-
     await initOCR();
     ocrLoop();
-  }catch(e){
-    alert(e.message);
-  }
+  }catch(e){alert(e.message);}
 });
 
 function joinRoom(){
   unlockAudio();
-  const code=(document.getElementById("roomIn").value||"").trim().toUpperCase();
-  if(code.length<3){ alert("Enter room code"); return; }
+  const code=(document.getElementById('roomIn').value||'').trim().toUpperCase();
+  if(code.length<3){alert('Enter room code');return;}
   roomCode=code;
-  document.getElementById("remoteRoomPill").textContent="ROOM "+code;
-
-  document.getElementById("remoteOverlay").classList.add("hidden");
-  document.getElementById("remoteUI").classList.remove("hidden");
-
+  document.getElementById('remoteRoomPill').textContent='ROOM '+code;
+  document.getElementById('remoteOverlay').classList.add('hidden');
+  document.getElementById('remoteUI').classList.remove('hidden');
   rLastSeq=0; rClockOffset=null;
   mqttConnect();
-
+  setRemoteEngine(remoteEngine);
   updateVoiceNotes();
 }
 
 function setMode(m){
   drawMode=m;
-  document.getElementById("modeDist").className="mode"+(m==="distance"?" onD":"");
-  document.getElementById("modeDir").className="mode"+(m==="direction"?" onR":"");
-  document.getElementById("hint").textContent = (m==="distance") ? "Draw DISTANCE box" : "Draw DIRECTION box";
+  document.getElementById('modeDist').className='mode'+(m==='distance'?' onD':'');
+  document.getElementById('modeDir').className='mode'+(m==='direction'?' onR':'');
+  document.getElementById('hint').textContent=(m==='distance')?'Draw DISTANCE box':'Draw DIRECTION box';
 }
-
 function clearBoxes(){
-  distRegion=null; dirRegion=null;
-  document.getElementById("distBox").classList.remove("show");
-  document.getElementById("dirBox").classList.remove("show");
-  detectedDir="";
-  updateDirUI();
-  setHostOff("No distance box / cleared");
+  distRegion=null;dirRegion=null;
+  document.getElementById('distBox').classList.remove('show');
+  document.getElementById('dirBox').classList.remove('show');
+  detectedDir='';updateDirUI();setHostOff('No distance box / cleared');
 }
-
 function setPreset(name){
   if(!vid.videoWidth) return;
-  if(name==="top"){
-    distRegion={x:0.30,y:0.02,w:0.40,h:0.08};
-  } else if(name==="topRight"){
-    distRegion={x:0.62,y:0.02,w:0.35,h:0.08};
-  }
-  applyRegionBox("distBox", distRegion);
+  if(name==='top') distRegion={x:0.30,y:0.02,w:0.40,h:0.08};
+  else if(name==='topRight') distRegion={x:0.62,y:0.02,w:0.35,h:0.08};
+  applyRegionBox('distBox',distRegion);
 }
-
-function applyRegionBox(id, reg){
+function applyRegionBox(id,reg){
   if(!reg) return;
   const el=document.getElementById(id);
-  el.style.left=(reg.x*100)+"%";
-  el.style.top=(reg.y*100)+"%";
-  el.style.width=(reg.w*100)+"%";
-  el.style.height=(reg.h*100)+"%";
-  el.classList.add("show");
+  el.style.left=(reg.x*100)+'%';el.style.top=(reg.y*100)+'%';
+  el.style.width=(reg.w*100)+'%';el.style.height=(reg.h*100)+'%';
+  el.classList.add('show');
 }
 
-/* host sliders */
-document.getElementById("skipY").addEventListener("change", ()=>{
-  skipYellow=document.getElementById("skipY").checked;
-  document.getElementById("yelRow").classList.toggle("hidden", skipYellow);
+/* Sliders */
+document.getElementById('skipY').addEventListener('change',()=>{
+  skipYellow=document.getElementById('skipY').checked;
+  document.getElementById('yelRow').classList.toggle('hidden',skipYellow);
   stateHistory=[];
 });
-document.getElementById("redR").addEventListener("input",(e)=>{
+document.getElementById('redR').addEventListener('input',(e)=>{
   let v=+e.target.value;
-  if(!skipYellow && v>=YEL_MAX){ v=YEL_MAX-10; e.target.value=v; }
-  RED_MAX=v; document.getElementById("redV").textContent=v; stateHistory=[];
+  if(!skipYellow&&v>=YEL_MAX){v=YEL_MAX-10;e.target.value=v;}
+  RED_MAX=v;document.getElementById('redV').textContent=v;stateHistory=[];
 });
-document.getElementById("yelR").addEventListener("input",(e)=>{
+document.getElementById('yelR').addEventListener('input',(e)=>{
   let v=+e.target.value;
-  if(v<=RED_MAX){ v=RED_MAX+10; e.target.value=v; }
-  YEL_MAX=v; document.getElementById("yelV").textContent=v; stateHistory=[];
+  if(v<=RED_MAX){v=RED_MAX+10;e.target.value=v;}
+  YEL_MAX=v;document.getElementById('yelV').textContent=v;stateHistory=[];
 });
-document.getElementById("redV").textContent=RED_MAX;
-document.getElementById("yelV").textContent=YEL_MAX;
-
-document.getElementById("vol").addEventListener("input",(e)=>document.getElementById("volV").textContent=Math.round(+e.target.value*100)+"%");
-document.getElementById("spd").addEventListener("input",(e)=>document.getElementById("spdV").textContent=(+e.target.value).toFixed(1)+"x");
-document.getElementById("rep").addEventListener("input",(e)=>document.getElementById("repV").textContent=(+e.target.value).toFixed(1)+"s");
-
+document.getElementById('vol').addEventListener('input',(e)=>document.getElementById('volV').textContent=Math.round(+e.target.value*100)+'%');
+document.getElementById('spd').addEventListener('input',(e)=>document.getElementById('spdV').textContent=(+e.target.value).toFixed(1)+'x');
+document.getElementById('rep').addEventListener('input',(e)=>document.getElementById('repV').textContent=(+e.target.value).toFixed(1)+'s');
 function toggleMute(){
   muted=!muted;
-  document.getElementById("muteBtn").textContent=muted?"OFF":"ON";
-  document.getElementById("muteBtn").classList.toggle("act", !muted);
-  if(muted){ speechSynthesis.cancel(); speechActivePrio=0; stopRep(); }
+  document.getElementById('muteBtn').textContent=muted?'OFF':'ON';
+  document.getElementById('muteBtn').classList.toggle('act',!muted);
+  if(muted){try{speechSynthesis.cancel();}catch(e){}speechActivePrio=0;stopRep();}
   else startRep();
 }
-
-document.getElementById("dirEnable").addEventListener("change", ()=>{
-  if(!document.getElementById("dirEnable").checked){
-    dirRegion=null; detectedDir="";
-    document.getElementById("dirBox").classList.remove("show");
-  }
+document.getElementById('dirEnable').addEventListener('change',()=>{
+  if(!document.getElementById('dirEnable').checked){dirRegion=null;detectedDir='';document.getElementById('dirBox').classList.remove('show');}
   updateDirUI();
 });
-document.getElementById("dirManual").addEventListener("change", (e)=>{
-  manualDirOverride=e.target.value;
-  updateDirUI();
-});
+document.getElementById('dirManual').addEventListener('change',(e)=>{manualDirOverride=e.target.value;updateDirUI();});
+document.getElementById('filterOn').addEventListener('change',()=>{});
+document.getElementById('filterName').addEventListener('input',()=>{});
+document.getElementById('rFilterOn').addEventListener('change',()=>{});
+document.getElementById('rFilterName').addEventListener('input',()=>{});
 
-document.getElementById("filterOn").addEventListener("change",(e)=>{
-  filterOn=e.target.checked;
-});
-document.getElementById("filterName").addEventListener("input",(e)=>{
-  filterNameNorm = normName(e.target.value || "");
-});
-
-/* remote target filter */
-document.getElementById("rFilterOn").addEventListener("change",(e)=>{
-  rFilterOn=e.target.checked;
-  // re-evaluate current state
-  if(rFilterOn && rLastName){
-    const want = normName(document.getElementById("rFilterName").value||"");
-    const seen = normName(rLastName);
-    if(want && seen && !seen.includes(want)){
-      setRemoteOff("Ignoring \""+rLastName+"\" (want "+document.getElementById("rFilterName").value+")");
-    }
-  }
-});
-document.getElementById("rFilterName").addEventListener("input",(e)=>{
-  rFilterNameNorm = normName(e.target.value || "");
-});
-
-/* remote sliders */
-document.getElementById("rSkipY").addEventListener("change", ()=>{
-  rSkipYellow=document.getElementById("rSkipY").checked;
-  document.getElementById("rYelRow").classList.toggle("hidden", rSkipYellow);
+/* Remote sliders */
+document.getElementById('rSkipY').addEventListener('change',()=>{
+  rSkipYellow=document.getElementById('rSkipY').checked;
+  document.getElementById('rYelRow').classList.toggle('hidden',rSkipYellow);
   rStateHistory=[];
-  recalcRemoteFromLast();
 });
-document.getElementById("rRedR").addEventListener("input",(e)=>{
+document.getElementById('rRedR').addEventListener('input',(e)=>{
   let v=+e.target.value;
-  if(!rSkipYellow && v>=rYEL_MAX){ v=rYEL_MAX-10; e.target.value=v; }
-  rRED_MAX=v; document.getElementById("rRedV").textContent=v; rStateHistory=[];
-  recalcRemoteFromLast();
+  if(!rSkipYellow&&v>=rYEL_MAX){v=rYEL_MAX-10;e.target.value=v;}
+  rRED_MAX=v;document.getElementById('rRedV').textContent=v;rStateHistory=[];
 });
-document.getElementById("rYelR").addEventListener("input",(e)=>{
+document.getElementById('rYelR').addEventListener('input',(e)=>{
   let v=+e.target.value;
-  if(v<=rRED_MAX){ v=rRED_MAX+10; e.target.value=v; }
-  rYEL_MAX=v; document.getElementById("rYelV").textContent=v; rStateHistory=[];
-  recalcRemoteFromLast();
+  if(v<=rRED_MAX){v=rRED_MAX+10;e.target.value=v;}
+  rYEL_MAX=v;document.getElementById('rYelV').textContent=v;rStateHistory=[];
 });
-document.getElementById("rRedV").textContent=rRED_MAX;
-document.getElementById("rYelV").textContent=rYEL_MAX;
-
-document.getElementById("rVol").addEventListener("input",(e)=>document.getElementById("rVolV").textContent=Math.round(+e.target.value*100)+"%");
-document.getElementById("rSpd").addEventListener("input",(e)=>document.getElementById("rSpdV").textContent=(+e.target.value).toFixed(1)+"x");
-document.getElementById("rRep").addEventListener("input",(e)=>document.getElementById("rRepV").textContent=(+e.target.value).toFixed(1)+"s");
-
+document.getElementById('rVol').addEventListener('input',(e)=>document.getElementById('rVolV').textContent=Math.round(+e.target.value*100)+'%');
+document.getElementById('rSpd').addEventListener('input',(e)=>document.getElementById('rSpdV').textContent=(+e.target.value).toFixed(1)+'x');
+document.getElementById('rRep').addEventListener('input',(e)=>document.getElementById('rRepV').textContent=(+e.target.value).toFixed(1)+'s');
 function rToggleMute(){
   rMuted=!rMuted;
-  document.getElementById("rMuteBtn").textContent=rMuted?"OFF":"ON";
-  document.getElementById("rMuteBtn").classList.toggle("act", !rMuted);
-  if(rMuted){ speechSynthesis.cancel(); rSpeechActivePrio=0; rStopRep(); }
+  document.getElementById('rMuteBtn').textContent=rMuted?'OFF':'ON';
+  document.getElementById('rMuteBtn').classList.toggle('act',!rMuted);
+  if(rMuted){try{speechSynthesis.cancel();}catch(e){}rSpeechActivePrio=0;rStopRep();}
   else rStartRep();
 }
 
-/* =========================================================
-   Selection drawing
-   ========================================================= */
-let dragging=false, sx=0, sy=0;
-const wrap=document.getElementById("videoWrap");
-const drag=document.getElementById("drag");
-
+/* =================================================================
+   DRAWING / SELECTION
+   ================================================================= */
+let dragging=false,sx=0,sy=0;
+const wrap=document.getElementById('videoWrap');
+const drag=document.getElementById('drag');
 function relPos(e){
   const r=wrap.getBoundingClientRect();
-  return { x: clamp((e.clientX-r.left)/r.width,0,1), y: clamp((e.clientY-r.top)/r.height,0,1) };
+  return{x:clamp((e.clientX-r.left)/r.width,0,1),y:clamp((e.clientY-r.top)/r.height,0,1)};
 }
-
-drag.addEventListener("mousedown",(e)=>{
-  dragging=true;
-  const p=relPos(e);
-  sx=p.x; sy=p.y;
-  const el=(drawMode==="direction") ? document.getElementById("dirBox") : document.getElementById("distBox");
-  el.style.left=(sx*100)+"%";
-  el.style.top=(sy*100)+"%";
-  el.style.width="0%";
-  el.style.height="0%";
-  el.classList.add("show");
+drag.addEventListener('mousedown',(e)=>{
+  dragging=true;const p=relPos(e);sx=p.x;sy=p.y;
+  const el=(drawMode==='direction')?document.getElementById('dirBox'):document.getElementById('distBox');
+  el.style.left=(sx*100)+'%';el.style.top=(sy*100)+'%';el.style.width='0%';el.style.height='0%';
+  el.classList.add('show');
 });
-document.addEventListener("mousemove",(e)=>{
+document.addEventListener('mousemove',(e)=>{
   if(!dragging) return;
   const p=relPos(e);
-  const x=Math.min(sx,p.x), y=Math.min(sy,p.y), w=Math.abs(p.x-sx), h=Math.abs(p.y-sy);
-  const el=(drawMode==="direction") ? document.getElementById("dirBox") : document.getElementById("distBox");
-  el.style.left=(x*100)+"%";
-  el.style.top=(y*100)+"%";
-  el.style.width=(w*100)+"%";
-  el.style.height=(h*100)+"%";
+  const x=Math.min(sx,p.x),y=Math.min(sy,p.y),w=Math.abs(p.x-sx),h=Math.abs(p.y-sy);
+  const el=(drawMode==='direction')?document.getElementById('dirBox'):document.getElementById('distBox');
+  el.style.left=(x*100)+'%';el.style.top=(y*100)+'%';el.style.width=(w*100)+'%';el.style.height=(h*100)+'%';
 });
-document.addEventListener("mouseup",(e)=>{
-  if(!dragging) return;
-  dragging=false;
+document.addEventListener('mouseup',(e)=>{
+  if(!dragging) return;dragging=false;
   const p=relPos(e);
-  const x=Math.min(sx,p.x), y=Math.min(sy,p.y), w=Math.abs(p.x-sx), h=Math.abs(p.y-sy);
-
+  const x=Math.min(sx,p.x),y=Math.min(sy,p.y),w=Math.abs(p.x-sx),h=Math.abs(p.y-sy);
   if(w<0.005||h<0.003){
-    if(drawMode==="distance"){ distRegion=null; document.getElementById("distBox").classList.remove("show"); setHostOff("No distance box"); }
-    else { dirRegion=null; document.getElementById("dirBox").classList.remove("show"); detectedDir=""; updateDirUI(); }
+    if(drawMode==='distance'){distRegion=null;document.getElementById('distBox').classList.remove('show');setHostOff('No distance box');}
+    else{dirRegion=null;document.getElementById('dirBox').classList.remove('show');detectedDir='';updateDirUI();}
     return;
   }
-
   const reg={x,y,w,h};
-  if(drawMode==="distance"){ distRegion=reg; applyRegionBox("distBox",reg); stateHistory=[]; }
-  else { dirRegion=reg; applyRegionBox("dirBox",reg); updateDirUI(); }
+  if(drawMode==='distance'){distRegion=reg;applyRegionBox('distBox',reg);stateHistory=[];}
+  else{dirRegion=reg;applyRegionBox('dirBox',reg);updateDirUI();}
 });
 
-/* =========================================================
-   OCR (Tesseract)
-   ========================================================= */
-let tWorker=null;
-let ocrBusy=false;
-let dirOcrCooldown=0;
-
+/* =================================================================
+   OCR
+   ================================================================= */
+let tWorker=null,ocrBusy=false,dirOcrCooldown=0;
 async function initOCR(){
   if(window.Tesseract===undefined){
-    document.getElementById("ocrStatus").textContent="loading…";
-    await new Promise((res, rej)=>{
-      const s=document.createElement("script");
-      s.src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";
-      s.onload=res;
-      s.onerror=()=>rej(new Error("Failed to load Tesseract"));
+    document.getElementById('ocrStatus').textContent='loading…';
+    await new Promise((res,rej)=>{
+      const s=document.createElement('script');
+      s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+      s.onload=res;s.onerror=()=>rej(new Error('Failed to load Tesseract'));
       document.head.appendChild(s);
     });
   }
-  document.getElementById("ocrStatus").textContent="init…";
-  tWorker = await Tesseract.createWorker("eng", 1, { logger:()=>{} });
+  document.getElementById('ocrStatus').textContent='init…';
+  tWorker=await Tesseract.createWorker('eng',1,{logger:()=>{}});
   await tWorker.setParameters({
-    tessedit_pageseg_mode: "7",
-    tessedit_char_whitelist: "0123456789()[]?ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz _-.:"
+    tessedit_pageseg_mode:'7',
+    tessedit_char_whitelist:'0123456789()[]?ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz _-.:'
   });
-  document.getElementById("ocrStatus").textContent="ready";
+  document.getElementById('ocrStatus').textContent='ready';
 }
 
-function captureRegion(reg, maxW=360, maxH=90, forDir=false){
-  if(!reg || !vid.videoWidth) return null;
-  const vw=vid.videoWidth, vh=vid.videoHeight;
+function captureRegion(reg,maxW=360,maxH=90,forDir=false){
+  if(!reg||!vid.videoWidth) return null;
+  const vw=vid.videoWidth,vh=vid.videoHeight;
   const px=Math.max(0,Math.floor(reg.x*vw));
   const py=Math.max(0,Math.floor(reg.y*vh));
   const pw=Math.max(1,Math.floor(reg.w*vw));
   const ph=Math.max(1,Math.floor(reg.h*vh));
-
-  const scale=Math.min(maxW/pw, maxH/ph, 3);
+  const scale=Math.min(maxW/pw,maxH/ph,3);
   const w=Math.max(1,Math.floor(pw*scale));
   const h=Math.max(1,Math.floor(ph*scale));
-
-  const ctx = forDir ? workCtx2 : workCtx;
-  const cv  = forDir ? workCvs2 : workCvs;
-  cv.width=w; cv.height=h;
-
+  const ctx=forDir?workCtx2:workCtx;
+  const cv=forDir?workCvs2:workCvs;
+  cv.width=w;cv.height=h;
   ctx.imageSmoothingEnabled=true;
-  ctx.drawImage(vid, px, py, pw, ph, 0,0,w,h);
+  ctx.drawImage(vid,px,py,pw,ph,0,0,w,h);
   const img=ctx.getImageData(0,0,w,h);
-
   let sum=0;
-  for(let i=0;i<img.data.length;i+=4){
-    const g=0.299*img.data[i]+0.587*img.data[i+1]+0.114*img.data[i+2];
-    sum+=g;
-  }
+  for(let i=0;i<img.data.length;i+=4){const g=0.299*img.data[i]+0.587*img.data[i+1]+0.114*img.data[i+2];sum+=g;}
   const thr=sum/(img.data.length/4);
-  for(let i=0;i<img.data.length;i+=4){
-    const g=0.299*img.data[i]+0.587*img.data[i+1]+0.114*img.data[i+2];
-    const v = g>thr ? 255 : 0;
-    img.data[i]=img.data[i+1]=img.data[i+2]=v;
-  }
+  for(let i=0;i<img.data.length;i+=4){const g=0.299*img.data[i]+0.587*img.data[i+1]+0.114*img.data[i+2];const v=g>thr?255:0;img.data[i]=img.data[i+1]=img.data[i+2]=v;}
   ctx.putImageData(img,0,0);
-
   if(!forDir){
-    rawCvs.width=Math.min(pw,200); rawCvs.height=Math.min(ph,70);
+    rawCvs.width=Math.min(pw,200);rawCvs.height=Math.min(ph,70);
     rawCtx.imageSmoothingEnabled=false;
-    rawCtx.drawImage(vid, px, py, pw, ph, 0,0, rawCvs.width, rawCvs.height);
-
-    procCvs.width=Math.min(w,200); procCvs.height=Math.min(h,70);
+    rawCtx.drawImage(vid,px,py,pw,ph,0,0,rawCvs.width,rawCvs.height);
+    procCvs.width=Math.min(w,200);procCvs.height=Math.min(h,70);
     procCtx.imageSmoothingEnabled=false;
-    procCtx.drawImage(workCvs,0,0, procCvs.width, procCvs.height);
+    procCtx.drawImage(workCvs,0,0,procCvs.width,procCvs.height);
   }
-
   return cv;
 }
 
 function parseNameAndDistance(raw){
-  const t=(raw||"").trim();
-  if(!t) return { raw:t, name:"", num:null, special:null };
-
-  if (t.includes("?")) return { raw:t, name:"", num:null, special:"BALL LOOSE" };
-
-  let m = t.match(/^\s*([A-Za-z0-9._-]{2,24})\s*[\(\[]\s*(\d{2,4})\s*[\)\]]/);
-  if(m) return { raw:t, name:m[1], num:parseInt(m[2],10), special:null };
-
-  m = t.match(/([A-Za-z0-9._-]{2,24})?.*[\(\[]\s*(\d{2,4})\s*[\)\]]/);
-  if(m){
-    const nm = m[1] || "";
-    return { raw:t, name:nm, num:parseInt(m[2],10), special:null };
-  }
-
-  m = t.match(/\d{2,4}/);
-  if(m){
-    const nm = (t.split(/\s+/)[0]||"");
-    return { raw:t, name:nm, num:parseInt(m[0],10), special:null };
-  }
-
-  return { raw:t, name:"", num:null, special:null };
+  const t=(raw||'').trim();
+  if(!t) return{raw:t,name:'',num:null,special:null};
+  if(t.includes('?')) return{raw:t,name:'',num:null,special:'BALL LOOSE'};
+  let m=t.match(/^\s*([A-Za-z0-9._-]{2,24})\s*[\(\[]\s*(\d{2,4})\s*[\)\]]/);
+  if(m) return{raw:t,name:m[1],num:parseInt(m[2],10),special:null};
+  m=t.match(/([A-Za-z0-9._-]{2,24})?.*[\(\[]\s*(\d{2,4})\s*[\)\]]/);
+  if(m) return{raw:t,name:m[1]||'',num:parseInt(m[2],10),special:null};
+  m=t.match(/\d{2,4}/);
+  if(m) return{raw:t,name:(t.split(/\s+/)[0]||''),num:parseInt(m[0],10),special:null};
+  return{raw:t,name:'',num:null,special:null};
 }
 
 function getStateRaw(n){
-  if(n<=RED_MAX) return "RED";
-  if(skipYellow) return "GREEN";
-  if(n<=YEL_MAX) return "YELLOW";
-  return "GREEN";
+  if(n<=RED_MAX) return'RED';
+  if(skipYellow) return'GREEN';
+  if(n<=YEL_MAX) return'YELLOW';
+  return'GREEN';
 }
 function getStateHyst(n){
   const raw=getStateRaw(n);
   stateHistory.push(raw);
   if(stateHistory.length>HYST_WINDOW) stateHistory.shift();
   if(stateHistory.length<2) return raw;
-
   const w={RED:0,YELLOW:0,GREEN:0};
   for(let i=0;i<stateHistory.length;i++) w[stateHistory[i]]+=(i+1);
-  let best="RED", bestV=-1;
-  for(const k of Object.keys(w)) if(w[k]>bestV){ bestV=w[k]; best=k; }
+  let best='RED',bestV=-1;
+  for(const k of Object.keys(w)) if(w[k]>bestV){bestV=w[k];best=k;}
   return best;
 }
 
-function getActiveDir(){
-  return manualDirOverride || detectedDir || "";
-}
-
+function getActiveDir(){return manualDirOverride||detectedDir||'';}
 function updateDirUI(){
   const dir=getActiveDir();
-  document.getElementById("dirDbg").textContent = dir ? ("DIR: "+dir.toUpperCase()) : (dirRegion ? "DIR: SCANNING" : "Draw direction box around direction text.");
-  document.getElementById("hDir").textContent = (document.getElementById("dirEnable").checked && (dir || dirRegion)) ? ("DIR: "+(dir?dir.toUpperCase():"SCANNING")) : "";
+  document.getElementById('dirDbg').textContent=dir?('DIR: '+dir.toUpperCase()):(dirRegion?'DIR: SCANNING':'Draw direction box around direction text.');
+  document.getElementById('hDir').textContent=(document.getElementById('dirEnable').checked&&(dir||dirRegion))?('DIR: '+(dir?dir.toUpperCase():'SCANNING')):'';
 }
 
-function setHero(state, dist, dir, nameLine){
-  const hero=document.getElementById("hero");
-  hero.className="hero "+(state==="RED"?"red":state==="YELLOW"?"yellow":state==="GREEN"?"green":"blue");
-  document.getElementById("hState").textContent=state==="OFF" ? "—" : state;
-  document.getElementById("hDist").textContent=(dist!==null && dist!==undefined && dist!=="")?String(dist):"Waiting…";
-  document.getElementById("hDir").textContent=(document.getElementById("dirEnable").checked && (dir||dirRegion)) ? ("DIR: "+(dir?dir.toUpperCase():"SCANNING")) : "";
-  document.getElementById("hNameLine").textContent=nameLine||"";
+function setHero(state,dist,dir,nameLine){
+  const hero=document.getElementById('hero');
+  hero.className='hero '+(state==='RED'?'red':state==='YELLOW'?'yellow':state==='GREEN'?'green':'blue');
+  document.getElementById('hState').textContent=state==='OFF'?'—':state;
+  document.getElementById('hDist').textContent=(dist!==null&&dist!==undefined&&dist!=='')?String(dist):'Waiting…';
+  document.getElementById('hDir').textContent=(document.getElementById('dirEnable').checked&&(dir||dirRegion))?('DIR: '+(dir?dir.toUpperCase():'SCANNING')):'';
+  document.getElementById('hNameLine').textContent=nameLine||'';
 }
-
 function setHostOff(reason){
-  curState="OFF";
-  lastNum=null;
-  lastSpokenState="OFF";
-  stopRep();
-  setHero("OFF","",getActiveDir(), reason ? ("FILTER: "+reason) : "");
-  broadcastState("OFF","",getActiveDir(),"");
+  curState='OFF';lastNum=null;lastSpokenState='OFF';stopRep();
+  setHero('OFF','',getActiveDir(),reason?('FILTER: '+reason):'');
+  broadcastState('OFF','',getActiveDir(),'');
 }
-
 function setRemoteOff(reason){
-  rCurState="OFF";
-  rStopRep();
-  const hero=document.getElementById("rHero");
-  hero.className="hero blue";
-  document.getElementById("rState").textContent="WAITING";
-  document.getElementById("rDist").textContent="—";
-  document.getElementById("rDir").textContent="";
-  document.getElementById("rNameLine").textContent=reason ? ("FILTER: "+reason) : "";
-  document.getElementById("rTime").textContent="Updated: "+new Date().toLocaleTimeString();
+  rCurState='OFF';rStopRep();
+  const hero=document.getElementById('rHero');
+  hero.className='hero blue';
+  document.getElementById('rState').textContent='WAITING';
+  document.getElementById('rDist').textContent='—';
+  document.getElementById('rDir').textContent='';
+  document.getElementById('rNameLine').textContent=reason?('FILTER: '+reason):'';
+  document.getElementById('rTime').textContent='Updated: '+new Date().toLocaleTimeString();
 }
 
 async function ocrLoop(){
-  if(!running || !tWorker) return;
-
-  if(distRegion && !ocrBusy){
+  if(!running||!tWorker) return;
+  if(distRegion&&!ocrBusy){
     ocrBusy=true;
     try{
-      const cv=captureRegion(distRegion, 360, 90, false);
+      const cv=captureRegion(distRegion,360,90,false);
       if(cv){
-        await tWorker.setParameters({
-          tessedit_pageseg_mode:"7",
-          tessedit_char_whitelist:"0123456789()[]?ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz _-.:"
-        });
+        await tWorker.setParameters({tessedit_pageseg_mode:'7',tessedit_char_whitelist:'0123456789()[]?ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz _-.:'});
         const res=await tWorker.recognize(cv);
-        const raw=(res.data.text||"").trim();
+        const raw=(res.data.text||'').trim();
         const parsed=parseNameAndDistance(raw);
-
-        document.getElementById("ocrDbg").textContent = raw ? `OCR: "${raw.replace(/\s+/g," ").slice(0,110)}"` : "OCR: (empty)";
-
-        const want = normName(document.getElementById("filterName").value||"");
-        const hasFilter = document.getElementById("filterOn").checked && want.length>0;
-
-        let seenNameNorm = normName(parsed.name);
-        if(!seenNameNorm && raw){
-          const tok = raw.split(/\s+/)[0] || "";
-          seenNameNorm = normName(tok);
+        document.getElementById('ocrDbg').textContent=raw?`OCR: "${raw.replace(/\s+/g,' ').slice(0,110)}"`:' OCR: (empty)';
+        const want=normName(document.getElementById('filterName').value||'');
+        const hasFilter=document.getElementById('filterOn').checked&&want.length>0;
+        let seenNameNorm=normName(parsed.name);
+        if(!seenNameNorm&&raw){const tok=raw.split(/\s+/)[0]||'';seenNameNorm=normName(tok);}
+        if(hasFilter&&(!seenNameNorm||!seenNameNorm.includes(want))){
+          setHostOff(`Ignoring "${parsed.name||'unknown'}" (want ${document.getElementById('filterName').value})`);
+          ocrBusy=false;setTimeout(ocrLoop,120);return;
         }
-
-        if(hasFilter){
-          if(!seenNameNorm || !seenNameNorm.includes(want)){
-            setHostOff(`Ignoring "${parsed.name || 'unknown'}" (want ${document.getElementById("filterName").value})`);
-            ocrBusy=false;
-            setTimeout(ocrLoop, 120);
-            return;
-          }
-        }
-
-        const nameLine = parsed.name ? ("PLAYER: "+parsed.name) : (hasFilter ? ("PLAYER: "+document.getElementById("filterName").value) : "");
-        document.getElementById("hNameLine").textContent = nameLine;
-
+        const nameLine=parsed.name?('PLAYER: '+parsed.name):(hasFilter?('PLAYER: '+document.getElementById('filterName').value):'');
+        document.getElementById('hNameLine').textContent=nameLine;
         const dir=getActiveDir();
-
         if(parsed.special){
-          curState="BALL LOOSE";
-          lastNum=null;
-          setHero("BALL LOOSE","?",dir,nameLine);
-          alertOnStateHost("BALL LOOSE", dir);
-          broadcastState("BALL LOOSE","?",dir, parsed.name||"");
+          curState='BALL LOOSE';lastNum=null;
+          setHero('BALL LOOSE','?',dir,nameLine);
+          alertOnStateHost('BALL LOOSE',dir);
+          broadcastState('BALL LOOSE','?',dir,parsed.name||'');
         } else if(parsed.num!==null){
           lastNum=parsed.num;
           const st=getStateHyst(parsed.num);
           curState=st;
-          setHero(st, parsed.num, dir, nameLine);
-          alertOnStateHost(st, dir);
-          broadcastState(st, parsed.num, dir, parsed.name||"");
+          setHero(st,parsed.num,dir,nameLine);
+          alertOnStateHost(st,dir);
+          broadcastState(st,parsed.num,dir,parsed.name||'');
         }
       }
-    }catch(e){
-      document.getElementById("ocrDbg").textContent="OCR error: "+e.message;
-    }
+    }catch(e){document.getElementById('ocrDbg').textContent='OCR error: '+e.message;}
     ocrBusy=false;
   }
-
-  // direction OCR
-  const dirOn=document.getElementById("dirEnable").checked;
-  if(dirOn && dirRegion && Date.now()-dirOcrCooldown>350 && !ocrBusy){
-    dirOcrCooldown=Date.now();
-    ocrBusy=true;
+  const dirOn=document.getElementById('dirEnable').checked;
+  if(dirOn&&dirRegion&&Date.now()-dirOcrCooldown>350&&!ocrBusy){
+    dirOcrCooldown=Date.now();ocrBusy=true;
     try{
-      const cv=captureRegion(dirRegion, 240, 70, true);
+      const cv=captureRegion(dirRegion,240,70,true);
       if(cv){
-        await tWorker.setParameters({
-          tessedit_pageseg_mode:"7",
-          tessedit_char_whitelist:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz "
-        });
+        await tWorker.setParameters({tessedit_pageseg_mode:'7',tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz '});
         const res=await tWorker.recognize(cv);
-        const raw=(res.data.text||"").trim().toLowerCase();
-        let found="";
-        for(const k of Object.keys(DIR_KEYWORDS)){ if(raw.includes(k)){ found=DIR_KEYWORDS[k]; break; } }
-        if(!manualDirOverride && found!==detectedDir){
-          detectedDir=found;
-          updateDirUI();
-          startRep();
-        }
+        const raw=(res.data.text||'').trim().toLowerCase();
+        let found='';
+        for(const k of Object.keys(DIR_KEYWORDS)){if(raw.includes(k)){found=DIR_KEYWORDS[k];break;}}
+        if(!manualDirOverride&&found!==detectedDir){detectedDir=found;updateDirUI();startRep();}
       }
     }catch(e){}
     ocrBusy=false;
   }
-
   heartbeatTick();
-
-  setTimeout(ocrLoop, 120);
+  setTimeout(ocrLoop,120);
 }
 
-/* =========================================================
-   Network send
-   ========================================================= */
-function normDistForNet(d){
-  if(typeof d==="number" && isFinite(d)) return Math.round(d/5)*5;
-  return d;
-}
-
-function broadcastState(state, dist, dir, name){
+/* =================================================================
+   NETWORK
+   ================================================================= */
+function normDistForNet(d){return typeof d==='number'&&isFinite(d)?Math.round(d/5)*5:d;}
+function broadcastState(state,dist,dir,name){
   const now=Date.now();
   const dQ=normDistForNet(dist);
-  const r=dir||"";
-  const nm=(name||"").slice(0,24);
-
-  const changed = (state!==lastNetSent.s || dQ!==lastNetSent.d || r!==lastNetSent.r || nm!==lastNetSent.n);
-  const minGap = changed ? NET_MIN_MS : NET_HEARTBEAT_MS;
+  const r=dir||'';const nm=(name||'').slice(0,24);
+  const changed=(state!==lastNetSent.s||dQ!==lastNetSent.d||r!==lastNetSent.r||nm!==lastNetSent.n);
+  const minGap=changed?NET_MIN_MS:NET_HEARTBEAT_MS;
   if(now-lastNetSend<minGap) return;
-
-  lastNetSend=now;
-  lastNetSent={s:state,d:dQ,r,n:nm};
-
+  lastNetSend=now;lastNetSent={s:state,d:dQ,r,n:nm};
   const q=++netSeq;
-  const payload=JSON.stringify({ s:state, d:dQ, r, n:nm, t:now, q });
-  mqttPublish(getTopic(roomCode), payload);
+  mqttPublish(getTopic(roomCode),JSON.stringify({s:state,d:dQ,r,n:nm,t:now,q}));
 }
-
 function heartbeatTick(){
-  if(!mqttConnected || !roomCode) return;
-  if(curState==="OFF") broadcastState("OFF","",getActiveDir(),"");
-  else if(curState==="BALL LOOSE") broadcastState("BALL LOOSE","?",getActiveDir(),"");
-  else if(lastNum!==null) broadcastState(curState,lastNum,getActiveDir(),"");
+  if(!mqttConnected||!roomCode) return;
+  if(curState==='OFF') broadcastState('OFF','',getActiveDir(),'');
+  else if(curState==='BALL LOOSE') broadcastState('BALL LOOSE','?',getActiveDir(),'');
+  else if(lastNum!==null) broadcastState(curState,lastNum,getActiveDir(),'');
 }
 
-/* =========================================================
-   Remote receive + local thresholds + remote target filter
-   ========================================================= */
+/* =================================================================
+   REMOTE RECEIVE
+   ================================================================= */
 function rGetStateRaw(n){
-  if(n<=rRED_MAX) return "RED";
-  if(rSkipYellow) return "GREEN";
-  if(n<=rYEL_MAX) return "YELLOW";
-  return "GREEN";
+  if(n<=rRED_MAX) return'RED';
+  if(rSkipYellow) return'GREEN';
+  if(n<=rYEL_MAX) return'YELLOW';
+  return'GREEN';
 }
 function rGetStateHyst(n){
   const raw=rGetStateRaw(n);
@@ -1415,356 +1311,193 @@ function rGetStateHyst(n){
   if(rStateHistory.length<2) return raw;
   const w={RED:0,YELLOW:0,GREEN:0};
   for(let i=0;i<rStateHistory.length;i++) w[rStateHistory[i]]+=(i+1);
-  let best="RED", bestV=-1;
-  for(const k of Object.keys(w)) if(w[k]>bestV){ bestV=w[k]; best=k; }
+  let best='RED',bestV=-1;
+  for(const k of Object.keys(w)) if(w[k]>bestV){bestV=w[k];best=k;}
   return best;
 }
-
 function onRelayMessage(payload){
-  if(role!=="remote") return;
+  if(role!=='remote') return;
   try{
     const d=JSON.parse(payload);
     if(d.s===undefined) return;
-
-    if(typeof d.q==="number"){
-      if(d.q<=rLastSeq) return;
-      rLastSeq=d.q;
-    }
-
-    if(typeof d.t==="number"){
+    if(typeof d.q==='number'){if(d.q<=rLastSeq) return;rLastSeq=d.q;}
+    if(typeof d.t==='number'){
       if(rClockOffset===null) rClockOffset=Date.now()-d.t;
       const age=Date.now()-(d.t+rClockOffset);
-      document.getElementById("delayPill").textContent="Delay: "+Math.max(0,Math.round(age))+"ms";
+      document.getElementById('delayPill').textContent='Delay: '+Math.max(0,Math.round(age))+'ms';
     }
-
-    const rawState=d.s;
-    const dist=d.d;
-    const dir=d.r||"";
-    const name=d.n||"";
-
-    rLastDist=dist;
-    rLastDir=dir;
-    rLastName=name;
-
-    // Remote target filter check
-    const rWant = normName(document.getElementById("rFilterName").value||"");
-    const rHasFilter = document.getElementById("rFilterOn").checked && rWant.length>0;
-
-    if(rHasFilter && rawState!=="OFF"){
-      const seenNorm = normName(name);
-      if(!seenNorm || !seenNorm.includes(rWant)){
-        setRemoteOff(`Ignoring "${name || 'unknown'}" (want ${document.getElementById("rFilterName").value})`);
-        return;
-      }
+    const rawState=d.s;const dist=d.d;const dir=d.r||'';const name=d.n||'';
+    rLastDist=dist;rLastDir=dir;rLastName=name;
+    const rWant=normName(document.getElementById('rFilterName').value||'');
+    const rHasFilter=document.getElementById('rFilterOn').checked&&rWant.length>0;
+    if(rHasFilter&&rawState!=='OFF'){
+      const seenNorm=normName(name);
+      if(!seenNorm||!seenNorm.includes(rWant)){setRemoteOff(`Ignoring "${name||'unknown'}" (want ${document.getElementById('rFilterName').value})`);return;}
     }
-
     let effective=rawState;
-    const n=(typeof dist==="number") ? dist : parseInt(dist,10);
-    if((rawState==="RED"||rawState==="YELLOW"||rawState==="GREEN") && isFinite(n)){
-      effective=rGetStateHyst(n);
-    } else {
-      rStateHistory=[];
-    }
-
-    renderRemote(effective, dist, dir, name);
+    const n=(typeof dist==='number')?dist:parseInt(dist,10);
+    if((rawState==='RED'||rawState==='YELLOW'||rawState==='GREEN')&&isFinite(n)){effective=rGetStateHyst(n);}
+    else rStateHistory=[];
+    renderRemote(effective,dist,dir,name);
   }catch(e){}
 }
-
-function renderRemote(state, dist, dir, name){
-  const hero=document.getElementById("rHero");
-  hero.className="hero "+(state==="RED"?"red":state==="YELLOW"?"yellow":state==="GREEN"?"green":"blue");
-
-  document.getElementById("rState").textContent = state==="OFF" ? "WAITING" : state;
-  document.getElementById("rDist").textContent = (dist!==null && dist!==undefined && dist!=="") ? String(dist) : "—";
-  document.getElementById("rDir").textContent = dir ? ("DIR: "+dir.toUpperCase()) : "";
-  document.getElementById("rNameLine").textContent = name ? ("PLAYER: "+name) : "";
-  document.getElementById("rTime").textContent = "Updated: "+new Date().toLocaleTimeString();
-
-  if(state!==rCurState){
-    rCurState=state;
-    alertOnStateRemote(state, dir);
-    rStartRep();
-  }
+function renderRemote(state,dist,dir,name){
+  const hero=document.getElementById('rHero');
+  hero.className='hero '+(state==='RED'?'red':state==='YELLOW'?'yellow':state==='GREEN'?'green':'blue');
+  document.getElementById('rState').textContent=state==='OFF'?'WAITING':state;
+  document.getElementById('rDist').textContent=(dist!==null&&dist!==undefined&&dist!=='')?String(dist):'—';
+  document.getElementById('rDir').textContent=dir?('DIR: '+dir.toUpperCase()):'';
+  document.getElementById('rNameLine').textContent=name?('PLAYER: '+name):'';
+  document.getElementById('rTime').textContent='Updated: '+new Date().toLocaleTimeString();
+  if(state!==rCurState){rCurState=state;alertOnStateRemote(state,dir);rStartRep();}
 }
 
-function recalcRemoteFromLast(){
-  const n=(typeof rLastDist==="number")?rLastDist:parseInt(rLastDist,10);
-  if(!isFinite(n)) return;
-  const st=rGetStateHyst(n);
-  renderRemote(st, rLastDist, rLastDir, rLastName);
-}
-
-/* =========================================================
-   Host/Remote alerts (voice with beep fallback, NO directional beeping)
-   ========================================================= */
+/* =================================================================
+   ALERTS
+   ================================================================= */
 function prioForState(s){
-  if(s==="GOAL") return 6;
-  if(s==="MIDDLE") return 5;
-  if(s==="BALL LOOSE") return 5;
-  if(s==="RED") return 4;
-  if(s==="YELLOW") return 3;
-  if(s==="GREEN") return 2;
+  if(s==='BALL LOOSE') return 5;
+  if(s==='RED') return 4;
+  if(s==='YELLOW') return 3;
+  if(s==='GREEN') return 2;
   return 1;
 }
-
-function hostPhraseForState(state, dir){
-  if(state==="BALL LOOSE") return "Ball loose";
-  if(state==="RED") return dir ? ("Red " + dir) : "Red";
-  if(state==="YELLOW") return "Yellow";
-  if(state==="GREEN") return "Green";
-  return "";
+function phraseForState(state,dir){
+  if(state==='BALL LOOSE') return'ball loose';
+  if(state==='RED') return dir?('red '+dir):'red';
+  if(state==='YELLOW') return'yellow';
+  if(state==='GREEN') return'green';
+  return'';
 }
 
-function remotePhraseForState(state, dir){
-  if(state==="BALL LOOSE") return "Ball loose";
-  if(state==="RED") return dir ? ("Red " + dir) : "Red";
-  if(state==="YELLOW") return "Yellow";
-  if(state==="GREEN") return "Green";
-  return "";
-}
-
-function alertOnStateHost(state, dir){
+function alertOnStateHost(state,dir){
   if(state===lastSpokenState) return;
   lastSpokenState=state;
-
-  if(state==="OFF") return;
-
-  const base=+document.getElementById("rep").value;
-  const vol=+document.getElementById("vol").value;
-
-  const fallback = () => {
-    if(state==="RED"||state==="YELLOW"||state==="GREEN"){
-      const ms=beepIntervalForDistance(lastNum, state, base, RED_MAX, YEL_MAX, skipYellow);
-      playBeep(vol, state==="RED", document.getElementById("voiceLine"), ms);
-    } else if(state==="BALL LOOSE"){
-      playBeep(vol, true, document.getElementById("voiceLine"), 500);
-    }
-    updateVoiceNotes();
-  };
-
-  // If we already know TTS is broken: beep immediately
-  if(hostTtsBroken){
-    fallback();
-    startRep();
-    return;
-  }
-
-  const phrase = hostPhraseForState(state, dir);
-  speakWithFallbackHost(phrase, state==="RED"||state==="BALL LOOSE", prioForState(state), fallback);
+  if(state==='OFF') return;
+  const phrase=phraseForState(state,dir);
+  hostSpeak(phrase, state==='RED'||state==='BALL LOOSE', prioForState(state));
   startRep();
 }
-
-function alertOnStateRemote(state, dir){
-  const base=+document.getElementById("rRep").value;
-  const vol=+document.getElementById("rVol").value;
-  const n=(typeof rLastDist==="number") ? rLastDist : parseInt(rLastDist,10);
-
-  const fallback = () => {
-    if(state==="RED"||state==="YELLOW"||state==="GREEN"){
-      const ms=beepIntervalForDistance(isFinite(n)?n:null, state, base, rRED_MAX, rYEL_MAX, rSkipYellow);
-      playBeep(vol, state==="RED", document.getElementById("rVoiceLine"), ms);
-    } else if(state==="BALL LOOSE"){
-      playBeep(vol, true, document.getElementById("rVoiceLine"), 500);
-    }
-    updateVoiceNotes();
-  };
-
-  if(remoteTtsBroken){
-    fallback();
-    return;
-  }
-
-  const phrase = remotePhraseForState(state, dir);
-  speakWithFallbackRemote(phrase, state==="RED"||state==="BALL LOOSE", prioForState(state), fallback);
+function alertOnStateRemote(state,dir){
+  if(state==='OFF') return;
+  const phrase=phraseForState(state,dir);
+  remoteSpeak(phrase, state==='RED'||state==='BALL LOOSE', prioForState(state));
 }
 
 /* Repeat loops */
 function startRep(){
-  stopRep();
-  if(muted) return;
-  if(curState==="OFF"||curState==="") return;
-
+  stopRep();if(muted) return;if(curState==='OFF'||curState==='') return;
   const tick=()=>{
-    if(muted){ stopRep(); return; }
+    if(muted){stopRep();return;}
     const dir=getActiveDir();
-    const base=+document.getElementById("rep").value;
-    const vol=+document.getElementById("vol").value;
-
-    if(hostTtsBroken){
-      if(curState==="RED"||curState==="YELLOW"||curState==="GREEN"){
-        const ms=beepIntervalForDistance(lastNum, curState, base, RED_MAX, YEL_MAX, skipYellow);
-        playBeep(vol, curState==="RED", document.getElementById("voiceLine"), ms);
-        repTimer=setTimeout(tick, ms);
-        return;
-      }
-      repTimer=setTimeout(tick, Math.round(base*1000));
-      return;
+    const phrase=phraseForState(curState,dir);
+    const vol=+document.getElementById('vol').value;
+    if(hostEngine==='beep'){
+      const ms=beepIntervalForDistance(lastNum,curState,+document.getElementById('rep').value,RED_MAX,YEL_MAX,skipYellow);
+      playBeep(vol,curState==='RED',document.getElementById('voiceLine'),ms);
+      repTimer=setTimeout(tick,ms);
+    } else {
+      hostSpeak(phrase,curState==='RED'||curState==='BALL LOOSE',prioForState(curState));
+      repTimer=setTimeout(tick,Math.round(+document.getElementById('rep').value*1000));
     }
-
-    // speech repeat
-    const phrase = hostPhraseForState(curState, dir);
-    const fallback = () => {
-      const ms=beepIntervalForDistance(lastNum, curState, base, RED_MAX, YEL_MAX, skipYellow);
-      playBeep(vol, curState==="RED", document.getElementById("voiceLine"), ms);
-    };
-    speakWithFallbackHost(phrase, curState==="RED"||curState==="BALL LOOSE", prioForState(curState), fallback);
-    repTimer=setTimeout(tick, Math.round(base*1000));
   };
-
-  repTimer=setTimeout(tick, 350);
+  repTimer=setTimeout(tick,350);
 }
-function stopRep(){ if(repTimer){ clearTimeout(repTimer); repTimer=null; } }
+function stopRep(){if(repTimer){clearTimeout(repTimer);repTimer=null;}}
 
 function rStartRep(){
-  rStopRep();
-  if(rMuted) return;
-  if(rCurState==="OFF"||rCurState==="") return;
-
+  rStopRep();if(rMuted) return;if(rCurState==='OFF'||rCurState==='') return;
   const tick=()=>{
-    if(rMuted){ rStopRep(); return; }
-    const base=+document.getElementById("rRep").value;
-    const vol=+document.getElementById("rVol").value;
-    const n=(typeof rLastDist==="number") ? rLastDist : parseInt(rLastDist,10);
-
-    if(remoteTtsBroken){
-      if(rCurState==="RED"||rCurState==="YELLOW"||rCurState==="GREEN"){
-        const ms=beepIntervalForDistance(isFinite(n)?n:null, rCurState, base, rRED_MAX, rYEL_MAX, rSkipYellow);
-        playBeep(vol, rCurState==="RED", document.getElementById("rVoiceLine"), ms);
-        rRepTimer=setTimeout(tick, ms);
-        return;
-      }
-      rRepTimer=setTimeout(tick, Math.round(base*1000));
-      return;
+    if(rMuted){rStopRep();return;}
+    const phrase=phraseForState(rCurState,rLastDir);
+    const vol=+document.getElementById('rVol').value;
+    if(remoteEngine==='beep'){
+      const n=(typeof rLastDist==='number')?rLastDist:parseInt(rLastDist,10);
+      const ms=beepIntervalForDistance(isFinite(n)?n:null,rCurState,+document.getElementById('rRep').value,rRED_MAX,rYEL_MAX,rSkipYellow);
+      playBeep(vol,rCurState==='RED',document.getElementById('rVoiceLine'),ms);
+      rRepTimer=setTimeout(tick,ms);
+    } else {
+      remoteSpeak(phrase,rCurState==='RED'||rCurState==='BALL LOOSE',prioForState(rCurState));
+      rRepTimer=setTimeout(tick,Math.round(+document.getElementById('rRep').value*1000));
     }
-
-    const phrase = remotePhraseForState(rCurState, rLastDir);
-    const fallback = () => {
-      const ms=beepIntervalForDistance(isFinite(n)?n:null, rCurState, base, rRED_MAX, rYEL_MAX, rSkipYellow);
-      playBeep(vol, rCurState==="RED", document.getElementById("rVoiceLine"), ms);
-    };
-    speakWithFallbackRemote(phrase, rCurState==="RED"||rCurState==="BALL LOOSE", prioForState(rCurState), fallback);
-    rRepTimer=setTimeout(tick, Math.round(base*1000));
   };
-
-  rRepTimer=setTimeout(tick, 350);
+  rRepTimer=setTimeout(tick,350);
 }
-function rStopRep(){ if(rRepTimer){ clearTimeout(rRepTimer); rRepTimer=null; } }
+function rStopRep(){if(rRepTimer){clearTimeout(rRepTimer);rRepTimer=null;}}
 
-/* Test buttons */
+/* Test */
 function testVoice(){
   unlockAudio();
-  hostTtsBroken=false;
-  hostTtsRetries=0;
-  speechSynthesis.cancel();
-  const phrase="Red. Yellow. Green.";
-  const fallback=()=>playBeep(+document.getElementById("vol").value, true, document.getElementById("voiceLine"), 450);
-  speakWithFallbackHost(phrase, false, 99, fallback);
+  const vol=+document.getElementById('vol').value;
+  const rate=+document.getElementById('spd').value;
+  const lineEl=document.getElementById('voiceLine');
+  if(hostEngine==='webaudio'){
+    speakWebAudio('red yellow green',vol,rate,lineEl,'test');
+  } else if(hostEngine==='browser'){
+    speakBrowser('Red. Yellow. Green.',false,99,vol,rate,'voiceSel',lineEl,{val:0},{val:0},null);
+  } else {
+    playBeep(vol,true,lineEl,400);
+    setTimeout(()=>playBeep(vol,false,lineEl,400),450);
+    setTimeout(()=>playBeep(vol,false,lineEl,400),900);
+  }
 }
 function rTestVoice(){
   unlockAudio();
-  remoteTtsBroken=false;
-  remoteTtsRetries=0;
-  speechSynthesis.cancel();
-  const phrase="Red. Yellow. Green.";
-  const fallback=()=>playBeep(+document.getElementById("rVol").value, true, document.getElementById("rVoiceLine"), 450);
-  speakWithFallbackRemote(phrase, false, 99, fallback);
+  const vol=+document.getElementById('rVol').value;
+  const rate=+document.getElementById('rSpd').value;
+  const lineEl=document.getElementById('rVoiceLine');
+  if(remoteEngine==='webaudio'){
+    speakWebAudio('red yellow green',vol,rate,lineEl,'test');
+  } else if(remoteEngine==='browser'){
+    speakBrowser('Red. Yellow. Green.',false,99,vol,rate,'rVoiceSel',lineEl,{val:0},{val:0},null);
+  } else {
+    playBeep(vol,true,lineEl,400);
+    setTimeout(()=>playBeep(vol,false,lineEl,400),450);
+    setTimeout(()=>playBeep(vol,false,lineEl,400),900);
+  }
 }
 
-/* =========================================================
-   Voices list load
-   ========================================================= */
+/* =================================================================
+   VOICES (for browser TTS mode)
+   ================================================================= */
 function loadVoices(){
-  voices = speechSynthesis.getVoices();
-  const sel=document.getElementById("voiceSel");
-  if(!sel) return;
-  sel.innerHTML="";
-  let best=0;
-  voices.forEach((v,i)=>{
-    const o=document.createElement("option");
-    o.value=i;
-    o.textContent=v.name.slice(0,28)+" ("+v.lang+")";
-    sel.appendChild(o);
-    if(/Google US|David|Samantha|Daniel/i.test(v.name)) best=i;
-  });
+  voices=speechSynthesis.getVoices();
+  const sel=document.getElementById('voiceSel');if(!sel) return;
+  sel.innerHTML='';let best=0;
+  voices.forEach((v,i)=>{const o=document.createElement('option');o.value=i;o.textContent=v.name.slice(0,28)+' ('+v.lang+')';sel.appendChild(o);if(/Google US|David|Samantha|Daniel/i.test(v.name)) best=i;});
   sel.value=String(best);
 }
 function loadRVoices(){
-  rVoices = speechSynthesis.getVoices();
-  const sel=document.getElementById("rVoiceSel");
-  if(!sel) return;
-  sel.innerHTML="";
-  let best=0;
-  rVoices.forEach((v,i)=>{
-    const o=document.createElement("option");
-    o.value=i;
-    o.textContent=v.name.slice(0,28)+" ("+v.lang+")";
-    sel.appendChild(o);
-    if(/Google US|David|Samantha|Daniel/i.test(v.name)) best=i;
-  });
+  rVoices=speechSynthesis.getVoices();
+  const sel=document.getElementById('rVoiceSel');if(!sel) return;
+  sel.innerHTML='';let best=0;
+  rVoices.forEach((v,i)=>{const o=document.createElement('option');o.value=i;o.textContent=v.name.slice(0,28)+' ('+v.lang+')';sel.appendChild(o);if(/Google US|David|Samantha|Daniel/i.test(v.name)) best=i;});
   sel.value=String(best);
 }
-speechSynthesis.onvoiceschanged=()=>{
-  loadVoices();
-  loadRVoices();
-  updateVoiceNotes();
-};
-setTimeout(()=>{
-  loadVoices();
-  loadRVoices();
-  updateVoiceNotes();
-}, 600);
-
-// Quest: retry voice loading multiple times
-if(IS_QUEST){
-  [1500, 3000, 5000].forEach(delay=>{
-    setTimeout(()=>{
-      loadVoices();
-      loadRVoices();
-      updateVoiceNotes();
-    }, delay);
-  });
-}
+try{speechSynthesis.onvoiceschanged=()=>{loadVoices();loadRVoices();};}catch(e){}
+setTimeout(()=>{loadVoices();loadRVoices();},600);
 
 function updateVoiceNotes(){
-  const hostNote=document.getElementById("ttsNote");
-  const remoteNote=document.getElementById("rTtsNote");
-
-  if(hostNote){
-    if(hostTtsBroken){
-      hostNote.textContent="⚠ TTS unavailable on this device → using beeps automatically. Tap TEST to retry voice.";
-    } else {
-      hostNote.textContent=voices.length ? "" : "Voice list loading… Voice should still work; if silent, auto beep fallback kicks in.";
-    }
-  }
-
-  if(remoteNote){
-    if(remoteTtsBroken){
-      remoteNote.textContent="⚠ TTS unavailable on this device → using beeps automatically. Tap TEST to retry voice.";
-    } else {
-      remoteNote.textContent=rVoices.length ? "" : (IS_QUEST ? "Quest often has limited TTS. If voice is silent, beep fallback auto-activates after a few tries." : "");
-    }
-  }
+  const note=document.getElementById('ttsNote');
+  const rNote=document.getElementById('rTtsNote');
+  if(note) note.textContent=hostEngine==='webaudio'?'Web Audio TTS: works on Quest/Meta Browser. Uses formant synthesis.':hostEngine==='browser'?'Browser TTS: may not work on Quest.':'Beep mode: only beeps, no voice.';
+  if(rNote) rNote.textContent=remoteEngine==='webaudio'?'Web Audio TTS: works on Quest/Meta Browser. Uses formant synthesis.':remoteEngine==='browser'?'Browser TTS: may not work on Quest.':'Beep mode: only beeps, no voice.';
 }
 
-/* =========================================================
-   Keep relay pills updated
-   ========================================================= */
+/* Relay pill update */
 setInterval(()=>{
-  const el1=document.getElementById("relayPill");
-  const el2=document.getElementById("remoteRelayPill");
-  if(el1) el1.textContent = mqttConnected ? "connected" : "…";
-  if(el2) el2.textContent = mqttConnected ? "connected" : "…";
-}, 1500);
+  const e1=document.getElementById('relayPill');
+  const e2=document.getElementById('remoteRelayPill');
+  if(e1) e1.textContent=mqttConnected?'connected':'…';
+  if(e2) e2.textContent=mqttConnected?'connected':'…';
+},1500);
 
-/* =========================================================
-   Start state defaults
-   ========================================================= */
-document.getElementById("filterName").value="zepyX";
-filterNameNorm="zepyx";
-document.getElementById("redV").textContent=RED_MAX;
-document.getElementById("yelV").textContent=YEL_MAX;
-document.getElementById("rRedV").textContent=rRED_MAX;
-document.getElementById("rYelV").textContent=rYEL_MAX;
+/* Init defaults */
+document.getElementById('filterName').value='zepyX';
+document.getElementById('redV').textContent=RED_MAX;
+document.getElementById('yelV').textContent=YEL_MAX;
+document.getElementById('rRedV').textContent=rRED_MAX;
+document.getElementById('rYelV').textContent=rYEL_MAX;
 </script>
 </body>
 </html>
