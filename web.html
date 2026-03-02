@@ -38,18 +38,21 @@
     .start-info b{color:var(--grn)}.start-info .r{color:var(--red)}.start-info .y{color:var(--yel)}
     .ex-box{background:#0c0c18;padding:14px 28px;border-radius:var(--r);margin:10px auto;font-family:'Consolas',monospace;font-size:20px;border:1px solid var(--brd);display:inline-block}
     .ex-box .br{color:#666}.ex-box .nm{color:var(--grn);font-weight:bold}.ex-box .na{color:var(--t2)}
-    .role-selector{display:flex;gap:16px;margin-top:10px}
+    .role-selector{display:flex;gap:16px;margin-top:10px;flex-wrap:wrap;justify-content:center}
     .role-btn{padding:16px 32px;border-radius:var(--r);border:2px solid var(--brd);background:var(--card);color:var(--t2);font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;text-align:center;min-width:180px}
     .role-btn:hover{border-color:var(--grn);color:var(--grn)}
     .role-btn .role-icon{font-size:32px;margin-bottom:8px}
     .role-btn .role-sub{font-size:10px;color:var(--t3);margin-top:4px;font-weight:400}
+
     .app{display:grid;grid-template-columns:1fr 340px;gap:16px;padding:16px;max-width:1600px;margin:0 auto}
     @media(max-width:900px){.app{grid-template-columns:1fr}}
     .side{display:flex;flex-direction:column;gap:14px}
+
     .card{background:var(--card);border:1px solid var(--brd);border-radius:var(--r);overflow:hidden;margin-bottom:14px}
     .card:last-child{margin-bottom:0}
     .card-h{padding:11px 16px;background:var(--card-h);border-bottom:1px solid var(--brd);font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;color:var(--t2)}
     .card-b{padding:16px}
+
     .mode-bar{display:flex;gap:6px;margin-bottom:12px}
     .mode-btn{flex:1;padding:10px;background:rgba(255,255,255,.02);border:2px solid var(--brd);color:var(--t3);border-radius:var(--rs);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:8px}
     .mode-btn .mdot{width:10px;height:10px;border-radius:50%;border:2px solid currentColor}
@@ -57,6 +60,7 @@
     .mode-btn.act-dist .mdot{background:var(--grn)}
     .mode-btn.act-dir{border-color:var(--blu);color:var(--blu);background:var(--bg2)}
     .mode-btn.act-dir .mdot{background:var(--blu)}
+
     .video-container{position:relative;width:100%;background:#000;overflow:hidden;border:2px solid var(--brd);border-radius:var(--rs)}
     .video-container video{display:block;width:100%;height:100%}
     .drag-overlay{position:absolute;inset:0;cursor:crosshair;z-index:10}
@@ -70,14 +74,17 @@
     .sel-box.dir-sel::before{content:'DIRECTION';background:var(--blu);color:#000}
     .vid-hint{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);padding:6px 16px;background:rgba(0,0,0,.8);border-radius:20px;font-size:11px;color:var(--t3);white-space:nowrap;pointer-events:none;z-index:4}
     .vid-hint b{color:var(--grn)}
+
     .presets-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
     .pre-btn{padding:7px 13px;background:rgba(255,255,255,.03);border:1px solid var(--brd);color:var(--t3);border-radius:20px;font-size:11px;cursor:pointer;transition:all .15s;font-weight:500}
     .pre-btn:hover{border-color:var(--grn);color:var(--grn);background:var(--ga)}
     .pre-btn.dng:hover{border-color:var(--red);color:var(--red);background:var(--rg)}
+
     .cap-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
     .cap-item{background:#05050c;border:1px solid var(--brd);border-radius:var(--rs);padding:10px}
     .cap-lbl{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;font-weight:600}
     .cap-item canvas{display:block;width:100%;height:70px;background:#030308;border-radius:4px;image-rendering:pixelated}
+
     .res-display{background:#050510;border:2px solid var(--brd);border-radius:var(--r);padding:24px;text-align:center;transition:all .3s;position:relative;overflow:hidden}
     .res-display::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .3s}
     .res-display.red{border-color:var(--red)}.res-display.red::before{background:radial-gradient(ellipse at center,var(--rg),transparent 70%);opacity:1}
@@ -96,11 +103,13 @@
     .res-lbl{font-size:13px;font-weight:700;margin-top:8px;letter-spacing:4px;text-transform:uppercase;position:relative;z-index:1}
     .res-lbl.red{color:var(--red)}.res-lbl.yellow{color:var(--yel)}.res-lbl.green{color:var(--grn)}.res-lbl.loose{color:var(--red);letter-spacing:6px}
     .res-lbl.purple{color:var(--pur)}.res-lbl.orange{color:var(--org)}
+
     .dbg{display:grid;gap:0;margin-top:14px;background:#06060e;border-radius:var(--rs);overflow:hidden;border:1px solid var(--brd)}
     .dbg-r{display:flex;justify-content:space-between;align-items:center;padding:7px 12px;border-bottom:1px solid #0c0c18;font-size:11px;font-family:'Consolas',monospace}
     .dbg-r:last-child{border-bottom:none}
     .dbg-k{color:var(--t3);font-weight:500}.dbg-v{color:var(--t2);text-align:right;max-width:220px;word-break:break-all}
     .dbg-v.ok{color:var(--grn)}.dbg-v.warn{color:var(--yel)}.dbg-v.bad{color:var(--red)}
+
     .state-hero{text-align:center;padding:28px 20px;border-radius:var(--r);border:3px solid var(--brd);transition:all .3s;background:var(--card);position:relative;overflow:hidden}
     .state-hero::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .3s}
     .state-hero.red{border-color:var(--red)}.state-hero.red::before{background:radial-gradient(ellipse at center,var(--rg),transparent 70%);opacity:1}
@@ -114,24 +123,29 @@
     .st-big.loose{color:var(--red);font-size:28px;animation:flash .7s infinite}
     .st-big.purple{color:var(--pur)}.st-big.orange{color:var(--org)}
     .st-dist{font-size:18px;font-family:monospace;color:var(--t3);position:relative;z-index:1}
-    /* NEW: direction line under predicted distance */
     .st-dir{font-size:14px;font-family:monospace;color:var(--blu);margin-top:6px;letter-spacing:2px;position:relative;z-index:1;min-height:18px}
+
     .thr-bar{display:flex;gap:4px;margin-top:16px;position:relative;z-index:1}
     .thr-i{flex:1;padding:7px;border-radius:4px;text-align:center;font-size:10px;font-weight:700}
     .thr-i.ri{background:var(--rg);color:var(--red)}.thr-i.yi{background:var(--yg);color:var(--yel)}.thr-i.gi{background:var(--gg);color:var(--grn)}
+
     .srow{display:flex;align-items:center;gap:10px;margin-bottom:13px}
     .srow label{font-size:11px;color:var(--t3);min-width:80px;font-weight:500}
     .srow input[type=range]{flex:1;height:4px;-webkit-appearance:none;background:#1a1a30;border-radius:2px;outline:none}
     .srow input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;background:var(--grn);border-radius:50%;cursor:pointer;box-shadow:0 0 6px var(--ga)}
     .srow .sv{font-size:11px;color:var(--t3);min-width:45px;text-align:right;font-family:monospace;font-weight:600}
     .srow select{flex:1;padding:8px 10px;background:#0c0c18;border:1px solid var(--brd);color:var(--t2);border-radius:var(--rs);font-size:11px;outline:none;cursor:pointer}
+
     .tgl{display:flex;align-items:center;gap:10px;margin-bottom:12px;font-size:12px;color:var(--t2);cursor:pointer}
     .tgl input[type=checkbox]{width:16px;height:16px;accent-color:var(--grn);cursor:pointer}
+
     .btn-row{display:flex;gap:8px;margin-top:10px}
     .btn{flex:1;padding:9px 12px;background:rgba(255,255,255,.03);border:1px solid var(--brd);color:var(--t3);border-radius:var(--rs);font-size:11px;cursor:pointer;transition:all .15s;font-weight:600}
     .btn:hover{border-color:var(--grn);color:var(--grn)}.btn.act{border-color:var(--grn);color:var(--grn);background:var(--ga)}
+
     .vstatus{margin-top:10px;padding:8px 12px;background:#06060e;border-radius:var(--rs);font-size:11px;text-align:center;font-family:monospace;min-height:28px}
     .vstatus.ok{color:var(--grn)}.vstatus.err{color:var(--red)}.vstatus.talk{color:var(--yel)}
+
     .dir-result{margin-top:12px;padding:14px;background:#06060e;border:1px solid var(--brd);border-radius:var(--rs);text-align:center}
     .dir-detected{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px}
     .dir-value{font-size:22px;font-weight:800;color:var(--blu);font-family:'Consolas',monospace;letter-spacing:2px}
@@ -140,12 +154,16 @@
     .dir-callout{margin-top:10px;padding:8px;background:var(--rg);border:1px solid rgba(255,61,80,.3);border-radius:4px;font-size:12px;color:var(--red);font-weight:600;text-align:center}
     .dir-manual{margin-top:12px}
     .dir-manual select{width:100%;padding:8px 10px;background:#0c0c18;border:1px solid var(--brd);color:var(--t2);border-radius:var(--rs);font-size:11px;outline:none}
+
     .badge{padding:4px 10px;border-radius:12px;font-size:10px;font-weight:700;letter-spacing:.5px}
     .badge.load{background:#1a1500;color:var(--yel)}.badge.rdy{background:#001a0f;color:var(--grn)}.badge.fail{background:#1a0008;color:var(--red)}
+
     .info-c{background:var(--ga);border:1px solid rgba(0,232,120,.2);border-radius:var(--rs);padding:12px;margin-top:14px;font-size:11px;color:var(--grn);line-height:1.8}
     .info-c span{opacity:.7}
+
     .log-c{background:#04040a;border:1px solid var(--brd);border-radius:var(--rs);padding:10px 12px;max-height:80px;overflow-y:auto;font-family:'Consolas',monospace;font-size:10px;margin:0 16px 16px}
     .log-c div{padding:2px 0;color:var(--t3)}.log-c .lg{color:var(--grn)}.log-c .le{color:var(--red)}.log-c .lw{color:var(--yel)}
+
     .hidden{display:none!important}
     ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#222240;border-radius:2px}
 
@@ -164,18 +182,22 @@
     .remote-dist{font-size:28px;font-family:monospace;color:var(--t3);margin-top:10px;position:relative;z-index:1}
     .remote-dir{font-size:16px;color:var(--blu);margin-top:8px;position:relative;z-index:1;font-weight:600;letter-spacing:2px}
     .remote-time{font-size:10px;color:var(--t3);margin-top:12px;position:relative;z-index:1}
+
     .conn-status{text-align:center;padding:10px;border-radius:var(--rs);font-size:11px;margin-bottom:16px;font-weight:600}
     .conn-status.connected{background:var(--gg);color:var(--grn)}
     .conn-status.waiting{background:var(--yg);color:var(--yel)}
     .conn-status.disconnected{background:var(--rg);color:var(--red)}
+
     .room-display{text-align:center;margin-bottom:16px;padding:12px;background:var(--card);border:1px solid var(--brd);border-radius:var(--rs)}
     .room-display .room-label{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:2px;margin-bottom:4px}
     .room-display .room-code{font-size:24px;font-weight:900;font-family:'Consolas',monospace;color:var(--grn);letter-spacing:6px}
+
     .room-input-area{display:flex;gap:8px;margin-bottom:16px}
     .room-input-area input{flex:1;padding:12px 16px;background:#0c0c18;border:2px solid var(--brd);color:var(--t1);border-radius:var(--rs);font-size:16px;font-family:'Consolas',monospace;text-align:center;letter-spacing:4px;text-transform:uppercase;outline:none}
     .room-input-area input:focus{border-color:var(--grn)}
     .room-input-area input::placeholder{color:var(--t3);letter-spacing:2px;font-size:13px}
     .room-input-area button{padding:12px 24px;background:var(--ga);border:2px solid var(--grn);color:var(--grn);border-radius:var(--rs);font-size:13px;font-weight:700;cursor:pointer;letter-spacing:1px}
+
     .server-status{text-align:center;padding:6px 12px;font-size:10px;color:var(--t3);font-family:monospace}
     .server-status.ok{color:var(--grn)}.server-status.err{color:var(--red)}.server-status.warn{color:var(--yel)}
     .remote-clients{font-size:11px;color:var(--t3);text-align:center;margin-top:4px}
@@ -186,6 +208,7 @@
     .latency-display b.bad{color:var(--red)}
     .fps-display{font-size:10px;color:var(--t3);font-family:monospace}
     .fps-display b{color:var(--grn)}
+
     .thr-slider-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
     .thr-slider-row label{font-size:11px;min-width:70px;font-weight:600}
     .thr-slider-row label.rl{color:var(--red)}
@@ -201,329 +224,381 @@
     .thr-visual .seg.rs{background:var(--red)}.thr-visual .seg.ys{background:var(--yel)}.thr-visual .seg.gs{background:var(--grn)}
   </style>
 </head>
+
 <body>
-
-<div class="overlay" id="overlay">
-  <div class="hero-t">ORION</div>
-  <div class="hero-s">DISTANCE TRACKING SYSTEM</div>
-  <div class="role-selector">
-    <button class="role-btn" onclick="chooseRole('host')">
-      <div class="role-icon">🖥️</div>HOST
-      <div class="role-sub">Screen capture + OCR</div>
-    </button>
-    <button class="role-btn" onclick="chooseRole('remote')">
-      <div class="role-icon">📱</div>REMOTE
-      <div class="role-sub">View status from another device</div>
-    </button>
-  </div>
-</div>
-
-<div class="overlay hidden" id="hostSetup">
-  <div class="hero-t">ORION</div>
-  <div class="hero-s">HOST MODE</div>
-  <div class="room-display">
-    <div class="room-label">Your Room Code</div>
-    <div class="room-code" id="hostRoomCode">——</div>
-  </div>
-  <div class="server-status warn" id="hostServerStatus">Connecting to relay...</div>
-  <div class="remote-clients" id="hostClientCount"></div>
-  <button class="start-btn" id="startBtn">SHARE<br>SCREEN</button>
-  <div class="start-info">
-    Share the room code with your teammate.<br>
-    They open <b>this same URL</b> and join as <b>REMOTE</b>.<br><br>
-    <div class="ex-box"><span class="na">EnemyPlayer </span><span class="br">(</span><span class="nm">428</span><span class="br">)</span></div><br>
-    <span class="r">RED ≤500</span> · <span class="y">YEL 501-600</span> · <b>GRN >600</b><br>
-    <b>?</b> → <span class="r">BALL LOOSE</span> · <b>middle</b> → ⚽ · <b>goal</b> → 🥅<br>
-    Flickering borders → snaps to safer color
-  </div>
-</div>
-
-<div class="overlay hidden" id="remoteSetup">
-  <div class="hero-t">ORION</div>
-  <div class="hero-s">REMOTE MODE</div>
-  <div style="max-width:400px;width:100%">
-    <div class="room-input-area">
-      <input type="text" id="remoteRoomInput" placeholder="ROOM CODE" maxlength="6" autocomplete="off">
-      <button onclick="joinRoom()">JOIN</button>
-    </div>
-    <div class="server-status warn" id="remoteServerStatus">Connecting to relay...</div>
-    <div style="text-align:center;color:var(--t3);font-size:12px;margin-top:8px">
-      Enter the room code shown on the host device
+  <div class="overlay" id="overlay">
+    <div class="hero-t">ORION</div>
+    <div class="hero-s">DISTANCE TRACKING SYSTEM</div>
+    <div class="role-selector">
+      <button class="role-btn" onclick="chooseRole('host')">
+        <div class="role-icon">🖥️</div>HOST
+        <div class="role-sub">Screen capture + OCR</div>
+      </button>
+      <button class="role-btn" onclick="chooseRole('remote')">
+        <div class="role-icon">📱</div>REMOTE
+        <div class="role-sub">View status from another device</div>
+      </button>
     </div>
   </div>
-</div>
 
-<nav class="navbar hidden" id="navbar">
-  <div class="nav-brand"><div class="nav-logo">O</div>ORION</div>
-  <div class="nav-pills">
-    <span class="fps-display" id="fpsDisplay"></span>
-    <span id="resLabel" style="font-size:11px;color:var(--t3);font-family:monospace">—</span>
-    <div class="pill off" id="navPill"><span class="dot"></span><span id="pillTxt">OFFLINE</span></div>
+  <div class="overlay hidden" id="hostSetup">
+    <div class="hero-t">ORION</div>
+    <div class="hero-s">HOST MODE</div>
+    <div class="room-display">
+      <div class="room-label">Your Room Code</div>
+      <div class="room-code" id="hostRoomCode">——</div>
+    </div>
+    <div class="server-status warn" id="hostServerStatus">Connecting to relay...</div>
+    <div class="remote-clients" id="hostClientCount"></div>
+    <button class="start-btn" id="startBtn">SHARE<br>SCREEN</button>
+    <div class="start-info">
+      Share the room code with your teammate.<br>
+      They open <b>this same URL</b> and join as <b>REMOTE</b>.<br><br>
+      <div class="ex-box"><span class="na">EnemyPlayer </span><span class="br">(</span><span class="nm">428</span><span class="br">)</span></div><br>
+      <span class="r">RED ≤500</span> · <span class="y">YEL 501-600</span> · <b>GRN >600</b><br>
+      <b>?</b> → <span class="r">BALL LOOSE</span> · <b>middle</b> → ⚽ · <b>goal</b> → 🥅<br>
+      Flickering borders → snaps to safer color
+    </div>
   </div>
-</nav>
 
-<div class="app hidden" id="mainUI">
-  <div class="main-col">
-    <div class="card">
-      <div class="card-h">
-        <span>📺 Screen Capture</span>
-        <span class="room-display" style="padding:4px 12px;margin:0;background:transparent;border:1px solid var(--grn);border-radius:12px">
-          <span style="font-size:9px;color:var(--t3)">ROOM </span>
-          <span style="font-size:12px;color:var(--grn);font-weight:700;font-family:monospace;letter-spacing:2px" id="hostRoomCodeSmall">——</span>
-        </span>
+  <div class="overlay hidden" id="remoteSetup">
+    <div class="hero-t">ORION</div>
+    <div class="hero-s">REMOTE MODE</div>
+    <div style="max-width:400px;width:100%">
+      <div class="room-input-area">
+        <input type="text" id="remoteRoomInput" placeholder="ROOM CODE" maxlength="6" autocomplete="off">
+        <button onclick="joinRoom()">JOIN</button>
       </div>
-      <div class="card-b">
-        <div class="mode-bar">
-          <button class="mode-btn act-dist" id="modeDistBtn" onclick="setMode('distance')"><span class="mdot"></span>📍 Distance</button>
-          <button class="mode-btn" id="modeDirBtn" onclick="setMode('direction')"><span class="mdot"></span>🧭 Direction</button>
-        </div>
-        <div class="video-container" id="videoContainer">
-          <video id="vid" playsinline muted></video>
-          <div class="drag-overlay" id="dragArea"></div>
-          <div class="sel-box dist-sel" id="distBox"></div>
-          <div class="sel-box dir-sel" id="dirBox"></div>
-          <div class="vid-hint" id="vidHint">Draw a <b>distance</b> box around <b>enemy name (number)</b></div>
-        </div>
-        <div class="presets-row">
-          <button class="pre-btn" onclick="setPreset('topLeft')">Top-Left</button>
-          <button class="pre-btn" onclick="setPreset('topCenter')">Top-Center</button>
-          <button class="pre-btn" onclick="setPreset('topRight')">Top-Right</button>
-          <button class="pre-btn" onclick="setPreset('center')">Center</button>
-          <button class="pre-btn" onclick="setPreset('bottom')">Bottom</button>
-          <button class="pre-btn dng" onclick="clearSel()">✕ Clear</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-h"><span>🔍 OCR Engine</span><span class="badge load" id="ocrBadge">LOADING</span></div>
-      <div class="card-b">
-        <div class="cap-grid">
-          <div class="cap-item"><div class="cap-lbl">📷 Captured</div><canvas id="rawCvs"></canvas></div>
-          <div class="cap-item"><div class="cap-lbl">⚙️ Processed</div><canvas id="procCvs"></canvas></div>
-        </div>
-        <div class="res-display" id="resultBox">
-          <div class="res-num none" id="resultNum">Select a region to begin</div>
-          <div class="res-lbl" id="resultLbl"></div>
-        </div>
-        <div class="dbg">
-          <div class="dbg-r"><span class="dbg-k">Raw OCR</span><span class="dbg-v" id="dbgRaw">—</span></div>
-          <div class="dbg-r"><span class="dbg-k">Lines</span><span class="dbg-v" id="dbgLines">—</span></div>
-          <div class="dbg-r"><span class="dbg-k">Bracket</span><span class="dbg-v" id="dbgBracket">—</span></div>
-          <div class="dbg-r"><span class="dbg-k">Number</span><span class="dbg-v" id="dbgNum">—</span></div>
-          <div class="dbg-r"><span class="dbg-k">Confidence</span><span class="dbg-v" id="dbgConf">—</span></div>
-          <div class="dbg-r"><span class="dbg-k">Strategy</span><span class="dbg-v" id="dbgStrat">—</span></div>
-          <div class="dbg-r"><span class="dbg-k">Region</span><span class="dbg-v" id="dbgReg">—</span></div>
-          <div class="dbg-r"><span class="dbg-k">OCR Time</span><span class="dbg-v" id="dbgTime">—</span></div>
-          <div class="dbg-r"><span class="dbg-k">Pipeline</span><span class="dbg-v" id="dbgPipe">—</span></div>
-          <div class="dbg-r"><span class="dbg-k">Special</span><span class="dbg-v" id="dbgSpecial">—</span></div>
-          <div class="dbg-r"><span class="dbg-k">Hysteresis</span><span class="dbg-v" id="dbgHyst">—</span></div>
-        </div>
-        <div class="info-c">
-          <span>✓</span> Finds numbers inside ( ) or [ ] brackets<br>
-          <span>✓</span> Any <b>?</b> → <b>BALL LOOSE</b><br>
-          <span>✓</span> <b>middle</b> → ⚽ BALL IN MIDDLE (once)<br>
-          <span>✓</span> <b>goal</b> → 🥅 GOAL SCORED (once)<br>
-          <span>✓</span> No digits in OCR → stays silent<br>
-          <span>✓</span> Dual-worker pipeline · Instant WebSocket sync
-        </div>
+      <div class="server-status warn" id="remoteServerStatus">Connecting to relay...</div>
+      <div style="text-align:center;color:var(--t3);font-size:12px;margin-top:8px">
+        Enter the room code shown on the host device
       </div>
     </div>
   </div>
 
-  <div class="side">
-    <div class="state-hero" id="stateBox">
-      <div class="st-lbl">Current State</div>
-      <div class="st-big off" id="stateVal">—</div>
-      <div class="st-dist" id="stateDist">Waiting...</div>
-      <!-- NEW: direction always shown below prediction distance -->
-      <div class="st-dir" id="stateDir"></div>
-
-      <div class="thr-bar" id="thrBar">
-        <div class="thr-i ri" id="thrRedLabel">RED ≤500</div>
-        <div class="thr-i yi" id="thrYelLabel">YEL 501-600</div>
-        <div class="thr-i gi" id="thrGrnLabel">GRN >600</div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-h"><span>🎯 Thresholds</span></div>
-      <div class="card-b">
-        <div class="thr-slider-row">
-          <label class="rl">🔴 Red ≤</label>
-          <input type="range" class="red-range" id="redThrR" min="100" max="2000" step="10" value="500">
-          <span class="sv rv" id="redThrV">500</span>
-        </div>
-        <div class="thr-slider-row" id="yelThrRow">
-          <label class="yl">🟡 Yellow ≤</label>
-          <input type="range" class="yel-range" id="yelThrR" min="100" max="2500" step="10" value="600">
-          <span class="sv yv" id="yelThrV">600</span>
-        </div>
-        <label class="tgl" style="margin-top:8px"><input type="checkbox" id="skipYellowChk" onchange="toggleSkipYellow()"> Skip Yellow (Red/Green only)</label>
-        <div class="thr-visual">
-          <div class="seg rs" id="thrSegR" style="flex:500"></div>
-          <div class="seg ys" id="thrSegY" style="flex:100"></div>
-          <div class="seg gs" id="thrSegG" style="flex:400"></div>
-        </div>
-        <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--t3);margin-top:2px;font-family:monospace">
-          <span>0</span>
-          <span id="thrMidLabel">500 | 600</span>
-          <span>1000+</span>
-        </div>
-        <div class="presets-row" style="margin-top:10px">
-          <button class="pre-btn" onclick="setThresholds(400,500)">400/500</button>
-          <button class="pre-btn" onclick="setThresholds(500,600)">500/600</button>
-          <button class="pre-btn" onclick="setThresholds(600,800)">600/800</button>
-          <button class="pre-btn" onclick="setThresholds(300,400)">300/400</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-h"><span>🔊 Voice Alerts</span></div>
-      <div class="card-b">
-        <div class="srow"><label>Volume</label><input type="range" id="volR" min="0" max="1" step="0.1" value="0.8"><span class="sv" id="volV">80%</span></div>
-        <div class="srow"><label>Speed</label><input type="range" id="spdR" min="0.7" max="1.5" step="0.1" value="1"><span class="sv" id="spdV">1.0x</span></div>
-        <div class="srow"><label>Interval</label><input type="range" id="repR" min="1" max="5" step="0.5" value="2"><span class="sv" id="repV">2.0s</span></div>
-        <div class="srow"><label>Voice</label><select id="voiceSel"></select></div>
-
-        <label class="tgl" style="margin-top:8px">
-          <input type="checkbox" id="beepChk" onchange="toggleBeepMode()">
-          Directional Beep Mode (no voice for RED / YELLOW / GREEN)
-        </label>
-
-        <div class="btn-row">
-          <button class="btn" onclick="testVoice()">🎙 Test</button>
-          <button class="btn act" id="muteBtn" onclick="toggleMute()">🔊 On</button>
-        </div>
-        <div class="vstatus" id="voiceLine"></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-h"><span>🧭 Direction Callout</span></div>
-      <div class="card-b">
-        <label class="tgl"><input type="checkbox" id="dirChk" onchange="toggleDir()"> Enable auto-direction on RED</label>
-        <div id="dirUI" class="hidden">
-          <div style="font-size:11px;color:var(--t3);margin-bottom:10px;line-height:1.7">
-            Switch to <b style="color:var(--blu)">🧭 Direction Box</b> and draw around the direction text.
-          </div>
-          <div class="dir-result" id="dirResult">
-            <div class="dir-detected">Detected Direction</div>
-            <div class="dir-value none" id="dirValue">No direction box set</div>
-            <div class="dir-raw" id="dirRawText"></div>
-          </div>
-          <div class="dir-callout hidden" id="dirCallout">Callout: Red behind</div>
-          <div class="dir-manual">
-            <div style="font-size:10px;color:var(--t3);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px">Manual override</div>
-            <select id="dirManual" onchange="manualDir(this.value)">
-              <option value="">— Auto from OCR —</option>
-              <option value="behind">Behind</option>
-              <option value="in front">In Front</option>
-              <option value="left">Left</option>
-              <option value="right">Right</option>
-              <option value="above">Above</option>
-              <option value="below">Below</option>
-            </select>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-h"><span>⚙️ OCR Settings</span></div>
-      <div class="card-b">
-        <div class="srow"><label>Threshold</label><input type="range" id="thrR" min="20" max="235" value="128"><span class="sv" id="thrV">128</span></div>
-        <div class="srow"><label>Scale</label><input type="range" id="sclR" min="1" max="6" step="1" value="3"><span class="sv" id="sclV">3x</span></div>
-        <label class="tgl"><input type="checkbox" id="invChk"> Invert (light text on dark bg)</label>
-        <label class="tgl"><input type="checkbox" id="autoChk" checked> Auto-detect threshold</label>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="hidden" id="remoteUI">
-  <nav class="navbar">
-    <div class="nav-brand"><div class="nav-logo">O</div>ORION <span style="font-size:10px;color:var(--t3);letter-spacing:1px;margin-left:8px">REMOTE</span></div>
+  <nav class="navbar hidden" id="navbar">
+    <div class="nav-brand"><div class="nav-logo">O</div>ORION</div>
     <div class="nav-pills">
-      <div class="pill" id="remotePill"><span class="dot"></span><span id="remotePillTxt">CONNECTING</span></div>
+      <span class="fps-display" id="fpsDisplay"></span>
+      <span id="resLabel" style="font-size:11px;color:var(--t3);font-family:monospace">—</span>
+      <div class="pill off" id="navPill"><span class="dot"></span><span id="pillTxt">OFFLINE</span></div>
     </div>
   </nav>
 
-  <div class="remote-container">
-    <div class="conn-status waiting" id="connStatus">Connecting to host...</div>
-    <div class="room-display">
-      <div class="room-label">Connected Room</div>
-      <div class="room-code" id="remoteRoomDisplay">——</div>
-    </div>
-    <div class="latency-display" id="latencyDisplay"></div>
-
-    <div class="remote-hero" id="remoteHero">
-      <div class="remote-state off" id="remoteState">WAITING</div>
-      <div class="remote-dist" id="remoteDist">—</div>
-      <div class="remote-dir" id="remoteDir"></div>
-      <div class="remote-time" id="remoteTime"></div>
-    </div>
-
-    <div class="card">
-      <div class="card-h"><span>🔊 Voice Alerts</span></div>
-      <div class="card-b">
-        <div class="srow"><label>Volume</label><input type="range" id="rVolR" min="0" max="1" step="0.1" value="0.8"><span class="sv" id="rVolV">80%</span></div>
-        <div class="srow"><label>Speed</label><input type="range" id="rSpdR" min="0.7" max="1.5" step="0.1" value="1"><span class="sv" id="rSpdV">1.0x</span></div>
-        <div class="srow"><label>Interval</label><input type="range" id="rRepR" min="1" max="5" step="0.5" value="2"><span class="sv" id="rRepV">2.0s</span></div>
-        <div class="srow"><label>Voice</label><select id="rVoiceSel"></select></div>
-
-        <label class="tgl" style="margin-top:8px">
-          <input type="checkbox" id="rBeepChk" onchange="rToggleBeepMode()">
-          Directional Beep Mode (no voice for RED / YELLOW / GREEN)
-        </label>
-
-        <div class="btn-row">
-          <button class="btn" onclick="rTestVoice()">🎙 Test</button>
-          <button class="btn act" id="rMuteBtn" onclick="rToggleMute()">🔊 On</button>
+  <div class="app hidden" id="mainUI">
+    <div class="main-col">
+      <div class="card">
+        <div class="card-h">
+          <span>📺 Screen Capture</span>
+          <span class="room-display" style="padding:4px 12px;margin:0;background:transparent;border:1px solid var(--grn);border-radius:12px">
+            <span style="font-size:9px;color:var(--t3)">ROOM </span>
+            <span style="font-size:12px;color:var(--grn);font-weight:700;font-family:monospace;letter-spacing:2px" id="hostRoomCodeSmall">——</span>
+          </span>
         </div>
-        <div class="vstatus" id="rVoiceLine"></div>
+        <div class="card-b">
+          <div class="mode-bar">
+            <button class="mode-btn act-dist" id="modeDistBtn" onclick="setMode('distance')"><span class="mdot"></span>📍 Distance</button>
+            <button class="mode-btn" id="modeDirBtn" onclick="setMode('direction')"><span class="mdot"></span>🧭 Direction</button>
+          </div>
+          <div class="video-container" id="videoContainer">
+            <video id="vid" playsinline muted></video>
+            <div class="drag-overlay" id="dragArea"></div>
+            <div class="sel-box dist-sel" id="distBox"></div>
+            <div class="sel-box dir-sel" id="dirBox"></div>
+            <div class="vid-hint" id="vidHint">Draw a <b>distance</b> box around <b>enemy name (number)</b></div>
+          </div>
+          <div class="presets-row">
+            <button class="pre-btn" onclick="setPreset('topLeft')">Top-Left</button>
+            <button class="pre-btn" onclick="setPreset('topCenter')">Top-Center</button>
+            <button class="pre-btn" onclick="setPreset('topRight')">Top-Right</button>
+            <button class="pre-btn" onclick="setPreset('center')">Center</button>
+            <button class="pre-btn" onclick="setPreset('bottom')">Bottom</button>
+            <button class="pre-btn dng" onclick="clearSel()">✕ Clear</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-h"><span>🔍 OCR Engine</span><span class="badge load" id="ocrBadge">LOADING</span></div>
+        <div class="card-b">
+          <div class="cap-grid">
+            <div class="cap-item"><div class="cap-lbl">📷 Captured</div><canvas id="rawCvs"></canvas></div>
+            <div class="cap-item"><div class="cap-lbl">⚙️ Processed</div><canvas id="procCvs"></canvas></div>
+          </div>
+          <div class="res-display" id="resultBox">
+            <div class="res-num none" id="resultNum">Select a region to begin</div>
+            <div class="res-lbl" id="resultLbl"></div>
+          </div>
+          <div class="dbg">
+            <div class="dbg-r"><span class="dbg-k">Raw OCR</span><span class="dbg-v" id="dbgRaw">—</span></div>
+            <div class="dbg-r"><span class="dbg-k">Lines</span><span class="dbg-v" id="dbgLines">—</span></div>
+            <div class="dbg-r"><span class="dbg-k">Bracket</span><span class="dbg-v" id="dbgBracket">—</span></div>
+            <div class="dbg-r"><span class="dbg-k">Number</span><span class="dbg-v" id="dbgNum">—</span></div>
+            <div class="dbg-r"><span class="dbg-k">Confidence</span><span class="dbg-v" id="dbgConf">—</span></div>
+            <div class="dbg-r"><span class="dbg-k">Strategy</span><span class="dbg-v" id="dbgStrat">—</span></div>
+            <div class="dbg-r"><span class="dbg-k">Region</span><span class="dbg-v" id="dbgReg">—</span></div>
+            <div class="dbg-r"><span class="dbg-k">OCR Time</span><span class="dbg-v" id="dbgTime">—</span></div>
+            <div class="dbg-r"><span class="dbg-k">Pipeline</span><span class="dbg-v" id="dbgPipe">—</span></div>
+            <div class="dbg-r"><span class="dbg-k">Special</span><span class="dbg-v" id="dbgSpecial">—</span></div>
+            <div class="dbg-r"><span class="dbg-k">Hysteresis</span><span class="dbg-v" id="dbgHyst">—</span></div>
+          </div>
+          <div class="info-c">
+            <span>✓</span> Finds numbers inside ( ) or [ ] brackets<br>
+            <span>✓</span> Any <b>?</b> → <b>BALL LOOSE</b><br>
+            <span>✓</span> <b>middle</b> → ⚽ BALL IN MIDDLE (once)<br>
+            <span>✓</span> <b>goal</b> → 🥅 GOAL SCORED (once)<br>
+            <span>✓</span> No digits in OCR → stays silent<br>
+            <span>✓</span> Dual-worker pipeline · Instant WebSocket sync
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="side">
+      <div class="state-hero" id="stateBox">
+        <div class="st-lbl">Current State</div>
+        <div class="st-big off" id="stateVal">—</div>
+        <div class="st-dist" id="stateDist">Waiting...</div>
+        <div class="st-dir" id="stateDir"></div>
+
+        <div class="thr-bar" id="thrBar">
+          <div class="thr-i ri" id="thrRedLabel">RED ≤500</div>
+          <div class="thr-i yi" id="thrYelLabel">YEL 501-600</div>
+          <div class="thr-i gi" id="thrGrnLabel">GRN >600</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-h"><span>🎯 Thresholds</span></div>
+        <div class="card-b">
+          <div class="thr-slider-row">
+            <label class="rl">🔴 Red ≤</label>
+            <input type="range" class="red-range" id="redThrR" min="100" max="2000" step="10" value="500">
+            <span class="sv rv" id="redThrV">500</span>
+          </div>
+          <div class="thr-slider-row" id="yelThrRow">
+            <label class="yl">🟡 Yellow ≤</label>
+            <input type="range" class="yel-range" id="yelThrR" min="100" max="2500" step="10" value="600">
+            <span class="sv yv" id="yelThrV">600</span>
+          </div>
+          <label class="tgl" style="margin-top:8px"><input type="checkbox" id="skipYellowChk" onchange="toggleSkipYellow()"> Skip Yellow (Red/Green only)</label>
+          <div class="thr-visual">
+            <div class="seg rs" id="thrSegR" style="flex:500"></div>
+            <div class="seg ys" id="thrSegY" style="flex:100"></div>
+            <div class="seg gs" id="thrSegG" style="flex:400"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--t3);margin-top:2px;font-family:monospace">
+            <span>0</span>
+            <span id="thrMidLabel">500 | 600</span>
+            <span>1000+</span>
+          </div>
+          <div class="presets-row" style="margin-top:10px">
+            <button class="pre-btn" onclick="setThresholds(400,500)">400/500</button>
+            <button class="pre-btn" onclick="setThresholds(500,600)">500/600</button>
+            <button class="pre-btn" onclick="setThresholds(600,800)">600/800</button>
+            <button class="pre-btn" onclick="setThresholds(300,400)">300/400</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-h"><span>🔊 Voice Alerts</span></div>
+        <div class="card-b">
+          <div class="srow"><label>Volume</label><input type="range" id="volR" min="0" max="1" step="0.1" value="0.8"><span class="sv" id="volV">80%</span></div>
+          <div class="srow"><label>Speed</label><input type="range" id="spdR" min="0.7" max="1.5" step="0.1" value="1"><span class="sv" id="spdV">1.0x</span></div>
+          <div class="srow"><label>Interval</label><input type="range" id="repR" min="1" max="5" step="0.5" value="2"><span class="sv" id="repV">2.0s</span></div>
+          <div class="srow"><label>Voice</label><select id="voiceSel"></select></div>
+
+          <label class="tgl" style="margin-top:8px">
+            <input type="checkbox" id="beepChk" onchange="toggleBeepMode()">
+            Directional Beep Mode (no voice for RED / YELLOW / GREEN)
+          </label>
+
+          <div class="btn-row">
+            <button class="btn" onclick="testVoice()">🎙 Test</button>
+            <button class="btn act" id="muteBtn" onclick="toggleMute()">🔊 On</button>
+          </div>
+          <div class="vstatus" id="voiceLine"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-h"><span>🧭 Direction Callout</span></div>
+        <div class="card-b">
+          <label class="tgl"><input type="checkbox" id="dirChk" onchange="toggleDir()"> Enable auto-direction on RED</label>
+          <div id="dirUI" class="hidden">
+            <div style="font-size:11px;color:var(--t3);margin-bottom:10px;line-height:1.7">
+              Switch to <b style="color:var(--blu)">🧭 Direction Box</b> and draw around the direction text.
+            </div>
+            <div class="dir-result" id="dirResult">
+              <div class="dir-detected">Detected Direction</div>
+              <div class="dir-value none" id="dirValue">No direction box set</div>
+              <div class="dir-raw" id="dirRawText"></div>
+            </div>
+            <div class="dir-callout hidden" id="dirCallout">Callout: Red behind</div>
+            <div class="dir-manual">
+              <div style="font-size:10px;color:var(--t3);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px">Manual override</div>
+              <select id="dirManual" onchange="manualDir(this.value)">
+                <option value="">— Auto from OCR —</option>
+                <option value="behind">Behind</option>
+                <option value="in front">In Front</option>
+                <option value="left">Left</option>
+                <option value="right">Right</option>
+                <option value="above">Above</option>
+                <option value="below">Below</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-h"><span>⚙️ OCR Settings</span></div>
+        <div class="card-b">
+          <div class="srow"><label>Threshold</label><input type="range" id="thrR" min="20" max="235" value="128"><span class="sv" id="thrV">128</span></div>
+          <div class="srow"><label>Scale</label><input type="range" id="sclR" min="1" max="6" step="1" value="3"><span class="sv" id="sclV">3x</span></div>
+          <label class="tgl"><input type="checkbox" id="invChk"> Invert (light text on dark bg)</label>
+          <label class="tgl"><input type="checkbox" id="autoChk" checked> Auto-detect threshold</label>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
-<div class="log-c hidden" id="logBox"></div>
-<canvas id="workCvs" style="display:none"></canvas>
-<canvas id="workCvs2" style="display:none"></canvas>
+  <div class="hidden" id="remoteUI">
+    <nav class="navbar">
+      <div class="nav-brand"><div class="nav-logo">O</div>ORION <span style="font-size:10px;color:var(--t3);letter-spacing:1px;margin-left:8px">REMOTE</span></div>
+      <div class="nav-pills">
+        <div class="pill" id="remotePill"><span class="dot"></span><span id="remotePillTxt">CONNECTING</span></div>
+      </div>
+    </nav>
+
+    <div class="remote-container">
+      <div class="conn-status waiting" id="connStatus">Connecting to host...</div>
+      <div class="room-display">
+        <div class="room-label">Connected Room</div>
+        <div class="room-code" id="remoteRoomDisplay">——</div>
+      </div>
+
+      <div class="latency-display" id="latencyDisplay"></div>
+
+      <div class="remote-hero" id="remoteHero">
+        <div class="remote-state off" id="remoteState">WAITING</div>
+        <div class="remote-dist" id="remoteDist">—</div>
+        <div class="remote-dir" id="remoteDir"></div>
+        <div class="remote-time" id="remoteTime"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-h"><span>🔊 Voice Alerts</span></div>
+        <div class="card-b">
+          <div class="srow"><label>Volume</label><input type="range" id="rVolR" min="0" max="1" step="0.1" value="0.8"><span class="sv" id="rVolV">80%</span></div>
+          <div class="srow"><label>Speed</label><input type="range" id="rSpdR" min="0.7" max="1.5" step="0.1" value="1"><span class="sv" id="rSpdV">1.0x</span></div>
+          <div class="srow"><label>Interval</label><input type="range" id="rRepR" min="1" max="5" step="0.5" value="2"><span class="sv" id="rRepV">2.0s</span></div>
+          <div class="srow"><label>Voice</label><select id="rVoiceSel"></select></div>
+
+          <label class="tgl" style="margin-top:8px">
+            <input type="checkbox" id="rBeepChk" onchange="rToggleBeepMode()">
+            Directional Beep Mode (no voice for RED / YELLOW / GREEN)
+          </label>
+
+          <div class="btn-row">
+            <button class="btn" onclick="rTestVoice()">🎙 Test</button>
+            <button class="btn act" id="rMuteBtn" onclick="rToggleMute()">🔊 On</button>
+          </div>
+          <div class="vstatus" id="rVoiceLine"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="log-c hidden" id="logBox"></div>
+  <canvas id="workCvs" style="display:none"></canvas>
+  <canvas id="workCvs2" style="display:none"></canvas>
 
 <script>
   const $ = id => document.getElementById(id);
+
   const vid = $('vid'), rawCvs = $('rawCvs'), procCvs = $('procCvs'), workCvs = $('workCvs'), workCvs2 = $('workCvs2');
   const rawCtx = rawCvs.getContext('2d'), procCtx = procCvs.getContext('2d');
   const workCtx = workCvs.getContext('2d', { willReadFrequently: true });
   const workCtx2 = workCvs2.getContext('2d', { willReadFrequently: true });
   const distBox = $('distBox'), dirBox = $('dirBox'), videoContainer = $('videoContainer');
 
-  let role = null, roomCode = '', running = false, muted = false, voices = [], ocrReady = false;
-  let distRegion = null, dirRegion = null, curState = 'OFF', lastNum = null, repTimer = null;
-  let vidW = 0, vidH = 0, lastGoodNum = null, lastGoodTime = 0, noDetectCount = 0;
+  let role = null, roomCode = '', running = false;
+
+  // host voice
+  let muted = false, voices = [];
+  let speechActivePrio = 0;
+
+  // remote voice
+  let rMuted = false, rVoices = [];
+  let rSpeechActivePrio = 0;
+
+  // regions + state
+  let distRegion = null, dirRegion = null;
+  let curState = 'OFF', lastNum = null;
+  let repTimer = null;
+
+  let vidW = 0, vidH = 0;
+  let lastGoodNum = null, lastGoodTime = 0, noDetectCount = 0;
   let drawMode = 'distance', detectedDir = '', manualDirOverride = '', isBallLoose = false;
   let recentReadings = []; const MAX_READINGS = 3;
   let RED_MAX = 500, YEL_MAX = 600;
   let skipYellow = false;
   let isMiddle = false, isGoal = false;
   let middleAnnounced = false, goalAnnounced = false;
+
+  // hysteresis
   let stateHistory = [];
   const HYST_WINDOW = 4;
 
-  // ===== NEW: Beep mode (host + remote) + audio ctx =====
+  // beep mode
   let beepMode = false;
   let rBeepMode = false;
   let beepCtx = null;
 
-  // ===== FIX: whitelist constants so Direction OCR doesn't break Distance OCR =====
+  // OCR
+  let ocrReady = false;
   const DIST_WHITELIST = '0123456789()[]?ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz _-.|';
   const DIR_WHITELIST  = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz ';
+  let ocrWorkers = [];
+  let ocrWorkerBusy = [false, false];
+  let ocrWorkerReady = [false, false];
+  let ocrFrameCount = 0, ocrFpsLastTime = Date.now(), ocrFps = 0;
 
-  // ===== NEW: speech priority so RED won't get cut off by lower priority updates =====
-  let speechActivePrio = 0; // host
-  let rSpeechActivePrio = 0; // remote
+  // remote state + repeat
+  let rCurState = 'OFF', rRepTimer = null, rLastDir = '', rLastDist = '';
+  let rMiddleAnnounced = false, rGoalAnnounced = false;
+
+  // remote ordering + clock-skew corrected delay
+  let rLastSeq = 0;
+  let rClockOffset = null;
+
+  // ===== speech unlock (fixes "remote voice not speaking" on mobile) =====
+  let audioUnlocked = false;
+  function ensureBeepCtx() {
+    if (!beepCtx) beepCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (beepCtx.state === 'suspended') beepCtx.resume().catch(() => {});
+    return beepCtx;
+  }
+  function unlockSpeech() {
+    if (audioUnlocked) return;
+    audioUnlocked = true;
+
+    try { ensureBeepCtx(); } catch (e) {}
+
+    // iOS/Safari: needs speech during user gesture
+    try {
+      const u = new SpeechSynthesisUtterance(' ');
+      u.volume = 0;
+      speechSynthesis.speak(u);
+      setTimeout(() => { try { speechSynthesis.cancel(); } catch(e) {} }, 50);
+    } catch (e) {}
+  }
+  document.addEventListener('pointerdown', unlockSpeech, { once: true });
+
+  // ===== utility =====
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
 
   function prioForState(state) {
     if (state === 'GOAL') return 6;
@@ -535,15 +610,22 @@
     return 1;
   }
 
-  function ensureBeepCtx() {
-    if (!beepCtx) beepCtx = new (window.AudioContext || window.webkitAudioContext)();
-    if (beepCtx.state === 'suspended') beepCtx.resume().catch(() => {});
-    return beepCtx;
+  function dirToPan(dir) {
+    dir = (dir || '').toLowerCase();
+    if (dir === 'left') return -1;
+    if (dir === 'right') return 1;
+    return 0;
   }
-  document.addEventListener('pointerdown', () => { try { ensureBeepCtx(); } catch(e){} }, { once: true });
+  function dirToFreq(dir, urgent) {
+    dir = (dir || '').toLowerCase();
+    if (dir === 'above') return 950;
+    if (dir === 'below') return 380;
+    if (dir === 'behind') return 420;
+    if (dir === 'in front') return 720;
+    return urgent ? 820 : 660;
+  }
 
-  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
-
+  // distance-based beep interval
   function beepIntervalForDistance(n, state, repSeconds, redMax = RED_MAX, yelMax = YEL_MAX, skipY = skipYellow) {
     const repMult = clamp((repSeconds || 2) / 2, 0.25, 3);
     if (typeof n !== 'number' || !isFinite(n)) return Math.round(900 * repMult);
@@ -576,21 +658,6 @@
 
     ms = ms * repMult;
     return Math.round(clamp(ms, 90, 3000));
-  }
-
-  function dirToPan(dir) {
-    dir = (dir || '').toLowerCase();
-    if (dir === 'left') return -1;
-    if (dir === 'right') return 1;
-    return 0;
-  }
-  function dirToFreq(dir, urgent) {
-    dir = (dir || '').toLowerCase();
-    if (dir === 'above') return 950;
-    if (dir === 'below') return 380;
-    if (dir === 'behind') return 420;
-    if (dir === 'in front') return 720;
-    return urgent ? 820 : 660;
   }
 
   function playDirectionalBeep(dir, volume, urgent, lineEl, intervalMs = 600) {
@@ -635,10 +702,10 @@
 
     if (lineEl) {
       const d = (dir || 'center').toUpperCase();
-      lineEl.textContent = '🔔 BEEP ' + d;
+      lineEl.textContent = 'BEEP ' + d;
       lineEl.className = 'vstatus talk';
       setTimeout(() => {
-        if (lineEl.textContent.startsWith('🔔')) {
+        if (lineEl.textContent.startsWith('BEEP')) {
           lineEl.textContent = '✓';
           lineEl.className = 'vstatus ok';
         }
@@ -648,7 +715,7 @@
 
   function toggleBeepMode() {
     beepMode = $('beepChk').checked;
-    try { ensureBeepCtx(); } catch(e){}
+    unlockSpeech();
     speechSynthesis.cancel();
     speechActivePrio = 0;
     stopRep();
@@ -656,12 +723,16 @@
   }
   function rToggleBeepMode() {
     rBeepMode = $('rBeepChk').checked;
-    try { ensureBeepCtx(); } catch(e){}
+    unlockSpeech();
     speechSynthesis.cancel();
     rSpeechActivePrio = 0;
     rStopRep();
     rStartRep();
   }
+
+  // ===== direction helpers =====
+  function manualDir(v) { manualDirOverride = v; updateDirDisplay(); }
+  function getActiveDir() { return manualDirOverride || detectedDir; }
 
   function updateStateDirLine() {
     const el = $('stateDir');
@@ -670,15 +741,43 @@
     if (!$('dirChk').checked) { el.textContent = ''; return; }
 
     const d = getActiveDir();
-    if (d) {
-      el.textContent = 'DIR: ' + d.toUpperCase();
-    } else if (dirRegion) {
-      el.textContent = 'DIR: SCANNING';
-    } else {
-      el.textContent = '';
-    }
+    if (d) el.textContent = 'DIR: ' + d.toUpperCase();
+    else if (dirRegion) el.textContent = 'DIR: SCANNING';
+    else el.textContent = '';
   }
 
+  function toggleDir() {
+    const on = $('dirChk').checked;
+    $('dirUI').classList.toggle('hidden', !on);
+    if (!on) {
+      dirRegion = null;
+      dirBox.classList.remove('show');
+      detectedDir = '';
+      updateDirDisplay();
+    }
+    updateStateDirLine();
+  }
+
+  function updateDirDisplay() {
+    const d = getActiveDir(), dv = $('dirValue');
+    if (d) {
+      dv.textContent = d.toUpperCase();
+      dv.className = 'dir-value';
+      $('dirCallout').textContent = 'Callout: Red ' + d;
+      $('dirCallout').classList.remove('hidden');
+    } else if (dirRegion) {
+      dv.textContent = 'Scanning...';
+      dv.className = 'dir-value none';
+      $('dirCallout').classList.add('hidden');
+    } else {
+      dv.textContent = 'No direction box set';
+      dv.className = 'dir-value none';
+      $('dirCallout').classList.add('hidden');
+    }
+    updateStateDirLine();
+  }
+
+  // ===== thresholds / hysteresis =====
   function toggleSkipYellow() {
     skipYellow = $('skipYellowChk').checked;
     $('yelThrRow').style.display = skipYellow ? 'none' : 'flex';
@@ -714,8 +813,10 @@
       }
       const totalWeight = weightRed + weightGreen;
       const redPct = (weightRed / totalWeight) * 100;
+
       if (raw === 'RED' && redPct < 30) { $('dbgHyst').textContent = `RED→GRN (R:${Math.round(redPct)}%)`; $('dbgHyst').className = 'dbg-v ok'; return 'GREEN'; }
       if (raw === 'GREEN' && redPct > 50) { $('dbgHyst').textContent = `GRN→RED (R:${Math.round(redPct)}%)`; $('dbgHyst').className = 'dbg-v bad'; return 'RED'; }
+
       $('dbgHyst').textContent = `${raw} (R:${Math.round(redPct)}%)`;
       $('dbgHyst').className = raw === 'RED' ? 'dbg-v bad' : 'dbg-v ok';
       return raw;
@@ -744,6 +845,7 @@
       $('dbgHyst').className = 'dbg-v bad';
       return 'RED';
     }
+
     if (raw === 'YELLOW') {
       if (redPct > 20) { $('dbgHyst').textContent = `YEL→RED (R:${Math.round(redPct)}%)`; $('dbgHyst').className = 'dbg-v bad'; return 'RED'; }
       if (greenPct > 60) { $('dbgHyst').textContent = `YEL→GRN (G:${Math.round(greenPct)}%)`; $('dbgHyst').className = 'dbg-v ok'; return 'GREEN'; }
@@ -751,6 +853,7 @@
       $('dbgHyst').className = 'dbg-v warn';
       return 'YELLOW';
     }
+
     if (raw === 'GREEN') {
       if (greenPct < 30 && redPct > 50) { $('dbgHyst').textContent = `GRN→RED (R:${Math.round(redPct)}%)`; $('dbgHyst').className = 'dbg-v bad'; return 'RED'; }
       if (greenPct < 40 && yellowPct > 50) { $('dbgHyst').textContent = `GRN→YEL (Y:${Math.round(yellowPct)}%)`; $('dbgHyst').className = 'dbg-v warn'; return 'YELLOW'; }
@@ -758,25 +861,11 @@
       $('dbgHyst').className = 'dbg-v ok';
       return 'GREEN';
     }
+
     return raw;
   }
+
   function getState(n) { return getStateWithHysteresis(n); }
-
-  const DIR_KEYWORDS = {
-    behind:'behind', back:'behind', rear:'behind',
-    front:'in front', ahead:'in front', forward:'in front',
-    left:'left', right:'right',
-    above:'above', up:'above', top:'above',
-    below:'below', down:'below', bottom:'below', under:'below'
-  };
-
-  let ocrWorkers = [];
-  let ocrWorkerBusy = [false, false];
-  let ocrWorkerReady = [false, false];
-  let ocrFrameCount = 0, ocrFpsLastTime = Date.now(), ocrFps = 0;
-
-  let rMuted = false, rVoices = [], rCurState = 'OFF', rRepTimer = null, rLastDir = '', rLastDist = '';
-  let rMiddleAnnounced = false, rGoalAnnounced = false;
 
   function updateThresholdUI() {
     $('redThrV').textContent = RED_MAX;
@@ -826,24 +915,19 @@
   }
   updateThresholdUI();
 
-  const MIDDLE_WORDS = ['middle','middie','midd1e','m1ddle','rniddle','middl','mlddle','mid'];
-  const GOAL_WORDS = ['goal','goa1','g0al','goai','qoal','g0a1'];
-
-  function detectMiddle(raw, lines) {
-    const all = [raw, ...lines].map(s => s.toLowerCase());
-    for (const s of all) for (const w of MIDDLE_WORDS) if (s.includes(w)) return true;
-    return false;
-  }
-  function detectGoal(raw, lines) {
-    const all = [raw, ...lines].map(s => s.toLowerCase());
-    for (const s of all) for (const w of GOAL_WORDS) if (s.includes(w)) return true;
-    return false;
-  }
+  // ===== DIR OCR keyword map =====
+  const DIR_KEYWORDS = {
+    behind:'behind', back:'behind', rear:'behind',
+    front:'in front', ahead:'in front', forward:'in front',
+    left:'left', right:'right',
+    above:'above', up:'above', top:'above',
+    below:'below', down:'below', bottom:'below', under:'below'
+  };
 
   // ===== MQTT relay =====
   let mqttWs = null, mqttConnected = false, mqttReconnectTimer = null;
   let mqttClientId = 'orion-' + Math.random().toString(36).substr(2, 9);
-  let mqttTopic = '', mqttPingInterval = null;
+  let mqttPingInterval = null;
 
   function mqttConnect(onConnect, onMessage) {
     if (mqttWs) { try { mqttWs.close(); } catch (e) { } }
@@ -904,7 +988,6 @@
   }
   function mqttSubscribe(topic) {
     if (!mqttWs || !mqttConnected) return;
-    mqttTopic = topic;
     const tb=new TextEncoder().encode(topic),tl=tb.length,rl=2+2+tl+1;
     const p=new Uint8Array(2+rl);let i=0;
     p[i++]=0x82;p[i++]=rl;p[i++]=0;p[i++]=1;p[i++]=(tl>>8)&0xFF;p[i++]=tl&0xFF;
@@ -923,23 +1006,52 @@
   }
   function getMqttTopic(code) { return 'orion/room/' + code.toLowerCase(); }
 
-  let lastBroadcastState = '', lastBroadcastTime = 0;
-  function broadcastState(state, dist, dir) {
-    const now = Date.now(), key = state + '|' + dist + '|' + dir;
-    if (key === lastBroadcastState && now - lastBroadcastTime < 100) return;
-    lastBroadcastState = key; lastBroadcastTime = now;
-    const p = JSON.stringify({ s: state, d: dist, r: dir, t: now });
-    if (mqttConnected) mqttPublish(getMqttTopic(roomCode), p);
-    localBroadcast(state, dist, dir);
-  }
-
+  // ===== Local BroadcastChannel =====
   let bc = null;
   function initLocalBroadcast(code) {
     try { bc = new BroadcastChannel('orion-room-' + code); } catch (e) { }
     return bc;
   }
-  function localBroadcast(s, d, r) { if (bc) try { bc.postMessage({ s, d, r, t: Date.now() }); } catch (e) { } }
 
+  // ===== Network throttling + sequencing (FIX: huge delay) =====
+  let netSeq = 0;
+  let lastNetSend = 0;
+  let lastNetSent = { s: '', d: null, r: '' };
+
+  const NET_MIN_MS = 200;        // <= 5 msgs/sec
+  const NET_HEARTBEAT_MS = 1200; // keep remote alive
+
+  function normDistForNet(d) {
+    if (typeof d === 'number' && isFinite(d)) return Math.round(d / 5) * 5;
+    return d;
+  }
+
+  function broadcastState(state, dist, dir) {
+    const now = Date.now();
+    const dQ = normDistForNet(dist);
+    const r = dir || '';
+
+    const changed = (state !== lastNetSent.s || dQ !== lastNetSent.d || r !== lastNetSent.r);
+    const minGap = changed ? NET_MIN_MS : NET_HEARTBEAT_MS;
+    if (now - lastNetSend < minGap) return;
+
+    lastNetSend = now;
+    lastNetSent = { s: state, d: dQ, r };
+
+    const q = ++netSeq;
+    const payload = JSON.stringify({ s: state, d: dQ, r, t: now, q });
+
+    if (mqttConnected) mqttPublish(getMqttTopic(roomCode), payload);
+    localBroadcast(state, dQ, r, now, q);
+  }
+
+  function localBroadcast(s, d, r, t, q) {
+    if (bc) {
+      try { bc.postMessage({ s, d, r, t, q }); } catch (e) {}
+    }
+  }
+
+  // ===== Room code / roles =====
   function genRoom() {
     const c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     let r = '';
@@ -950,19 +1062,24 @@
   function chooseRole(r) {
     role = r;
     $('overlay').classList.add('hidden');
+
     if (r === 'host') {
       roomCode = genRoom();
       $('hostRoomCode').textContent = roomCode;
       $('hostRoomCodeSmall').textContent = roomCode;
+
       $('hostSetup').classList.remove('hidden');
       initLocalBroadcast(roomCode);
+
       $('hostServerStatus').textContent = 'Connecting...';
       $('hostServerStatus').className = 'server-status warn';
+
       mqttConnect(() => {
-        $('hostServerStatus').textContent = '✓ Connected (~50ms)';
+        $('hostServerStatus').textContent = '✓ Connected';
         $('hostServerStatus').className = 'server-status ok';
         mqttSubscribe(getMqttTopic(roomCode));
-      }, () => { });
+      }, () => {});
+
       log('Host. Room: ' + roomCode, 'g');
     } else {
       $('remoteSetup').classList.remove('hidden');
@@ -973,14 +1090,21 @@
   }
 
   function joinRoom() {
+    unlockSpeech();
+
     const code = $('remoteRoomInput').value.trim().toUpperCase();
     if (code.length < 3) { alert('Enter room code'); return; }
+
     roomCode = code;
     $('remoteRoomDisplay').textContent = code;
     $('remoteSetup').classList.add('hidden');
     $('remoteUI').classList.remove('hidden');
+
     $('connStatus').textContent = 'Connecting...';
     $('connStatus').className = 'conn-status waiting';
+
+    rLastSeq = 0;
+    rClockOffset = null;
 
     mqttConnect(() => {
       mqttSubscribe(getMqttTopic(code));
@@ -991,45 +1115,58 @@
     }, (msg) => {
       try {
         const d = JSON.parse(msg);
-        if (d.s !== undefined) {
-          if (d.t) {
-            const l = Date.now() - d.t;
-            const c = l < 100 ? '' : l > 500 ? 'bad' : 'slow';
-            $('latencyDisplay').innerHTML = 'Latency: <b class="' + c + '">' + l + 'ms</b>';
-          }
-          if (!$('connStatus').classList.contains('connected')) {
-            $('connStatus').textContent = '✓ LIVE';
-            $('connStatus').className = 'conn-status connected';
-            $('remotePill').className = 'pill live';
-            $('remotePillTxt').textContent = 'LIVE';
-          }
-          handleRemoteState({ state: d.s, dist: d.d, dir: d.r });
+        if (d.s === undefined) return;
+
+        // ignore out-of-order / old messages (prevents backlog effects)
+        if (typeof d.q === 'number') {
+          if (d.q <= rLastSeq) return;
+          rLastSeq = d.q;
         }
-      } catch (e) { }
+
+        // clock-skew corrected delay display (fixes "20k ms" if clocks differ)
+        if (typeof d.t === 'number') {
+          if (rClockOffset === null) rClockOffset = Date.now() - d.t;
+          const age = Date.now() - (d.t + rClockOffset);
+          const l = Math.max(0, Math.round(age));
+          const c = l < 120 ? '' : l > 800 ? 'bad' : 'slow';
+          $('latencyDisplay').innerHTML = 'Delay: <b class="' + c + '">' + l + 'ms</b>';
+        }
+
+        if (!$('connStatus').classList.contains('connected')) {
+          $('connStatus').textContent = '✓ LIVE';
+          $('connStatus').className = 'conn-status connected';
+          $('remotePill').className = 'pill live';
+          $('remotePillTxt').textContent = 'LIVE';
+        }
+
+        handleRemoteState({ state: d.s, dist: d.d, dir: d.r });
+      } catch (e) {}
     });
 
     const lbc = initLocalBroadcast(code);
     if (lbc) {
       lbc.onmessage = e => {
         const d = e.data;
-        if (d.s !== undefined) {
-          if ($('connStatus').className !== 'conn-status connected') {
-            $('connStatus').textContent = '✓ LIVE (local)';
-            $('connStatus').className = 'conn-status connected';
-            $('remotePill').className = 'pill live';
-            $('remotePillTxt').textContent = 'LIVE';
-          }
-          handleRemoteState({ state: d.s, dist: d.d, dir: d.r });
+        if (!d || d.s === undefined) return;
+
+        if (typeof d.q === 'number') {
+          if (d.q <= rLastSeq) return;
+          rLastSeq = d.q;
         }
+
+        handleRemoteState({ state: d.s, dist: d.d, dir: d.r });
       };
     }
+
     rLoadVoices();
     log('Remote: ' + code, 'g');
   }
 
+  // ===== Remote UI + voice =====
   function handleRemoteState(data) {
     const { state, dist, dir } = data;
     const hero = $('remoteHero'), stEl = $('remoteState'), distEl = $('remoteDist'), dirEl = $('remoteDir'), timeEl = $('remoteTime');
+
     rLastDir = dir || '';
     rLastDist = dist || '';
 
@@ -1071,7 +1208,6 @@
       distEl.textContent = '—';
     }
 
-    // direction already below distance in remote UI
     dirEl.textContent = dir ? ('↗ ' + dir.toUpperCase()) : '';
     timeEl.textContent = 'Updated: ' + new Date().toLocaleTimeString();
 
@@ -1125,24 +1261,13 @@
     s.value = best;
   }
 
-  speechSynthesis.onvoiceschanged = () => { loadVoices(); rLoadVoices(); };
-  setTimeout(() => { loadVoices(); rLoadVoices(); }, 100);
-  setTimeout(() => { loadVoices(); rLoadVoices(); }, 500);
-  setTimeout(() => { loadVoices(); rLoadVoices(); }, 1500);
-  setTimeout(() => { loadVoices(); rLoadVoices(); }, 3000);
-
-  $('rVolR').oninput = e => $('rVolV').textContent = Math.round(e.target.value * 100) + '%';
-  $('rSpdR').oninput = e => $('rSpdV').textContent = (+e.target.value).toFixed(1) + 'x';
-  $('rRepR').oninput = e => { $('rRepV').textContent = (+e.target.value).toFixed(1) + 's'; rStartRep(); };
-
-  // REMOTE: do NOT cancel mid-speech unless higher priority
   function rSpeak(text, urgent, prio = 1) {
     if (rMuted) return;
     if (!text) return;
 
     const synth = speechSynthesis;
 
-    // If currently speaking/pending, only interrupt if higher priority
+    // Don't cut off RED mid-speech for lower priority updates
     if ((synth.speaking || synth.pending) && prio <= rSpeechActivePrio) return;
 
     if (synth.speaking || synth.pending) synth.cancel();
@@ -1157,16 +1282,8 @@
       if (v) u.voice = v;
     }
     u.onstart = () => { $('rVoiceLine').textContent = '🔊 ' + text; $('rVoiceLine').className = 'vstatus talk'; };
-    u.onend = () => {
-      $('rVoiceLine').textContent = '✓ ' + text;
-      $('rVoiceLine').className = 'vstatus ok';
-      rSpeechActivePrio = 0;
-    };
-    u.onerror = () => {
-      $('rVoiceLine').textContent = '⚠';
-      $('rVoiceLine').className = 'vstatus err';
-      rSpeechActivePrio = 0;
-    };
+    u.onend = () => { $('rVoiceLine').textContent = '✓ ' + text; $('rVoiceLine').className = 'vstatus ok'; rSpeechActivePrio = 0; };
+    u.onerror = () => { $('rVoiceLine').textContent = '⚠'; $('rVoiceLine').className = 'vstatus err'; rSpeechActivePrio = 0; };
     synth.speak(u);
   }
 
@@ -1180,6 +1297,7 @@
   }
 
   function rTestVoice() {
+    unlockSpeech();
     speechSynthesis.cancel();
     rSpeechActivePrio = 0;
     rSpeak('Red behind. Yellow. Green. Ball loose. Ball is in the middle. Goal is scored.', false, 10);
@@ -1234,69 +1352,9 @@
     rRepTimer = setTimeout(tick, firstMs);
   }
 
-  function rStopRep() {
-    if (rRepTimer) { clearTimeout(rRepTimer); rRepTimer = null; }
-  }
+  function rStopRep() { if (rRepTimer) { clearTimeout(rRepTimer); rRepTimer = null; } }
 
-  $('volR').oninput = e => $('volV').textContent = Math.round(e.target.value * 100) + '%';
-  $('spdR').oninput = e => $('spdV').textContent = (+e.target.value).toFixed(1) + 'x';
-  $('repR').oninput = e => { $('repV').textContent = (+e.target.value).toFixed(1) + 's'; restartRep(); };
-  $('thrR').oninput = e => $('thrV').textContent = e.target.value;
-  $('sclR').oninput = e => $('sclV').textContent = e.target.value + 'x';
-
-  function log(msg, t = '') {
-    const ts = new Date().toLocaleTimeString();
-    const c = t === 'g' ? 'lg' : t === 'e' ? 'le' : t === 'w' ? 'lw' : '';
-    $('logBox').innerHTML = `<div class="${c}">${ts} ${msg}</div>` + $('logBox').innerHTML;
-  }
-
-  function setMode(m) {
-    drawMode = m;
-    $('modeDistBtn').className = 'mode-btn' + (m === 'distance' ? ' act-dist' : '');
-    $('modeDirBtn').className = 'mode-btn' + (m === 'direction' ? ' act-dir' : '');
-    $('vidHint').innerHTML = m === 'distance'
-      ? 'Draw a <b>distance</b> box around <b>enemy name (number)</b>'
-      : 'Draw a <b style="color:var(--blu)">direction</b> box around <b style="color:var(--blu)">direction text</b>';
-  }
-
-  function toggleDir() {
-    const on = $('dirChk').checked;
-    $('dirUI').classList.toggle('hidden', !on);
-    if (!on) {
-      dirRegion = null;
-      dirBox.classList.remove('show');
-      detectedDir = '';
-      updateDirDisplay();
-    }
-    updateStateDirLine();
-  }
-
-  function manualDir(v) {
-    manualDirOverride = v;
-    updateDirDisplay();
-    updateStateDirLine();
-  }
-  function getActiveDir() { return manualDirOverride || detectedDir; }
-
-  function updateDirDisplay() {
-    const d = getActiveDir(), dv = $('dirValue');
-    if (d) {
-      dv.textContent = d.toUpperCase();
-      dv.className = 'dir-value';
-      $('dirCallout').textContent = 'Callout: Red ' + d;
-      $('dirCallout').classList.remove('hidden');
-    } else if (dirRegion) {
-      dv.textContent = 'Scanning...';
-      dv.className = 'dir-value none';
-      $('dirCallout').classList.add('hidden');
-    } else {
-      dv.textContent = 'No direction box set';
-      dv.className = 'dir-value none';
-      $('dirCallout').classList.add('hidden');
-    }
-    updateStateDirLine();
-  }
-
+  // ===== Host UI / voice =====
   function loadVoices() {
     voices = speechSynthesis.getVoices();
     if (!voices.length) return;
@@ -1312,15 +1370,16 @@
     });
     s.value = best;
   }
+  speechSynthesis.onvoiceschanged = () => { loadVoices(); rLoadVoices(); };
+  setTimeout(() => { loadVoices(); rLoadVoices(); }, 300);
 
-  // HOST: do NOT cancel mid-speech unless higher priority
   function speak(text, urgent = false, prio = 1) {
     if (muted || !voices.length) return;
     if (!text) return;
 
     const synth = speechSynthesis;
 
-    // If currently speaking/pending, only interrupt if higher priority
+    // Only interrupt current speech if higher priority (prevents "RED cut off")
     if ((synth.speaking || synth.pending) && prio <= speechActivePrio) return;
 
     if (synth.speaking || synth.pending) synth.cancel();
@@ -1341,6 +1400,7 @@
   }
 
   function testVoice() {
+    unlockSpeech();
     speechSynthesis.cancel();
     speechActivePrio = 0;
     speak('Red behind. Yellow. Green. Ball loose. Ball is in the middle. Goal is scored.', false, 10);
@@ -1356,10 +1416,13 @@
 
   function getPhrase(state) {
     if (state === 'BALL LOOSE') return 'Ball loose';
+
+    // Beep mode intentionally disables speech for colors
     if (beepMode && (state === 'RED' || state === 'YELLOW' || state === 'GREEN')) return '';
+
     if (state === 'RED') {
       const d = getActiveDir();
-      if ($('dirChk').checked && d) return 'Red ' + d; // only when actually RED (state)
+      if ($('dirChk').checked && d) return 'Red ' + d;
       return 'Red';
     }
     if (state === 'YELLOW') return 'Yellow';
@@ -1412,45 +1475,35 @@
   function stopRep() { if (repTimer) { clearTimeout(repTimer); repTimer = null; } }
   function restartRep() { if (curState !== 'OFF' && curState !== 'MIDDLE' && curState !== 'GOAL') startRep(); }
 
-  $('startBtn').onclick = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getDisplayMedia({ video: { cursor: 'never' }, audio: false });
-      vid.srcObject = stream;
-      await vid.play();
-      await new Promise(r => vid.readyState >= 1 ? r() : vid.onloadedmetadata = r);
-      vidW = vid.videoWidth; vidH = vid.videoHeight;
-      $('resLabel').textContent = vidW + '×' + vidH;
-      videoContainer.style.aspectRatio = `${vidW}/${vidH}`;
+  // ===== sliders =====
+  $('volR').oninput = e => $('volV').textContent = Math.round(e.target.value * 100) + '%';
+  $('spdR').oninput = e => $('spdV').textContent = (+e.target.value).toFixed(1) + 'x';
+  $('repR').oninput = e => { $('repV').textContent = (+e.target.value).toFixed(1) + 's'; restartRep(); };
+  $('thrR').oninput = e => $('thrV').textContent = e.target.value;
+  $('sclR').oninput = e => $('sclV').textContent = e.target.value + 'x';
 
-      stream.getVideoTracks()[0].onended = () => {
-        running = false;
-        $('hostSetup').classList.remove('hidden');
-        $('navbar').classList.add('hidden');
-        $('mainUI').classList.add('hidden');
-        $('logBox').classList.add('hidden');
-        $('navPill').className = 'pill off';
-        $('pillTxt').textContent = 'OFFLINE';
-        curState = 'OFF';
-        stopRep();
-      };
+  $('rVolR').oninput = e => $('rVolV').textContent = Math.round(e.target.value * 100) + '%';
+  $('rSpdR').oninput = e => $('rSpdV').textContent = (+e.target.value).toFixed(1) + 'x';
+  $('rRepR').oninput = e => { $('rRepV').textContent = (+e.target.value).toFixed(1) + 's'; rStartRep(); };
 
-      running = true;
-      $('hostSetup').classList.add('hidden');
-      $('navbar').classList.remove('hidden');
-      $('mainUI').classList.remove('hidden');
-      $('logBox').classList.remove('hidden');
-      $('navPill').className = 'pill live';
-      $('pillTxt').textContent = 'LIVE';
-      log(`Capture: ${vidW}×${vidH}`, 'g');
-      speak('Screen shared.', false, 1);
-      initOCR();
-    } catch (e) {
-      log('Error: ' + e.message, 'e');
-    }
-  };
+  // ===== logger =====
+  function log(msg, t = '') {
+    const ts = new Date().toLocaleTimeString();
+    const c = t === 'g' ? 'lg' : t === 'e' ? 'le' : t === 'w' ? 'lw' : '';
+    $('logBox').innerHTML = `<div class="${c}">${ts} ${msg}</div>` + $('logBox').innerHTML;
+  }
+
+  // ===== drawing =====
+  function setMode(m) {
+    drawMode = m;
+    $('modeDistBtn').className = 'mode-btn' + (m === 'distance' ? ' act-dist' : '');
+    $('modeDirBtn').className = 'mode-btn' + (m === 'direction' ? ' act-dir' : '');
+    $('vidHint').innerHTML = m === 'distance'
+      ? 'Draw a <b>distance</b> box around <b>enemy name (number)</b>'
+      : 'Draw a <b style="color:var(--blu)">direction</b> box around <b style="color:var(--blu)">direction text</b>';
+  }
 
   let dragging = false, sx = 0, sy = 0, activeBox = null;
-
   function getPos(e) {
     const r = videoContainer.getBoundingClientRect();
     return {
@@ -1485,6 +1538,7 @@
     if (!dragging || !activeBox) return;
     dragging = false;
     activeBox.classList.remove('dragging');
+
     const p = getPos(e);
     const x = Math.min(sx, p.x), y = Math.min(sy, p.y), w = Math.abs(p.x - sx), h = Math.abs(p.y - sy);
 
@@ -1515,6 +1569,7 @@
       log(`Dir: ${Math.round(w * vidW)}×${Math.round(h * vidH)}px`, 'g');
       updateDirDisplay();
     }
+
     activeBox.classList.add('show');
     activeBox = null;
   };
@@ -1523,7 +1578,8 @@
     distRegion = null; dirRegion = null;
     distBox.classList.remove('show'); dirBox.classList.remove('show');
     resetDistDisplay();
-    detectedDir = ''; updateDirDisplay();
+    detectedDir = '';
+    updateDirDisplay();
     recentReadings = [];
     lastGoodNum = null;
     noDetectCount = 0;
@@ -1559,12 +1615,14 @@
       center:[.30,.45,.40,.10], bottom:[.25,.90,.50,.08]
     };
     const p = presets[name]; if (!p) return;
+
     distRegion = { x: p[0], y: p[1], w: p[2], h: p[3] };
     distBox.style.left = (p[0]*100)+'%';
     distBox.style.top = (p[1]*100)+'%';
     distBox.style.width = (p[2]*100)+'%';
     distBox.style.height = (p[3]*100)+'%';
     distBox.classList.add('show');
+
     recentReadings = [];
     lastGoodNum = null;
     noDetectCount = 0;
@@ -1576,34 +1634,76 @@
     stateHistory = [];
   }
 
+  // ===== screen capture =====
+  $('startBtn').onclick = async () => {
+    try {
+      unlockSpeech();
+
+      const stream = await navigator.mediaDevices.getDisplayMedia({ video: { cursor: 'never' }, audio: false });
+      vid.srcObject = stream;
+      await vid.play();
+      await new Promise(r => vid.readyState >= 1 ? r() : vid.onloadedmetadata = r);
+
+      vidW = vid.videoWidth; vidH = vid.videoHeight;
+      $('resLabel').textContent = vidW + '×' + vidH;
+      videoContainer.style.aspectRatio = `${vidW}/${vidH}`;
+
+      stream.getVideoTracks()[0].onended = () => {
+        running = false;
+        $('hostSetup').classList.remove('hidden');
+        $('navbar').classList.add('hidden');
+        $('mainUI').classList.add('hidden');
+        $('logBox').classList.add('hidden');
+        $('navPill').className = 'pill off';
+        $('pillTxt').textContent = 'OFFLINE';
+        curState = 'OFF';
+        stopRep();
+      };
+
+      running = true;
+      $('hostSetup').classList.add('hidden');
+      $('navbar').classList.remove('hidden');
+      $('mainUI').classList.remove('hidden');
+      $('logBox').classList.remove('hidden');
+      $('navPill').className = 'pill live';
+      $('pillTxt').textContent = 'LIVE';
+
+      log(`Capture: ${vidW}×${vidH}`, 'g');
+      speak('Screen shared.', false, 1);
+
+      initOCR();
+    } catch (e) {
+      log('Error: ' + e.message, 'e');
+    }
+  };
+
+  // ===== OCR init / pipeline =====
   async function initOCR() {
     const b = $('ocrBadge');
     b.textContent = 'LOADING';
     b.className = 'badge load';
+
     try {
       if (typeof Tesseract === 'undefined') {
         await new Promise((res, rej) => {
           const s = document.createElement('script');
           s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
           s.onload = res;
-          s.onerror = () => rej(new Error('fail'));
+          s.onerror = () => rej(new Error('Failed to load Tesseract'));
           document.head.appendChild(s);
         });
       }
 
-      const wo = {
-        tessedit_char_whitelist: DIST_WHITELIST,
-        tessedit_pageseg_mode: '7'
-      };
+      const wo = { tessedit_char_whitelist: DIST_WHITELIST, tessedit_pageseg_mode: '7' };
 
       b.textContent = 'W1...';
-      const w1 = await Tesseract.createWorker('eng', 1, { logger: () => { } });
+      const w1 = await Tesseract.createWorker('eng', 1, { logger: () => {} });
       await w1.setParameters(wo);
       ocrWorkers[0] = w1;
       ocrWorkerReady[0] = true;
 
       b.textContent = 'W2...';
-      const w2 = await Tesseract.createWorker('eng', 1, { logger: () => { } });
+      const w2 = await Tesseract.createWorker('eng', 1, { logger: () => {} });
       await w2.setParameters(wo);
       ocrWorkers[1] = w2;
       ocrWorkerReady[1] = true;
@@ -1622,6 +1722,12 @@
 
   let dirOcrTimer = 0, lastDistProcessTime = 0;
   const MIN_OCR_INTERVAL = 50;
+
+  function getFirstFreeWorker() {
+    if (!ocrWorkerBusy[0] && ocrWorkerReady[0]) return 0;
+    if (!ocrWorkerBusy[1] && ocrWorkerReady[1]) return 1;
+    return -1;
+  }
 
   function pipelineLoop() {
     if (!running || !ocrReady) { if (running) setTimeout(pipelineLoop, 50); return; }
@@ -1658,10 +1764,42 @@
     setTimeout(pipelineLoop, delay);
   }
 
-  function getFirstFreeWorker() {
-    if (!ocrWorkerBusy[0] && ocrWorkerReady[0]) return 0;
-    if (!ocrWorkerBusy[1] && ocrWorkerReady[1]) return 1;
-    return -1;
+  function getScale(pw,ph){
+    const b=+$('sclR').value,m=Math.max(pw,ph);
+    if(m<50)return Math.min(b,3);
+    if(m<100)return Math.min(b,2);
+    if(m<200)return Math.min(b,1.5);
+    return 1;
+  }
+
+  function processImg(img){
+    const d=img.data,thr=+$('thrR').value,inv=$('invChk').checked,autoT=$('autoChk').checked;
+    let useThr=thr;
+
+    if(autoT){
+      const h=new Array(256).fill(0);
+      for(let i=0;i<d.length;i+=4){
+        const g=Math.round(0.299*d[i]+0.587*d[i+1]+0.114*d[i+2]);
+        h[g]++;
+      }
+      const tot=d.length/4;let sum=0;for(let i=0;i<256;i++)sum+=i*h[i];
+      let sumB=0,wB=0,wF=0,maxV=0,bestT=thr;
+      for(let t=0;t<256;t++){
+        wB+=h[t];if(wB===0)continue;
+        wF=tot-wB;if(wF===0)break;
+        sumB+=t*h[t];
+        const mB=sumB/wB,mF=(sum-sumB)/wF,v=wB*wF*(mB-mF)*(mB-mF);
+        if(v>maxV){maxV=v;bestT=t;}
+      }
+      useThr=bestT;
+    }
+
+    for(let i=0;i<d.length;i+=4){
+      const g=0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];
+      let v=g>useThr?255:0;
+      if(inv)v=255-v;
+      d[i]=d[i+1]=d[i+2]=v;
+    }
   }
 
   function captureDistFrame() {
@@ -1699,7 +1837,7 @@
     const oc = document.createElement('canvas');
     oc.width = finalW; oc.height = finalH;
     oc.getContext('2d').drawImage(workCvs,0,0);
-    return { canvas: oc, pw, ph, sw: finalW, sh: finalH };
+    return { canvas: oc };
   }
 
   async function dispatchDistOCR(wi, cd) {
@@ -1708,15 +1846,14 @@
     try {
       const w = ocrWorkers[wi];
 
-      await w.setParameters({
-        tessedit_char_whitelist: DIST_WHITELIST,
-        tessedit_pageseg_mode: '7'
-      });
+      // IMPORTANT: restore distance whitelist (fixes direction OCR breaking distance OCR)
+      await w.setParameters({ tessedit_char_whitelist: DIST_WHITELIST, tessedit_pageseg_mode: '7' });
 
       const res = await w.recognize(cd.canvas);
       const el = Math.round(performance.now()-t0);
       $('dbgTime').textContent = el+'ms (W'+(wi+1)+')';
       $('dbgTime').className = el<80?'dbg-v ok':el<150?'dbg-v warn':'dbg-v bad';
+
       processDistResult(res);
     } catch (e) {
       log('W'+(wi+1)+' err: '+e.message,'e');
@@ -1724,188 +1861,18 @@
     ocrWorkerBusy[wi] = false;
   }
 
-  function processDistResult(res) {
-    const raw = res.data.text.trim(), conf = Math.round(res.data.confidence);
-    $('dbgRaw').textContent = raw ? `"${raw.substring(0,80)}"` : '(empty)';
-    $('dbgConf').textContent = conf+'%';
-    $('dbgConf').className = conf>=60?'dbg-v ok':conf>=30?'dbg-v warn':'dbg-v bad';
+  const MIDDLE_WORDS = ['middle','middie','midd1e','m1ddle','rniddle','middl','mlddle','mid'];
+  const GOAL_WORDS = ['goal','goa1','g0al','goai','qoal','g0a1'];
 
-    const lines = raw.split('\n').map(l=>l.trim()).filter(l=>l.length>0);
-    $('dbgLines').textContent = lines.length+': '+lines.map(l=>`"${l}"`).join(', ').substring(0,100);
-
-    if (!raw || raw.length === 0) {
-      noDetectCount++;
-      $('dbgNum').textContent = 'Empty (' + noDetectCount + ')';
-      $('dbgNum').className = 'dbg-v bad';
-      $('dbgStrat').textContent = 'empty';
-      $('dbgStrat').className = 'dbg-v bad';
-      return;
-    }
-
-    if (detectGoal(raw,lines)) {
-      $('dbgSpecial').textContent='GOAL'; $('dbgSpecial').className='dbg-v warn';
-      $('dbgStrat').textContent='goal-word'; $('dbgStrat').className='dbg-v ok';
-      isGoal=true;isMiddle=false;isBallLoose=false;lastNum=null;
-      $('resultNum').textContent='🥅 GOAL'; $('resultNum').className='res-num goal';
-      $('resultLbl').textContent='GOAL SCORED'; $('resultLbl').className='res-lbl orange';
-      $('resultBox').className='res-display orange';
-      applyState('GOAL','goal');
-      return;
-    }
-
-    if (detectMiddle(raw,lines)) {
-      $('dbgSpecial').textContent='MIDDLE'; $('dbgSpecial').className='dbg-v warn';
-      $('dbgStrat').textContent='middle-word'; $('dbgStrat').className='dbg-v ok';
-      isMiddle=true;isGoal=false;isBallLoose=false;lastNum=null;
-      $('resultNum').textContent='⚽ MIDDLE'; $('resultNum').className='res-num middle';
-      $('resultLbl').textContent='BALL IN MIDDLE'; $('resultLbl').className='res-lbl purple';
-      $('resultBox').className='res-display purple';
-      applyState('MIDDLE','middle');
-      return;
-    }
-
-    if(isMiddle){isMiddle=false;middleAnnounced=false;}
-    if(isGoal){isGoal=false;goalAnnounced=false;}
-
-    if (hasQuestionMark(raw,lines)) {
-      $('dbgNum').textContent='?→LOOSE'; $('dbgNum').className='dbg-v bad';
-      $('dbgBracket').textContent='?'; $('dbgBracket').className='dbg-v bad';
-      $('dbgStrat').textContent='question-mark'; $('dbgStrat').className='dbg-v warn';
-      $('dbgSpecial').textContent='—';
-      isBallLoose=true;lastNum=null;stateHistory=[];
-      $('resultNum').textContent='BALL LOOSE'; $('resultNum').className='res-num loose';
-      $('resultLbl').textContent='NO LOCK'; $('resultLbl').className='res-lbl loose';
-      $('resultBox').className='res-display red';
-      applyState('BALL LOOSE','?');
-      return;
-    }
-
-    isBallLoose=false;
-    $('dbgSpecial').textContent='—'; $('dbgSpecial').className='dbg-v';
-
-    if (!/[0-9]/.test(raw)) {
-      noDetectCount++;
-      $('dbgNum').textContent = 'No digits (' + noDetectCount + ')';
-      $('dbgNum').className = 'dbg-v bad';
-      $('dbgBracket').textContent = 'None';
-      $('dbgBracket').className = 'dbg-v warn';
-      $('dbgStrat').textContent = 'no-digits';
-      $('dbgStrat').className = 'dbg-v bad';
-      return;
-    }
-
-    let num=null, strat='none';
-    for(const l of lines){const n=findBracket(l);if(n!==null){num=n;strat='bracket-line';break;}}
-    if(num===null){const n=findBracket(raw);if(n!==null){num=n;strat='bracket-full';}}
-    if(num===null&&res.data.words){const n=findFromWords(res.data.words);if(n!==null){num=n;strat='word-level';}}
-    if(num===null){for(const l of lines){const n=findAny(l);if(n!==null){num=n;strat='any-line';break;}}}
-    if(num===null){const n=findAny(raw);if(n!==null){num=n;strat='any-full';}}
-
-    $('dbgBracket').textContent=(strat.startsWith('bracket')&&num!==null)?num:'None';
-    $('dbgBracket').className=(strat.startsWith('bracket')&&num!==null)?'dbg-v ok':'dbg-v warn';
-    $('dbgStrat').textContent=strat;
-    $('dbgStrat').className=num!==null?'dbg-v ok':'dbg-v bad';
-
-    if (num !== null) {
-      num = stabilize(num);
-      $('dbgNum').textContent=num;
-      $('dbgNum').className='dbg-v ok';
-      lastNum=num;
-      lastGoodNum=num;
-      lastGoodTime=Date.now();
-      noDetectCount=0;
-      const st = getState(num);
-      $('resultNum').textContent=num;
-      $('resultNum').className='res-num '+st.toLowerCase();
-      $('resultLbl').textContent=st;
-      $('resultLbl').className='res-lbl '+st.toLowerCase();
-      $('resultBox').className='res-display '+st.toLowerCase();
-      applyState(st,num);
-    } else {
-      noDetectCount++;
-      $('dbgNum').textContent='Not found ('+noDetectCount+')';
-      $('dbgNum').className='dbg-v bad';
-    }
+  function detectMiddle(raw, lines) {
+    const all = [raw, ...lines].map(s => s.toLowerCase());
+    for (const s of all) for (const w of MIDDLE_WORDS) if (s.includes(w)) return true;
+    return false;
   }
-
-  async function dispatchDirOCR(wi) {
-    if (!dirRegion) return;
-    ocrWorkerBusy[wi] = true;
-    try {
-      const reg=dirRegion;
-      const px=Math.round(reg.x*vidW),py=Math.round(reg.y*vidH),
-            pw=Math.max(1,Math.round(reg.w*vidW)),ph=Math.max(1,Math.round(reg.h*vidH));
-      const sw=Math.min(pw,200),sh=Math.min(ph,60);
-
-      workCvs2.width=sw;workCvs2.height=sh;
-      workCtx2.imageSmoothingEnabled=true;workCtx2.imageSmoothingQuality='medium';
-      workCtx2.drawImage(vid,px,py,pw,ph,0,0,sw,sh);
-
-      const img=workCtx2.getImageData(0,0,sw,sh);
-      processImg(img);
-      workCtx2.putImageData(img,0,0);
-
-      const w=ocrWorkers[wi];
-
-      await w.setParameters({
-        tessedit_char_whitelist: DIR_WHITELIST,
-        tessedit_pageseg_mode:'7'
-      });
-
-      const res=await w.recognize(workCvs2);
-      const raw=res.data.text.trim().toLowerCase();
-      $('dirRawText').textContent=raw?'OCR: "'+raw.substring(0,60)+'"':'';
-
-      if(!manualDirOverride){
-        let found='';
-        for(const[k,v]of Object.entries(DIR_KEYWORDS)){if(raw.includes(k)){found=v;break;}}
-        if(found!==detectedDir){
-          detectedDir=found;
-          if(found)log('Dir: '+found,'g');
-          updateDirDisplay();
-          updateStateDirLine();
-          // direction changes should not cut off speech (no cancel), just update repeat pacing/pan
-          restartRep();
-        }
-      }
-    } catch(e){ log('Dir err: '+e.message,'e'); }
-    ocrWorkerBusy[wi]=false;
-  }
-
-  function getScale(pw,ph){
-    const b=+$('sclR').value,m=Math.max(pw,ph);
-    if(m<50)return Math.min(b,3);
-    if(m<100)return Math.min(b,2);
-    if(m<200)return Math.min(b,1.5);
-    return 1;
-  }
-
-  function processImg(img){
-    const d=img.data,thr=+$('thrR').value,inv=$('invChk').checked,autoT=$('autoChk').checked;
-    let useThr=thr;
-    if(autoT){
-      const h=new Array(256).fill(0);
-      for(let i=0;i<d.length;i+=4){
-        const g=Math.round(0.299*d[i]+0.587*d[i+1]+0.114*d[i+2]);
-        h[g]++;
-      }
-      const tot=d.length/4;let sum=0;for(let i=0;i<256;i++)sum+=i*h[i];
-      let sumB=0,wB=0,wF=0,maxV=0,bestT=thr;
-      for(let t=0;t<256;t++){
-        wB+=h[t];if(wB===0)continue;
-        wF=tot-wB;if(wF===0)break;
-        sumB+=t*h[t];
-        const mB=sumB/wB,mF=(sum-sumB)/wF,v=wB*wF*(mB-mF)*(mB-mF);
-        if(v>maxV){maxV=v;bestT=t;}
-      }
-      useThr=bestT;
-    }
-    for(let i=0;i<d.length;i+=4){
-      const g=0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];
-      let v=g>useThr?255:0;
-      if(inv)v=255-v;
-      d[i]=d[i+1]=d[i+2]=v;
-    }
+  function detectGoal(raw, lines) {
+    const all = [raw, ...lines].map(s => s.toLowerCase());
+    for (const s of all) for (const w of GOAL_WORDS) if (s.includes(w)) return true;
+    return false;
   }
 
   function hasQuestionMark(raw,lines){
@@ -1949,30 +1916,6 @@
     return null;
   }
 
-  function findFromWords(words){
-    if(!words||!words.length)return null;
-    for(let i=0;i<words.length;i++){
-      const t=words[i].text.trim();
-      const bn=findBracket(t);if(bn!==null)return bn;
-      const d=t.replace(/[^0-9]/g,'');
-      if(d.length>=2&&d.length<=4){
-        const n=parseInt(d,10);
-        if(n>=10&&n<=9999){
-          if(i>0){const pr=words[i-1].text.trim();if(pr.endsWith('(')||pr==='(')return n;}
-          if(i<words.length-1){const nx=words[i+1].text.trim();if(nx.startsWith(')')||nx===')')return n;}
-        }
-      }
-    }
-    for(const w of words){
-      const d=w.text.trim().replace(/[^0-9]/g,'');
-      if(d.length>=2&&d.length<=4&&w.confidence>50){
-        const n=parseInt(d,10);
-        if(n>=10&&n<=9999)return n;
-      }
-    }
-    return null;
-  }
-
   function findAny(text){
     if(!text)return null;
     if(!/[0-9]/.test(text))return null;
@@ -1985,6 +1928,7 @@
       if(n>=10&&n<=9999)cands.push(n);
     }
     if(!cands.length)return null;
+
     if(lastGoodNum!==null&&(Date.now()-lastGoodTime)<5000){
       let best=cands[0],bd=Math.abs(cands[0]-lastGoodNum);
       for(let i=1;i<cands.length;i++){
@@ -2010,11 +1954,161 @@
     return num;
   }
 
+  function processDistResult(res) {
+    const raw = res.data.text.trim(), conf = Math.round(res.data.confidence);
+    $('dbgRaw').textContent = raw ? `"${raw.substring(0,80)}"` : '(empty)';
+    $('dbgConf').textContent = conf+'%';
+    $('dbgConf').className = conf>=60?'dbg-v ok':conf>=30?'dbg-v warn':'dbg-v bad';
+
+    const lines = raw.split('\n').map(l=>l.trim()).filter(l=>l.length>0);
+    $('dbgLines').textContent = lines.length+': '+lines.map(l=>`"${l}"`).join(', ').substring(0,100);
+
+    if (!raw) {
+      noDetectCount++;
+      $('dbgNum').textContent = 'Empty (' + noDetectCount + ')';
+      $('dbgNum').className = 'dbg-v bad';
+      $('dbgStrat').textContent = 'empty';
+      $('dbgStrat').className = 'dbg-v bad';
+      return;
+    }
+
+    if (detectGoal(raw,lines)) {
+      $('dbgSpecial').textContent='GOAL'; $('dbgSpecial').className='dbg-v warn';
+      $('dbgStrat').textContent='goal-word'; $('dbgStrat').className='dbg-v ok';
+      isGoal=true;isMiddle=false;isBallLoose=false;lastNum=null;
+
+      $('resultNum').textContent='🥅 GOAL'; $('resultNum').className='res-num goal';
+      $('resultLbl').textContent='GOAL SCORED'; $('resultLbl').className='res-lbl orange';
+      $('resultBox').className='res-display orange';
+
+      applyState('GOAL','goal');
+      return;
+    }
+
+    if (detectMiddle(raw,lines)) {
+      $('dbgSpecial').textContent='MIDDLE'; $('dbgSpecial').className='dbg-v warn';
+      $('dbgStrat').textContent='middle-word'; $('dbgStrat').className='dbg-v ok';
+      isMiddle=true;isGoal=false;isBallLoose=false;lastNum=null;
+
+      $('resultNum').textContent='⚽ MIDDLE'; $('resultNum').className='res-num middle';
+      $('resultLbl').textContent='BALL IN MIDDLE'; $('resultLbl').className='res-lbl purple';
+      $('resultBox').className='res-display purple';
+
+      applyState('MIDDLE','middle');
+      return;
+    }
+
+    if(isMiddle){isMiddle=false;middleAnnounced=false;}
+    if(isGoal){isGoal=false;goalAnnounced=false;}
+
+    if (hasQuestionMark(raw,lines)) {
+      $('dbgNum').textContent='?→LOOSE'; $('dbgNum').className='dbg-v bad';
+      $('dbgBracket').textContent='?'; $('dbgBracket').className='dbg-v bad';
+      $('dbgStrat').textContent='question-mark'; $('dbgStrat').className='dbg-v warn';
+      $('dbgSpecial').textContent='—';
+      isBallLoose=true;lastNum=null;stateHistory=[];
+
+      $('resultNum').textContent='BALL LOOSE'; $('resultNum').className='res-num loose';
+      $('resultLbl').textContent='NO LOCK'; $('resultLbl').className='res-lbl loose';
+      $('resultBox').className='res-display red';
+
+      applyState('BALL LOOSE','?');
+      return;
+    }
+
+    isBallLoose=false;
+    $('dbgSpecial').textContent='—'; $('dbgSpecial').className='dbg-v';
+
+    if (!/[0-9]/.test(raw)) {
+      noDetectCount++;
+      $('dbgNum').textContent = 'No digits (' + noDetectCount + ')';
+      $('dbgNum').className = 'dbg-v bad';
+      $('dbgBracket').textContent = 'None';
+      $('dbgBracket').className = 'dbg-v warn';
+      $('dbgStrat').textContent = 'no-digits';
+      $('dbgStrat').className = 'dbg-v bad';
+      return;
+    }
+
+    let num=null, strat='none';
+    for(const l of lines){const n=findBracket(l);if(n!==null){num=n;strat='bracket-line';break;}}
+    if(num===null){const n=findBracket(raw);if(n!==null){num=n;strat='bracket-full';}}
+    if(num===null){const n=findAny(raw);if(n!==null){num=n;strat='any-full';}}
+
+    $('dbgBracket').textContent=(strat.startsWith('bracket')&&num!==null)?num:'None';
+    $('dbgBracket').className=(strat.startsWith('bracket')&&num!==null)?'dbg-v ok':'dbg-v warn';
+    $('dbgStrat').textContent=strat;
+    $('dbgStrat').className=num!==null?'dbg-v ok':'dbg-v bad';
+
+    if (num !== null) {
+      num = stabilize(num);
+      $('dbgNum').textContent=num;
+      $('dbgNum').className='dbg-v ok';
+
+      lastNum=num;
+      lastGoodNum=num;
+      lastGoodTime=Date.now();
+      noDetectCount=0;
+
+      const st = getState(num);
+      $('resultNum').textContent=num;
+      $('resultNum').className='res-num '+st.toLowerCase();
+      $('resultLbl').textContent=st;
+      $('resultLbl').className='res-lbl '+st.toLowerCase();
+      $('resultBox').className='res-display '+st.toLowerCase();
+
+      applyState(st,num);
+    } else {
+      noDetectCount++;
+      $('dbgNum').textContent='Not found ('+noDetectCount+')';
+      $('dbgNum').className='dbg-v bad';
+    }
+  }
+
+  async function dispatchDirOCR(wi) {
+    if (!dirRegion) return;
+    ocrWorkerBusy[wi] = true;
+    try {
+      const reg=dirRegion;
+      const px=Math.round(reg.x*vidW),py=Math.round(reg.y*vidH),
+            pw=Math.max(1,Math.round(reg.w*vidW)),ph=Math.max(1,Math.round(reg.h*vidH));
+      const sw=Math.min(pw,200),sh=Math.min(ph,60);
+
+      workCvs2.width=sw;workCvs2.height=sh;
+      workCtx2.imageSmoothingEnabled=true;workCtx2.imageSmoothingQuality='medium';
+      workCtx2.drawImage(vid,px,py,pw,ph,0,0,sw,sh);
+
+      const img=workCtx2.getImageData(0,0,sw,sh);
+      processImg(img);
+      workCtx2.putImageData(img,0,0);
+
+      const w=ocrWorkers[wi];
+      await w.setParameters({ tessedit_char_whitelist: DIR_WHITELIST, tessedit_pageseg_mode:'7' });
+
+      const res=await w.recognize(workCvs2);
+      const raw=res.data.text.trim().toLowerCase();
+      $('dirRawText').textContent=raw?'OCR: "'+raw.substring(0,60)+'"':'';
+
+      if(!manualDirOverride){
+        let found='';
+        for(const[k,v]of Object.entries(DIR_KEYWORDS)){ if(raw.includes(k)){found=v;break;} }
+        if(found!==detectedDir){
+          detectedDir=found;
+          if(found)log('Dir: '+found,'g');
+          updateDirDisplay();
+          // direction change should NOT cut speech; restartRep just reschedules repeats/beeps
+          restartRep();
+        }
+      }
+    } catch(e){ log('Dir err: '+e.message,'e'); }
+    ocrWorkerBusy[wi]=false;
+  }
+
+  // ===== Apply state (host UI + network + voice/beep) =====
   function applyState(state, dist) {
     const dir = getActiveDir();
     broadcastState(state, dist, $('dirChk').checked ? dir : '');
 
-    // keep direction line always updated
     updateStateDirLine();
 
     if (state === 'MIDDLE') {
@@ -2022,6 +2116,7 @@
       $('stateVal').className='st-big purple';
       $('stateVal').textContent='⚽ MIDDLE';
       $('stateDist').textContent='Ball in middle';
+
       if (curState !== 'MIDDLE') {
         log(curState+' → MIDDLE','w');
         curState='MIDDLE';
@@ -2037,6 +2132,7 @@
       $('stateVal').className='st-big orange';
       $('stateVal').textContent='🥅 GOAL';
       $('stateDist').textContent='Goal scored!';
+
       if (curState !== 'GOAL') {
         log(curState+' → GOAL','w');
         curState='GOAL';
@@ -2052,6 +2148,7 @@
       $('stateVal').className='st-big loose';
       $('stateVal').textContent='BALL LOOSE';
       $('stateDist').textContent='? — No Lock';
+
       if (curState !== 'BALL LOOSE') {
         log(curState+' → BALL LOOSE','w');
         curState='BALL LOOSE';
@@ -2088,13 +2185,16 @@
     }
   }
 
+  // ===== remote voice + host voice keepalive =====
   setInterval(() => { if (speechSynthesis.paused) speechSynthesis.resume(); }, 5000);
-  log('ORION v3 ready - High Performance Mode');
 
-  setTimeout(() => {
-    if (lastNum !== null) applyState(getState(lastNum), lastNum);
-  }, 1000);
+  // ===== remote setup indicators =====
+  $('remoteServerStatus').textContent = 'Ready';
+  $('remoteServerStatus').className = 'server-status ok';
+
+  // ===== selection clearing =====
+  log('ORION ready');
+
 </script>
-
 </body>
 </html>
