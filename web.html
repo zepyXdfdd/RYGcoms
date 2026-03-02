@@ -82,13 +82,13 @@ canvas{width:100%;height:70px;background:#05050d;border:1px solid var(--brd);bor
 <div class="overlay" id="roleOverlay">
   <div class="panel">
     <div class="title">ORION</div>
-    <div class="sub">REAL AI VOICE · QUEST / META BROWSER COMPATIBLE</div>
+    <div class="sub">BROWSER TTS · QUEST / META HEADSET COMPATIBLE</div>
     <div class="row">
       <button class="btn" onclick="chooseRole('host')">HOST</button>
       <button class="btn" onclick="chooseRole('remote')">REMOTE</button>
     </div>
     <div class="status" style="margin-top:14px">
-      Real AI voices fetched as audio and played through AudioContext — works on Quest Browser.
+      Browser TTS with Quest-specific workarounds. Tap TEST VOICE after joining to verify audio.
     </div>
   </div>
 </div>
@@ -198,37 +198,14 @@ canvas{width:100%;height:70px;background:#05050d;border:1px solid var(--brd);bor
       </div>
 
       <div class="card" style="margin-top:14px">
-        <div class="ch"><span>AI Voice</span></div>
+        <div class="ch"><span>Voice</span></div>
         <div class="cb">
-          <div class="ttsBar" id="hTtsBar">Voice: ready (StreamElements AI)</div>
+          <div class="ttsBar" id="hTtsBar">Voice: initializing…</div>
           <div class="engRow">
-            <button class="engBtn act" id="hEng_se" onclick="setHostEngine('se')">StreamElements AI</button>
-            <button class="engBtn" id="hEng_browser" onclick="setHostEngine('browser')">Browser TTS</button>
+            <button class="engBtn act" id="hEng_browser" onclick="setHostEngine('browser')">Browser TTS</button>
             <button class="engBtn" id="hEng_beep" onclick="setHostEngine('beep')">Beep Only</button>
           </div>
-          <div class="srow" id="hSeVoiceRow"><label>AI Voice</label>
-            <select id="hSeVoice">
-              <option value="Brian">Brian (UK Male)</option>
-              <option value="Amy">Amy (UK Female)</option>
-              <option value="Emma">Emma (UK Female)</option>
-              <option value="Joanna" selected>Joanna (US Female)</option>
-              <option value="Kendra">Kendra (US Female)</option>
-              <option value="Kimberly">Kimberly (US Female)</option>
-              <option value="Salli">Salli (US Female)</option>
-              <option value="Joey">Joey (US Male)</option>
-              <option value="Justin">Justin (US Male)</option>
-              <option value="Matthew">Matthew (US Male)</option>
-              <option value="Ivy">Ivy (US Child Female)</option>
-              <option value="Nicole">Nicole (AU Female)</option>
-              <option value="Russell">Russell (AU Male)</option>
-              <option value="Geraint">Geraint (Welsh Male)</option>
-              <option value="Celine">Celine (FR Female)</option>
-              <option value="Mathieu">Mathieu (FR Male)</option>
-              <option value="Hans">Hans (DE Male)</option>
-              <option value="Marlene">Marlene (DE Female)</option>
-            </select>
-          </div>
-          <div class="srow" id="hBrowserVoiceRow" style="display:none"><label>Voice</label><select id="voiceSel"></select></div>
+          <div class="srow" id="hBrowserVoiceRow"><label>Voice</label><select id="voiceSel"></select></div>
           <div class="srow"><label>Volume</label><input type="range" id="vol" min="0" max="1" step="0.05" value="0.9"><span class="pill" id="volV">90%</span></div>
           <div class="srow"><label>Rate</label><input type="range" id="spd" min="0.5" max="2" step="0.05" value="1"><span class="pill" id="spdV">1.00x</span></div>
           <div class="srow"><label>Base Int</label><input type="range" id="rep" min="1" max="8" step="0.5" value="2"><span class="pill" id="repV">2.0s</span></div>
@@ -237,6 +214,7 @@ canvas{width:100%;height:70px;background:#05050d;border:1px solid var(--brd);bor
             <button class="btn act" id="muteBtn" onclick="toggleMute()">AUDIO ON</button>
           </div>
           <div class="vline" id="voiceLine">—</div>
+          <div class="smallNote">Quest: Tap TEST VOICE to confirm audio works. If silent, try selecting a different voice or use Beep mode.</div>
         </div>
       </div>
 
@@ -299,33 +277,14 @@ canvas{width:100%;height:70px;background:#05050d;border:1px solid var(--brd);bor
     </div>
 
     <div class="card" style="margin-top:14px">
-      <div class="ch"><span>AI Voice (Remote)</span></div>
+      <div class="ch"><span>Voice (Remote)</span></div>
       <div class="cb">
-        <div class="ttsBar" id="rTtsBar">Voice: ready (StreamElements AI)</div>
+        <div class="ttsBar" id="rTtsBar">Voice: initializing…</div>
         <div class="engRow">
-          <button class="engBtn act" id="rEng_se" onclick="setRemoteEngine('se')">StreamElements AI</button>
-          <button class="engBtn" id="rEng_browser" onclick="setRemoteEngine('browser')">Browser TTS</button>
+          <button class="engBtn act" id="rEng_browser" onclick="setRemoteEngine('browser')">Browser TTS</button>
           <button class="engBtn" id="rEng_beep" onclick="setRemoteEngine('beep')">Beep Only</button>
         </div>
-        <div class="srow" id="rSeVoiceRow"><label>AI Voice</label>
-          <select id="rSeVoice">
-            <option value="Brian">Brian (UK Male)</option>
-            <option value="Amy">Amy (UK Female)</option>
-            <option value="Emma">Emma (UK Female)</option>
-            <option value="Joanna" selected>Joanna (US Female)</option>
-            <option value="Kendra">Kendra (US Female)</option>
-            <option value="Kimberly">Kimberly (US Female)</option>
-            <option value="Salli">Salli (US Female)</option>
-            <option value="Joey">Joey (US Male)</option>
-            <option value="Justin">Justin (US Male)</option>
-            <option value="Matthew">Matthew (US Male)</option>
-            <option value="Ivy">Ivy (US Child Female)</option>
-            <option value="Nicole">Nicole (AU Female)</option>
-            <option value="Russell">Russell (AU Male)</option>
-            <option value="Geraint">Geraint (Welsh Male)</option>
-          </select>
-        </div>
-        <div class="srow" id="rBrowserVoiceRow" style="display:none"><label>Voice</label><select id="rVoiceSel"></select></div>
+        <div class="srow" id="rBrowserVoiceRow"><label>Voice</label><select id="rVoiceSel"></select></div>
         <div class="srow"><label>Volume</label><input type="range" id="rVol" min="0" max="1" step="0.05" value="0.9"><span class="pill" id="rVolV">90%</span></div>
         <div class="srow"><label>Rate</label><input type="range" id="rSpd" min="0.5" max="2" step="0.05" value="1"><span class="pill" id="rSpdV">1.00x</span></div>
         <div class="srow"><label>Base Int</label><input type="range" id="rRep" min="1" max="8" step="0.5" value="2"><span class="pill" id="rRepV">2.0s</span></div>
@@ -334,6 +293,7 @@ canvas{width:100%;height:70px;background:#05050d;border:1px solid var(--brd);bor
           <button class="btn act" id="rMuteBtn" onclick="rToggleMute()">AUDIO ON</button>
         </div>
         <div class="vline" id="rVoiceLine">—</div>
+        <div class="smallNote">Quest: Tap TEST VOICE after joining. If silent, switch voice or use Beep. Make sure Quest media volume is up.</div>
       </div>
     </div>
   </div>
@@ -343,17 +303,8 @@ canvas{width:100%;height:70px;background:#05050d;border:1px solid var(--brd);bor
 'use strict';
 
 /* ================================================================
-   STREAMELEMENTS AI TTS
-   - Real AI voices (AWS Polly via StreamElements)
-   - Returns MP3 audio, no API key needed, no CORS issues
-   - Works on Quest Browser via fetch + AudioContext.decodeAudioData
+   AUDIO CONTEXT (for beeps + audio unlock)
    ================================================================ */
-
-const SE_URL = 'https://api.streamelements.com/kappa/v2/speech';
-
-// Audio cache: avoid re-fetching same phrase+voice
-const audioCache = new Map();
-
 let audioCtx = null;
 function getAudioCtx() {
   if (!audioCtx || audioCtx.state === 'closed') {
@@ -365,112 +316,244 @@ function getAudioCtx() {
   return audioCtx;
 }
 
-// Currently playing source node so we can stop it
-let currentSrc = null;
+/* ================================================================
+   AUDIO UNLOCK — Critical for Quest Browser
+   Quest requires a user gesture to unlock both AudioContext AND
+   speechSynthesis. We unlock both on first interaction.
+   ================================================================ */
+let audioUnlocked = false;
+let synthUnlocked = false;
 
-function stopCurrentAudio() {
-  if (currentSrc) {
-    try { currentSrc.stop(); } catch(e) {}
-    currentSrc = null;
+function unlockAudio() {
+  // Unlock AudioContext
+  if (!audioUnlocked) {
+    audioUnlocked = true;
+    try {
+      const ctx = getAudioCtx();
+      const buf = ctx.createBuffer(1, 1, ctx.sampleRate);
+      const src = ctx.createBufferSource();
+      src.buffer = buf;
+      src.connect(ctx.destination);
+      src.start(0);
+    } catch(e) {}
+  }
+
+  // Unlock speechSynthesis on Quest — speak empty utterance on gesture
+  if (!synthUnlocked && typeof speechSynthesis !== 'undefined') {
+    synthUnlocked = true;
+    try {
+      const u = new SpeechSynthesisUtterance('');
+      u.volume = 0;
+      u.rate = 10; // fastest possible to be silent
+      speechSynthesis.speak(u);
+      // Immediately cancel to avoid any audible blip
+      setTimeout(() => { try { speechSynthesis.cancel(); } catch(e) {} }, 50);
+    } catch(e) {}
   }
 }
 
-/**
- * Fetch MP3 from StreamElements, decode via AudioContext, play it.
- * volume: 0-1
- * rate: playback rate (0.5-2.0)
- * onDone(status): 'ok' | 'error'
- */
-async function seSpeak(text, voice, volume, rate, onDone) {
-  const cacheKey = voice + '|' + text;
-  try {
-    const ctx = getAudioCtx();
-    let audioBuffer;
-
-    if (audioCache.has(cacheKey)) {
-      audioBuffer = audioCache.get(cacheKey);
-    } else {
-      const url = `${SE_URL}?voice=${encodeURIComponent(voice)}&text=${encodeURIComponent(text)}`;
-      const resp = await fetch(url);
-      if (!resp.ok) throw new Error('HTTP ' + resp.status);
-      const arrayBuf = await resp.arrayBuffer();
-      audioBuffer = await ctx.decodeAudioData(arrayBuf);
-      // Cache up to 60 entries
-      if (audioCache.size > 60) {
-        const firstKey = audioCache.keys().next().value;
-        audioCache.delete(firstKey);
-      }
-      audioCache.set(cacheKey, audioBuffer);
-    }
-
-    stopCurrentAudio();
-
-    const src = ctx.createBufferSource();
-    src.buffer = audioBuffer;
-    src.playbackRate.value = Math.max(0.25, Math.min(4, rate));
-
-    const gainNode = ctx.createGain();
-    gainNode.gain.value = Math.max(0, Math.min(1, volume));
-
-    src.connect(gainNode);
-    gainNode.connect(ctx.destination);
-
-    src.onended = () => {
-      if (currentSrc === src) currentSrc = null;
-      onDone?.('ok');
-    };
-
-    src.start(0);
-    currentSrc = src;
-
-  } catch(e) {
-    console.warn('SE TTS error:', e);
-    onDone?.('error');
-  }
-}
-
-// Pre-fetch and cache common phrases for instant playback
-async function prewarmCache(voice) {
-  const phrases = ['Red', 'Yellow', 'Green', 'Ball loose',
-    'Red, left', 'Red, right', 'Red, behind', 'Red, in front',
-    'Red, above', 'Red, below'];
-  for (const p of phrases) {
-    const cacheKey = voice + '|' + p;
-    if (!audioCache.has(cacheKey)) {
-      try {
-        const url = `${SE_URL}?voice=${encodeURIComponent(voice)}&text=${encodeURIComponent(p)}`;
-        const resp = await fetch(url);
-        if (resp.ok) {
-          const buf = await resp.arrayBuffer();
-          const ctx = getAudioCtx();
-          const decoded = await ctx.decodeAudioData(buf);
-          audioCache.set(cacheKey, decoded);
-        }
-      } catch(e) {}
-      // small delay between prefetch calls
-      await new Promise(r => setTimeout(r, 120));
-    }
-  }
-}
+['pointerdown','mousedown','touchstart','click','keydown'].forEach(ev => {
+  window.addEventListener(ev, unlockAudio, { passive: true });
+});
 
 /* ================================================================
-   BROWSER TTS FALLBACK
+   BROWSER TTS — Quest-Hardened Implementation
+
+   Key Quest workarounds:
+   1. getVoices() returns [] initially — poll with retries
+   2. onend/onerror events may never fire — use timeout fallback
+   3. speechSynthesis.speaking can get stuck — force cancel
+   4. Cancel before every speak to clear any stuck state
+   5. Keep-alive: periodically cancel() to prevent freeze
+   6. Tab suspend: re-init on visibility change
+   7. If no voices found, speak without setting .voice (uses default)
    ================================================================ */
-function browserSpeak(text, vol, rate, voiceSelId, onDone) {
-  try {
-    const synth = speechSynthesis;
-    if (synth.speaking || synth.pending) synth.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.volume = vol; u.rate = rate; u.pitch = 1;
-    const vList = speechSynthesis.getVoices();
-    if (vList.length) {
-      const sel = document.getElementById(voiceSelId);
-      if (sel) { const v = vList[+sel.value]; if (v) u.voice = v; }
+
+let ttsVoicesReady = false;
+let ttsVoiceList = [];
+let ttsKeepAliveTimer = null;
+let ttsSpeaking = false;
+let ttsSpeakTimeout = null;
+
+// Quest: Poll for voices with retries — they may load late
+function pollVoices(callback, maxAttempts) {
+  maxAttempts = maxAttempts || 20;
+  let attempts = 0;
+
+  function tryLoad() {
+    attempts++;
+    try {
+      const voices = speechSynthesis.getVoices();
+      if (voices && voices.length > 0) {
+        ttsVoiceList = voices;
+        ttsVoicesReady = true;
+        populateVoiceSelectors();
+        if (callback) callback(true);
+        return;
+      }
+    } catch(e) {}
+
+    if (attempts < maxAttempts) {
+      setTimeout(tryLoad, 250);
+    } else {
+      // No voices found — still allow TTS with default voice
+      ttsVoicesReady = true;
+      ttsVoiceList = [];
+      populateVoiceSelectors();
+      if (callback) callback(false);
     }
-    u.onend = () => onDone?.('ok');
-    u.onerror = () => onDone?.('error');
-    synth.speak(u);
-  } catch(e) { onDone?.('error'); }
+  }
+
+  tryLoad();
+}
+
+function populateVoiceSelectors() {
+  ['voiceSel', 'rVoiceSel'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    sel.innerHTML = '';
+
+    if (ttsVoiceList.length === 0) {
+      const o = document.createElement('option');
+      o.value = '-1';
+      o.textContent = '(Default — no voices detected)';
+      sel.appendChild(o);
+      return;
+    }
+
+    let bestIdx = 0;
+    ttsVoiceList.forEach((v, i) => {
+      const o = document.createElement('option');
+      o.value = String(i);
+      o.textContent = v.name.slice(0, 32) + ' (' + v.lang + ')';
+      sel.appendChild(o);
+      // Prefer English voices, especially high-quality ones
+      if (/Google US|English.*Female|Samantha|Daniel|David|Zira|en-/i.test(v.name + ' ' + v.lang)) {
+        if (bestIdx === 0 || /Google|Samantha/i.test(v.name)) bestIdx = i;
+      }
+    });
+    sel.value = String(bestIdx);
+  });
+}
+
+// Quest: Force-cancel any stuck speech state
+function ttsForceCancel() {
+  try {
+    speechSynthesis.cancel();
+  } catch(e) {}
+  ttsSpeaking = false;
+  if (ttsSpeakTimeout) {
+    clearTimeout(ttsSpeakTimeout);
+    ttsSpeakTimeout = null;
+  }
+}
+
+// Quest: Keep-alive timer — periodically cancel() to prevent freeze
+function startTtsKeepAlive() {
+  if (ttsKeepAliveTimer) return;
+  ttsKeepAliveTimer = setInterval(() => {
+    if (!ttsSpeaking) {
+      try {
+        // Quest workaround: periodic cancel prevents speechSynthesis freeze
+        speechSynthesis.cancel();
+      } catch(e) {}
+    }
+  }, 5000);
+}
+
+// Quest: Re-init on tab visibility change
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) {
+    // Tab became visible — force cancel stuck state and re-poll voices
+    ttsForceCancel();
+    if (audioCtx && audioCtx.state === 'suspended') {
+      audioCtx.resume().catch(() => {});
+    }
+    pollVoices(null, 5);
+  }
+});
+
+/**
+ * Robust browser TTS speak — with Quest-specific timeout fallback
+ * voiceSelId: ID of the <select> element for voice choice
+ * onDone(status): 'ok' | 'error' | 'timeout'
+ */
+function browserSpeak(text, vol, rate, voiceSelId, onDone) {
+  if (typeof speechSynthesis === 'undefined') {
+    onDone?.('error');
+    return;
+  }
+
+  // Force cancel any stuck/pending speech
+  ttsForceCancel();
+
+  // Small delay after cancel before new speak — Quest needs this
+  setTimeout(() => {
+    try {
+      const u = new SpeechSynthesisUtterance(text);
+      u.volume = Math.max(0, Math.min(1, vol));
+      u.rate = Math.max(0.1, Math.min(10, rate));
+      u.pitch = 1;
+
+      // Set voice if available
+      if (ttsVoiceList.length > 0) {
+        const sel = document.getElementById(voiceSelId);
+        if (sel) {
+          const idx = parseInt(sel.value, 10);
+          if (idx >= 0 && idx < ttsVoiceList.length) {
+            u.voice = ttsVoiceList[idx];
+          }
+        }
+      }
+      // If no voices, don't set .voice — browser uses its default
+
+      let settled = false;
+      function settle(result) {
+        if (settled) return;
+        settled = true;
+        ttsSpeaking = false;
+        if (ttsSpeakTimeout) { clearTimeout(ttsSpeakTimeout); ttsSpeakTimeout = null; }
+        onDone?.(result);
+      }
+
+      u.onend = () => settle('ok');
+      u.onerror = (e) => {
+        // Quest sometimes fires error for 'interrupted' when we cancel — ignore
+        if (e && e.error === 'interrupted') { settle('ok'); return; }
+        settle('error');
+      };
+
+      // Quest: onend may never fire — timeout fallback
+      // Estimate duration: ~80ms per char at rate 1, minimum 1.5s, max 10s
+      const estimatedMs = Math.max(1500, Math.min(10000, (text.length * 80) / rate));
+      ttsSpeakTimeout = setTimeout(() => {
+        if (!settled) {
+          // Check if still speaking
+          if (speechSynthesis.speaking) {
+            // Give it a bit more time
+            ttsSpeakTimeout = setTimeout(() => settle('timeout'), 2000);
+          } else {
+            settle('timeout');
+          }
+        }
+      }, estimatedMs + 500);
+
+      ttsSpeaking = true;
+      speechSynthesis.speak(u);
+
+      // Quest: Sometimes speak() doesn't start — check after brief delay
+      setTimeout(() => {
+        if (!settled && !speechSynthesis.speaking && !speechSynthesis.pending) {
+          // Speech didn't start — likely Quest issue
+          settle('error');
+        }
+      }, 300);
+
+    } catch(e) {
+      ttsSpeaking = false;
+      onDone?.('error');
+    }
+  }, 60); // 60ms delay after cancel
 }
 
 /* ================================================================
@@ -518,29 +601,11 @@ function playBeep(vol, urgent, lineEl, intervalMs) {
 }
 
 /* ================================================================
-   AUDIO UNLOCK (required on Quest for first gesture)
-   ================================================================ */
-let audioUnlocked = false;
-function unlockAudio() {
-  if (audioUnlocked) return;
-  audioUnlocked = true;
-  try {
-    const ctx = getAudioCtx();
-    const buf = ctx.createBuffer(1, 1, ctx.sampleRate);
-    const src = ctx.createBufferSource();
-    src.buffer = buf; src.connect(ctx.destination); src.start(0);
-  } catch(e) {}
-}
-['pointerdown','mousedown','touchstart','click','keydown'].forEach(ev => {
-  window.addEventListener(ev, unlockAudio, { passive: true });
-});
-
-/* ================================================================
    ENGINE STATE
    ================================================================ */
-// 'se' = StreamElements AI, 'browser' = SpeechSynthesis, 'beep' = beeps
-let hostEngine = 'se';
-let remoteEngine = 'se';
+// 'browser' = SpeechSynthesis, 'beep' = beeps only
+let hostEngine = 'browser';
+let remoteEngine = 'browser';
 
 function setTtsBar(id, msg, cls) {
   const el = document.getElementById(id);
@@ -551,18 +616,20 @@ function setTtsBar(id, msg, cls) {
 
 function setHostEngine(eng) {
   hostEngine = eng;
-  ['se','browser','beep'].forEach(e => {
+  ['browser','beep'].forEach(e => {
     const b = document.getElementById('hEng_' + e);
     if (b) b.className = 'engBtn' + (e === eng ? ' act' : '');
   });
-  document.getElementById('hSeVoiceRow').style.display = eng === 'se' ? 'flex' : 'none';
   document.getElementById('hBrowserVoiceRow').style.display = eng === 'browser' ? 'flex' : 'none';
-  if (eng === 'se') {
-    setTtsBar('hTtsBar', 'StreamElements AI — real voice, Quest compatible', 'ok');
-    // Prewarm cache for selected voice
-    prewarmCache(document.getElementById('hSeVoice').value).catch(()=>{});
-  } else if (eng === 'browser') {
-    setTtsBar('hTtsBar', 'Browser TTS — may be silent on Quest', 'warn');
+  if (eng === 'browser') {
+    const voiceCount = ttsVoiceList.length;
+    if (voiceCount > 0) {
+      setTtsBar('hTtsBar', 'Browser TTS ready — ' + voiceCount + ' voices found', 'ok');
+    } else if (ttsVoicesReady) {
+      setTtsBar('hTtsBar', 'Browser TTS — using default voice (none enumerated)', 'warn');
+    } else {
+      setTtsBar('hTtsBar', 'Browser TTS — loading voices…', 'warn');
+    }
   } else {
     setTtsBar('hTtsBar', 'Beep mode — no voice', '');
   }
@@ -570,70 +637,51 @@ function setHostEngine(eng) {
 
 function setRemoteEngine(eng) {
   remoteEngine = eng;
-  ['se','browser','beep'].forEach(e => {
+  ['browser','beep'].forEach(e => {
     const b = document.getElementById('rEng_' + e);
     if (b) b.className = 'engBtn' + (e === eng ? ' act' : '');
   });
-  document.getElementById('rSeVoiceRow').style.display = eng === 'se' ? 'flex' : 'none';
   document.getElementById('rBrowserVoiceRow').style.display = eng === 'browser' ? 'flex' : 'none';
-  if (eng === 'se') {
-    setTtsBar('rTtsBar', 'StreamElements AI — real voice, Quest compatible', 'ok');
-    prewarmCache(document.getElementById('rSeVoice').value).catch(()=>{});
-  } else if (eng === 'browser') {
-    setTtsBar('rTtsBar', 'Browser TTS — may be silent on Quest', 'warn');
+  if (eng === 'browser') {
+    const voiceCount = ttsVoiceList.length;
+    if (voiceCount > 0) {
+      setTtsBar('rTtsBar', 'Browser TTS ready — ' + voiceCount + ' voices found', 'ok');
+    } else if (ttsVoicesReady) {
+      setTtsBar('rTtsBar', 'Browser TTS — using default voice (none enumerated)', 'warn');
+    } else {
+      setTtsBar('rTtsBar', 'Browser TTS — loading voices…', 'warn');
+    }
   } else {
     setTtsBar('rTtsBar', 'Beep mode — no voice', '');
   }
 }
 
-/* When voice selection changes, prewarm the new voice */
-document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('hSeVoice')?.addEventListener('change', e => {
-    prewarmCache(e.target.value).catch(()=>{});
-  });
-  document.getElementById('rSeVoice')?.addEventListener('change', e => {
-    prewarmCache(e.target.value).catch(()=>{});
-  });
-});
-
 /* ================================================================
    UNIFIED SPEAK
    ================================================================ */
-let hostSpeaking = false;
-let remoteSpeaking = false;
-
 function hostSpeak(phrase, urgent) {
   if (muted || !phrase) return;
   const vol = +document.getElementById('vol').value;
   const rate = +document.getElementById('spd').value;
   const lineEl = document.getElementById('voiceLine');
 
-  if (hostEngine === 'se') {
-    const voice = document.getElementById('hSeVoice').value;
-    lineEl.textContent = '🔊 ' + phrase;
-    lineEl.className = 'vline talk';
-    hostSpeaking = true;
-    seSpeak(phrase, voice, vol, rate, (result) => {
-      hostSpeaking = false;
-      if (result === 'ok') {
-        lineEl.textContent = '✓ ' + phrase;
-        lineEl.className = 'vline ok';
-        setTtsBar('hTtsBar', '✓ AI voice playing', 'ok');
-      } else {
-        lineEl.textContent = '⚠ Fetch failed — check internet';
-        lineEl.className = 'vline bad';
-        setTtsBar('hTtsBar', '⚠ SE fetch failed — switch to Beep or check internet', 'bad');
-        // beep fallback
-        const ms = beepMs(lastNum, curState, +document.getElementById('rep').value, RED_MAX, YEL_MAX, skipYellow);
-        playBeep(vol, urgent, lineEl, ms);
-      }
-    });
-  } else if (hostEngine === 'browser') {
+  if (hostEngine === 'browser') {
     lineEl.textContent = '🔊 ' + phrase;
     lineEl.className = 'vline talk';
     browserSpeak(phrase, vol, rate, 'voiceSel', (result) => {
-      lineEl.textContent = result === 'ok' ? ('✓ ' + phrase) : '⚠ Browser TTS failed';
-      lineEl.className = result === 'ok' ? 'vline ok' : 'vline bad';
+      if (result === 'ok') {
+        lineEl.textContent = '✓ ' + phrase;
+        lineEl.className = 'vline ok';
+      } else if (result === 'timeout') {
+        lineEl.textContent = '⚠ Speech may have played (timeout)';
+        lineEl.className = 'vline warn';
+      } else {
+        lineEl.textContent = '⚠ TTS failed — try Beep mode';
+        lineEl.className = 'vline bad';
+        // Auto-fallback to beep
+        const ms = beepMs(lastNum, curState, +document.getElementById('rep').value, RED_MAX, YEL_MAX, skipYellow);
+        playBeep(vol, urgent, lineEl, ms);
+      }
     });
   } else {
     const ms = beepMs(lastNum, curState, +document.getElementById('rep').value, RED_MAX, YEL_MAX, skipYellow);
@@ -647,32 +695,23 @@ function remoteSpeak(phrase, urgent) {
   const rate = +document.getElementById('rSpd').value;
   const lineEl = document.getElementById('rVoiceLine');
 
-  if (remoteEngine === 'se') {
-    const voice = document.getElementById('rSeVoice').value;
+  if (remoteEngine === 'browser') {
     lineEl.textContent = '🔊 ' + phrase;
     lineEl.className = 'vline talk';
-    remoteSpeaking = true;
-    seSpeak(phrase, voice, vol, rate, (result) => {
-      remoteSpeaking = false;
+    browserSpeak(phrase, vol, rate, 'rVoiceSel', (result) => {
       if (result === 'ok') {
         lineEl.textContent = '✓ ' + phrase;
         lineEl.className = 'vline ok';
-        setTtsBar('rTtsBar', '✓ AI voice playing', 'ok');
+      } else if (result === 'timeout') {
+        lineEl.textContent = '⚠ Speech may have played (timeout)';
+        lineEl.className = 'vline warn';
       } else {
-        lineEl.textContent = '⚠ Fetch failed — check internet';
+        lineEl.textContent = '⚠ TTS failed — try Beep mode';
         lineEl.className = 'vline bad';
-        setTtsBar('rTtsBar', '⚠ SE fetch failed — switch to Beep or check internet', 'bad');
         const n = typeof rLastDist === 'number' ? rLastDist : parseInt(rLastDist, 10);
         const ms = beepMs(isFinite(n)?n:null, rCurState, +document.getElementById('rRep').value, rRED_MAX, rYEL_MAX, rSkipYellow);
         playBeep(vol, urgent, lineEl, ms);
       }
-    });
-  } else if (remoteEngine === 'browser') {
-    lineEl.textContent = '🔊 ' + phrase;
-    lineEl.className = 'vline talk';
-    browserSpeak(phrase, vol, rate, 'rVoiceSel', (result) => {
-      lineEl.textContent = result === 'ok' ? ('✓ ' + phrase) : '⚠ Browser TTS failed';
-      lineEl.className = result === 'ok' ? 'vline ok' : 'vline bad';
     });
   } else {
     const n = typeof rLastDist === 'number' ? rLastDist : parseInt(rLastDist, 10);
@@ -689,27 +728,25 @@ function testHostVoice() {
   const vol = +document.getElementById('vol').value;
   const rate = +document.getElementById('spd').value;
   const lineEl = document.getElementById('voiceLine');
-  if (hostEngine === 'se') {
-    const voice = document.getElementById('hSeVoice').value;
-    lineEl.textContent = '🔊 Fetching AI voice…';
+
+  if (hostEngine === 'browser') {
+    lineEl.textContent = '🔊 Testing Browser TTS…';
     lineEl.className = 'vline talk';
-    setTtsBar('hTtsBar', 'Fetching audio from StreamElements…', 'warn');
-    seSpeak('Red. Yellow. Green.', voice, vol, rate, (result) => {
-      if (result === 'ok') {
-        lineEl.textContent = '✓ AI voice working!';
-        lineEl.className = 'vline ok';
-        setTtsBar('hTtsBar', '✓ StreamElements AI working — ' + voice, 'ok');
-      } else {
-        lineEl.textContent = '⚠ Could not fetch voice. Check internet connection.';
-        lineEl.className = 'vline bad';
-        setTtsBar('hTtsBar', '⚠ StreamElements unreachable — switch to Beep', 'bad');
-      }
-    });
-  } else if (hostEngine === 'browser') {
-    lineEl.textContent = '🔊 Testing…'; lineEl.className = 'vline talk';
+    setTtsBar('hTtsBar', 'Testing…', 'warn');
     browserSpeak('Red. Yellow. Green.', vol, rate, 'voiceSel', (r) => {
-      lineEl.textContent = r==='ok' ? '✓ Browser TTS working' : '⚠ Browser TTS failed';
-      lineEl.className = r==='ok' ? 'vline ok' : 'vline bad';
+      if (r === 'ok') {
+        lineEl.textContent = '✓ Browser TTS working!';
+        lineEl.className = 'vline ok';
+        setTtsBar('hTtsBar', '✓ Browser TTS working — ' + ttsVoiceList.length + ' voices', 'ok');
+      } else if (r === 'timeout') {
+        lineEl.textContent = '⚠ Timeout — speech may have played. If silent, try different voice.';
+        lineEl.className = 'vline warn';
+        setTtsBar('hTtsBar', '⚠ TTS timeout — Quest may need a different voice', 'warn');
+      } else {
+        lineEl.textContent = '⚠ Browser TTS failed — use Beep mode';
+        lineEl.className = 'vline bad';
+        setTtsBar('hTtsBar', '⚠ TTS failed — switch to Beep mode', 'bad');
+      }
     });
   } else {
     playBeep(vol, true, lineEl, 400);
@@ -723,27 +760,25 @@ function testRemoteVoice() {
   const vol = +document.getElementById('rVol').value;
   const rate = +document.getElementById('rSpd').value;
   const lineEl = document.getElementById('rVoiceLine');
-  if (remoteEngine === 'se') {
-    const voice = document.getElementById('rSeVoice').value;
-    lineEl.textContent = '🔊 Fetching AI voice…';
+
+  if (remoteEngine === 'browser') {
+    lineEl.textContent = '🔊 Testing Browser TTS…';
     lineEl.className = 'vline talk';
-    setTtsBar('rTtsBar', 'Fetching audio from StreamElements…', 'warn');
-    seSpeak('Red. Yellow. Green.', voice, vol, rate, (result) => {
-      if (result === 'ok') {
-        lineEl.textContent = '✓ AI voice working!';
-        lineEl.className = 'vline ok';
-        setTtsBar('rTtsBar', '✓ StreamElements AI working — ' + voice, 'ok');
-      } else {
-        lineEl.textContent = '⚠ Could not fetch voice. Check internet connection.';
-        lineEl.className = 'vline bad';
-        setTtsBar('rTtsBar', '⚠ StreamElements unreachable — switch to Beep', 'bad');
-      }
-    });
-  } else if (remoteEngine === 'browser') {
-    lineEl.textContent = '🔊 Testing…'; lineEl.className = 'vline talk';
+    setTtsBar('rTtsBar', 'Testing…', 'warn');
     browserSpeak('Red. Yellow. Green.', vol, rate, 'rVoiceSel', (r) => {
-      lineEl.textContent = r==='ok' ? '✓ Browser TTS working' : '⚠ Browser TTS failed';
-      lineEl.className = r==='ok' ? 'vline ok' : 'vline bad';
+      if (r === 'ok') {
+        lineEl.textContent = '✓ Browser TTS working!';
+        lineEl.className = 'vline ok';
+        setTtsBar('rTtsBar', '✓ Browser TTS working — ' + ttsVoiceList.length + ' voices', 'ok');
+      } else if (r === 'timeout') {
+        lineEl.textContent = '⚠ Timeout — speech may have played. If silent, try different voice.';
+        lineEl.className = 'vline warn';
+        setTtsBar('rTtsBar', '⚠ TTS timeout — Quest may need a different voice', 'warn');
+      } else {
+        lineEl.textContent = '⚠ Browser TTS failed — use Beep mode';
+        lineEl.className = 'vline bad';
+        setTtsBar('rTtsBar', '⚠ TTS failed — switch to Beep mode', 'bad');
+      }
     });
   } else {
     playBeep(vol, true, lineEl, 400);
@@ -832,7 +867,6 @@ function mqttSubscribe(topic){
   const p=new Uint8Array(6+tl);let i=0;
   p[i++]=0x82;p[i++]=4+tl;p[i++]=0;p[i++]=1;p[i++]=(tl>>8)&0xff;p[i++]=tl&0xff;
   p.set(tb,i);i+=tl;
-  // QoS byte already set to 0 by Uint8Array default
   mqttWs.send(p.buffer);
 }
 function mqttPublish(topic,payload){
@@ -894,6 +928,7 @@ function normName(s){return(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');}
 function chooseRole(r){
   role=r;
   document.getElementById('roleOverlay').classList.add('hidden');
+  unlockAudio();
   if(r==='host'){
     roomCode=genRoom();
     document.getElementById('hostRoomCode').textContent=roomCode;
@@ -903,6 +938,12 @@ function chooseRole(r){
   } else {
     document.getElementById('remoteOverlay').classList.remove('hidden');
   }
+  // Start voice polling
+  pollVoices((found) => {
+    if (role === 'host') setHostEngine(hostEngine);
+    else setRemoteEngine(remoteEngine);
+  });
+  startTtsKeepAlive();
 }
 
 document.getElementById('shareBtn').addEventListener('click',async()=>{
@@ -921,8 +962,6 @@ document.getElementById('shareBtn').addEventListener('click',async()=>{
       document.getElementById('hostUI').classList.add('hidden');
       stopRep();
     };
-    // prewarm voice cache
-    prewarmCache(document.getElementById('hSeVoice').value).catch(()=>{});
     await initOCR();
     ocrLoop();
   }catch(e){alert(e.message);}
@@ -938,8 +977,6 @@ function joinRoom(){
   document.getElementById('remoteUI').classList.remove('hidden');
   rLastSeq=0;rClockOffset=null;
   mqttConnect();
-  // prewarm remote voice
-  prewarmCache(document.getElementById('rSeVoice').value).catch(()=>{});
 }
 
 /* ================================================================
@@ -1008,14 +1045,14 @@ function toggleMute(){
   muted=!muted;
   document.getElementById('muteBtn').textContent=muted?'AUDIO OFF':'AUDIO ON';
   document.getElementById('muteBtn').classList.toggle('act',!muted);
-  if(muted){stopCurrentAudio();try{speechSynthesis.cancel();}catch(e){}stopRep();}
+  if(muted){ttsForceCancel();stopRep();}
   else startRep();
 }
 function rToggleMute(){
   rMuted=!rMuted;
   document.getElementById('rMuteBtn').textContent=rMuted?'AUDIO OFF':'AUDIO ON';
   document.getElementById('rMuteBtn').classList.toggle('act',!rMuted);
-  if(rMuted){stopCurrentAudio();try{speechSynthesis.cancel();}catch(e){}rStopRep();}
+  if(rMuted){ttsForceCancel();rStopRep();}
   else rStartRep();
 }
 
@@ -1311,24 +1348,24 @@ function rStartRep(){
 function rStopRep(){if(rRepTimer){clearTimeout(rRepTimer);rRepTimer=null;}}
 
 /* ================================================================
-   BROWSER VOICES
+   INIT VOICES
    ================================================================ */
-function loadBrowserVoices(){
-  const vList=speechSynthesis.getVoices();
-  ['voiceSel','rVoiceSel'].forEach(id=>{
-    const sel=document.getElementById(id);if(!sel)return;
-    sel.innerHTML='';let best=0;
-    vList.forEach((v,i)=>{
-      const o=document.createElement('option');o.value=i;o.textContent=v.name.slice(0,28)+' ('+v.lang+')';
-      sel.appendChild(o);if(/Google US|David|Samantha|Daniel/i.test(v.name))best=i;
-    });
-    sel.value=String(best);
-  });
-}
-try{speechSynthesis.onvoiceschanged=loadBrowserVoices;}catch(e){}
-setTimeout(loadBrowserVoices,600);
+// Also handle Chromium's onvoiceschanged
+try {
+  if (typeof speechSynthesis !== 'undefined') {
+    speechSynthesis.onvoiceschanged = () => {
+      pollVoices((found) => {
+        if (role === 'host') setHostEngine(hostEngine);
+        else if (role === 'remote') setRemoteEngine(remoteEngine);
+      }, 3);
+    };
+  }
+} catch(e) {}
 
-/* relay pill */
+// Early voice poll attempt
+setTimeout(() => pollVoices(null, 10), 200);
+
+/* relay pill update */
 setInterval(()=>{
   ['relayPill','remoteRelayPill'].forEach(id=>{
     const e=document.getElementById(id);if(e)e.textContent=mqttConnected?'connected':'…';
