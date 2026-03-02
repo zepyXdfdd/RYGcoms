@@ -82,7 +82,7 @@
         <button class="btn" onclick="chooseRole('remote')">REMOTE</button>
       </div>
       <div class="status" style="margin-top:14px">
-        If speech voice doesn’t work on your device/browser (common on Quest), the app automatically falls back to beeps so you always hear something.
+        If speech voice doesn't work on your device/browser (common on Quest), the app automatically falls back to beeps so you always hear something.
       </div>
     </div>
   </div>
@@ -199,7 +199,7 @@
               <input type="text" id="filterName" value="zepyX" />
             </div>
             <div class="smallNote">
-              If the spectate swaps players, non-target players are ignored and state becomes OFF until the target appears (prevents “stuck on RED”).
+              If the spectate swaps players, non-target players are ignored and state becomes OFF until the target appears (prevents "stuck on RED").
             </div>
           </div>
         </div>
@@ -220,8 +220,6 @@
             <div class="srow"><label>Speed</label><input type="range" id="spd" min="0.7" max="1.5" step="0.1" value="1"><span class="pill" id="spdV">1.0x</span></div>
             <div class="srow"><label>Base Int</label><input type="range" id="rep" min="1" max="5" step="0.5" value="2"><span class="pill" id="repV">2.0s</span></div>
             <div class="srow"><label>Voice</label><select id="voiceSel"></select></div>
-
-            <div class="tgl"><input type="checkbox" id="beepMode"><span>Directional Beep Mode (no voice for colors)</span></div>
 
             <div class="row" style="justify-content:flex-start">
               <button class="btn" onclick="testVoice()">TEST</button>
@@ -276,6 +274,23 @@
       </div>
 
       <div class="card" style="margin-top:14px">
+        <div class="ch"><span>Target Filter (Remote)</span></div>
+        <div class="cb">
+          <div class="tgl">
+            <input type="checkbox" id="rFilterOn" checked />
+            <span>Only accept data for player:</span>
+          </div>
+          <div class="srow">
+            <label>Target</label>
+            <input type="text" id="rFilterName" value="zepyX" />
+          </div>
+          <div class="smallNote">
+            If the host sends data for a different player name, the remote will ignore it and show OFF until the target player appears.
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px">
         <div class="ch"><span>Thresholds (Remote)</span></div>
         <div class="cb">
           <div class="srow"><label>Red ≤</label><input type="range" id="rRedR" min="100" max="2000" step="10" value="500"><span class="pill" id="rRedV">500</span></div>
@@ -292,8 +307,6 @@
           <div class="srow"><label>Base Int</label><input type="range" id="rRep" min="1" max="5" step="0.5" value="2"><span class="pill" id="rRepV">2.0s</span></div>
           <div class="srow"><label>Voice</label><select id="rVoiceSel"></select></div>
 
-          <div class="tgl"><input type="checkbox" id="rBeepMode"><span>Directional Beep Mode (no voice for colors)</span></div>
-
           <div class="row" style="justify-content:flex-start">
             <button class="btn" onclick="rTestVoice()">TEST</button>
             <button class="btn act" id="rMuteBtn" onclick="rToggleMute()">ON</button>
@@ -309,10 +322,13 @@
 /* =========================================================
    IMPORTANT AUDIO BEHAVIOR (ALL DEVICES)
    =========================================================
-   - We ALWAYS attempt speech for colors when beepMode is OFF.
-   - If speech fails to start within 800ms (common on Quest / restricted browsers),
-     we automatically fall back to beeps and mark TTS as "broken" for this session.
-   - So: phones/PC -> voice works; Quest -> beeps (audible) even if TTS is silent.
+   - We ALWAYS attempt speech for colors (RED/YELLOW/GREEN).
+   - If speech fails to start within 800ms (common on Quest /
+     restricted browsers), we automatically fall back to beeps
+     and mark TTS as "broken" for this session.
+   - Quest / Meta headset: we use a more aggressive unlock
+     strategy and retry TTS multiple times before giving up.
+   - NO directional beeping at all. Beeps are uniform tone.
    ========================================================= */
 
 const IS_QUEST = /OculusBrowser|Quest|Meta\s?Quest/i.test(navigator.userAgent);
@@ -404,7 +420,7 @@ function mqttConnect(){
     const p=new Uint8Array(2+rl);
     let i=0;
     p[i++]=0x10; p[i++]=rl;
-    p[i++]=0; p[i++]=4; p[i++]=77; p[i++]=81; p[i++]=84; p[i++]=84; // "MQTT"
+    p[i++]=0; p[i++]=4; p[i++]=77; p[i++]=81; p[i++]=84; p[i++]=84;
     p[i++]=4;
     p[i++]=2;
     p[i++]=0; p[i++]=60;
@@ -449,7 +465,7 @@ function mqttConnect(){
       }while((enc&128)!==0 && idx<data.length);
 
       const tl=(data[idx]<<8)|data[idx+1]; idx+=2;
-      idx+=tl; // skip topic
+      idx+=tl;
       const payload=new TextDecoder().decode(data.slice(idx));
       onRelayMessage(payload);
       return;
@@ -505,7 +521,7 @@ function mqttPublish(topic, payload){
 function getTopic(code){ return "orion/room/" + (code||"").toLowerCase(); }
 
 /* =========================================================
-   Audio: WebAudio beeps + TTS with fallback
+   Audio: WebAudio beeps (NO directional) + TTS with fallback
    ========================================================= */
 let beepCtx=null;
 function ensureBeepCtx(){
@@ -516,39 +532,42 @@ function ensureBeepCtx(){
 function resumeTTS(){ try{ speechSynthesis.resume(); }catch(e){} }
 
 let audioUnlocked=false;
+let audioUnlockCount=0;
 function unlockAudio(){
-  if(audioUnlocked) return;
+  audioUnlockCount++;
+  if(audioUnlockCount>3 && audioUnlocked) return;
   audioUnlocked=true;
   try{ ensureBeepCtx(); }catch(e){}
-  // iOS/Android gesture unlock for speech
+
+  // Aggressive TTS unlock - speak empty utterance multiple times on Quest
   try{
     const u=new SpeechSynthesisUtterance(" ");
-    u.volume=0;
+    u.volume=0.01;
+    u.rate=2;
     speechSynthesis.speak(u);
-    setTimeout(()=>{ try{ speechSynthesis.cancel(); }catch(e){} }, 50);
+    setTimeout(()=>{ try{ speechSynthesis.cancel(); }catch(e){} }, 100);
   }catch(e){}
+
+  // Quest needs extra unlock attempts
+  if(IS_QUEST){
+    setTimeout(()=>{
+      try{
+        const u2=new SpeechSynthesisUtterance(".");
+        u2.volume=0.01;
+        u2.rate=2;
+        speechSynthesis.speak(u2);
+        setTimeout(()=>{ try{ speechSynthesis.cancel(); }catch(e){} }, 100);
+      }catch(e){}
+    }, 300);
+  }
 }
 ["pointerdown","mousedown","touchstart","click","keydown"].forEach(ev=>{
-  window.addEventListener(ev, unlockAudio, { once:true, passive:true });
+  window.addEventListener(ev, unlockAudio, { passive:true });
 });
 
 function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
 
-function dirToPan(dir){
-  dir=(dir||"").toLowerCase();
-  if(dir==="left") return -1;
-  if(dir==="right") return 1;
-  return 0;
-}
-function dirToFreq(dir, urgent){
-  dir=(dir||"").toLowerCase();
-  if(dir==="above") return 950;
-  if(dir==="below") return 380;
-  if(dir==="behind") return 420;
-  if(dir==="in front") return 720;
-  return urgent ? 820 : 660;
-}
-
+/* Beep: simple uniform tone, NO directional pan/frequency changes */
 function beepIntervalForDistance(n, state, baseSec, redMax, yelMax, skipY){
   const repMult = clamp((baseSec||2)/2, 0.25, 3);
   if(typeof n!=="number" || !isFinite(n)) return Math.round(900*repMult);
@@ -578,7 +597,7 @@ function beepIntervalForDistance(n, state, baseSec, redMax, yelMax, skipY){
   return Math.round(clamp(ms*repMult, 90, 3000));
 }
 
-function playBeep(dir, volume, urgent, lineEl, intervalMs){
+function playBeep(volume, urgent, lineEl, intervalMs){
   if(volume<=0) return;
   const ctx=ensureBeepCtx();
   const now=ctx.currentTime;
@@ -587,9 +606,11 @@ function playBeep(dir, volume, urgent, lineEl, intervalMs){
   const attack=Math.min(0.012, dur*0.25);
   const release=Math.min(0.060, dur*0.45);
 
+  const freq = urgent ? 820 : 660;
+
   const osc=ctx.createOscillator();
   osc.type="sine";
-  osc.frequency.setValueAtTime(dirToFreq(dir, urgent), now);
+  osc.frequency.setValueAtTime(freq, now);
 
   const gain=ctx.createGain();
   const peak=clamp(volume,0,1)*0.35;
@@ -597,22 +618,13 @@ function playBeep(dir, volume, urgent, lineEl, intervalMs){
   gain.gain.linearRampToValueAtTime(peak, now+attack);
   gain.gain.linearRampToValueAtTime(0, now+dur+release);
 
-  let out=gain;
-  if(ctx.createStereoPanner){
-    const p=ctx.createStereoPanner();
-    p.pan.setValueAtTime(dirToPan(dir), now);
-    gain.connect(p);
-    out=p;
-  }
-
   osc.connect(gain);
-  out.connect(ctx.destination);
+  gain.connect(ctx.destination);
   osc.start(now);
   osc.stop(now + dur + release + 0.02);
 
   if(lineEl){
-    const d=(dir||"center").toUpperCase();
-    lineEl.textContent="BEEP "+d;
+    lineEl.textContent="BEEP";
     lineEl.className="vline talk";
     setTimeout(()=>{ lineEl.textContent="✓"; lineEl.className="vline ok"; }, Math.min(300, intervalMs));
   }
@@ -623,6 +635,9 @@ let hostTtsBroken = false;
 let remoteTtsBroken = false;
 let hostSpeakToken = 0;
 let remoteSpeakToken = 0;
+let hostTtsRetries = 0;
+let remoteTtsRetries = 0;
+const TTS_MAX_RETRIES = 3; // try TTS this many times before declaring broken
 
 function speakWithFallbackHost(text, urgent, prio, fallbackFn){
   if(muted) return;
@@ -630,10 +645,8 @@ function speakWithFallbackHost(text, urgent, prio, fallbackFn){
 
   resumeTTS();
   const synth=speechSynthesis;
-  // priority: don't interrupt higher priority
   if((synth.speaking || synth.pending) && prio <= speechActivePrio) return;
 
-  // attempt speech
   const token = ++hostSpeakToken;
   let started = false;
 
@@ -656,6 +669,7 @@ function speakWithFallbackHost(text, urgent, prio, fallbackFn){
     if(token!==hostSpeakToken) return;
     started=true;
     hostTtsBroken=false;
+    hostTtsRetries=0;
     line.textContent="🔊 "+text;
     line.className="vline talk";
   };
@@ -665,26 +679,37 @@ function speakWithFallbackHost(text, urgent, prio, fallbackFn){
     line.className="vline ok";
     speechActivePrio=0;
   };
-  u.onerror=()=>{
+  u.onerror=(e)=>{
     if(token!==hostSpeakToken) return;
-    hostTtsBroken=true;
     speechActivePrio=0;
-    line.textContent="⚠ TTS error → beep fallback";
-    line.className="vline bad";
+    hostTtsRetries++;
+    if(hostTtsRetries>=TTS_MAX_RETRIES){
+      hostTtsBroken=true;
+      line.textContent="⚠ TTS unavailable → beep fallback";
+      line.className="vline bad";
+    }
     try{ speechSynthesis.cancel(); }catch(e){}
     fallbackFn?.();
+    updateVoiceNotes();
   };
 
-  // if it doesn't start soon, fallback
+  // if it doesn't fire onstart soon, fallback
+  const timeout = IS_QUEST ? 1200 : 800;
   setTimeout(()=>{
     if(token!==hostSpeakToken) return;
     if(!started){
-      hostTtsBroken=true;
       speechActivePrio=0;
+      hostTtsRetries++;
+      if(hostTtsRetries>=TTS_MAX_RETRIES){
+        hostTtsBroken=true;
+        line.textContent="⚠ TTS silent → beep fallback";
+        line.className="vline bad";
+      }
       try{ speechSynthesis.cancel(); }catch(e){}
       fallbackFn?.();
+      updateVoiceNotes();
     }
-  }, 800);
+  }, timeout);
 
   synth.speak(u);
 }
@@ -719,6 +744,7 @@ function speakWithFallbackRemote(text, urgent, prio, fallbackFn){
     if(token!==remoteSpeakToken) return;
     started=true;
     remoteTtsBroken=false;
+    remoteTtsRetries=0;
     line.textContent="🔊 "+text;
     line.className="vline talk";
   };
@@ -728,25 +754,36 @@ function speakWithFallbackRemote(text, urgent, prio, fallbackFn){
     line.className="vline ok";
     rSpeechActivePrio=0;
   };
-  u.onerror=()=>{
+  u.onerror=(e)=>{
     if(token!==remoteSpeakToken) return;
-    remoteTtsBroken=true;
     rSpeechActivePrio=0;
-    line.textContent="⚠ TTS error → beep fallback";
-    line.className="vline bad";
+    remoteTtsRetries++;
+    if(remoteTtsRetries>=TTS_MAX_RETRIES){
+      remoteTtsBroken=true;
+      line.textContent="⚠ TTS unavailable → beep fallback";
+      line.className="vline bad";
+    }
     try{ speechSynthesis.cancel(); }catch(e){}
     fallbackFn?.();
+    updateVoiceNotes();
   };
 
+  const timeout = IS_QUEST ? 1200 : 800;
   setTimeout(()=>{
     if(token!==remoteSpeakToken) return;
     if(!started){
-      remoteTtsBroken=true;
       rSpeechActivePrio=0;
+      remoteTtsRetries++;
+      if(remoteTtsRetries>=TTS_MAX_RETRIES){
+        remoteTtsBroken=true;
+        line.textContent="⚠ TTS silent → beep fallback";
+        line.className="vline bad";
+      }
       try{ speechSynthesis.cancel(); }catch(e){}
       fallbackFn?.();
+      updateVoiceNotes();
     }
-  }, 800);
+  }, timeout);
 
   synth.speak(u);
 }
@@ -787,7 +824,6 @@ const DIR_KEYWORDS={
 };
 
 let muted=false;
-let beepMode=false;
 let voices=[];
 let speechActivePrio=0;
 let repTimer=null;
@@ -803,12 +839,17 @@ let filterOn=true;
 let filterNameNorm="zepyx";
 
 // Remote
-let rMuted=false, rBeepMode=false, rVoices=[], rSpeechActivePrio=0;
+let rMuted=false, rVoices=[], rSpeechActivePrio=0;
 let rCurState="OFF", rLastDist=null, rLastDir="", rRepTimer=null;
 let rLastSeq=0, rClockOffset=null;
+let rLastName="";
 
 let rRED_MAX=500, rYEL_MAX=600, rSkipYellow=false;
 let rStateHistory=[], rHYST_WINDOW=4;
+
+// Remote target filter
+let rFilterOn=true;
+let rFilterNameNorm="zepyx";
 
 /* =========================================================
    UI wiring
@@ -818,6 +859,10 @@ function genRoom(){
   let r="";
   for(let i=0;i<5;i++) r += c[Math.floor(Math.random()*c.length)];
   return r;
+}
+
+function normName(s){
+  return (s||"").toLowerCase().replace(/[^a-z0-9]/g,"");
 }
 
 function chooseRole(r){
@@ -835,7 +880,7 @@ function chooseRole(r){
     document.getElementById("remoteRelayStatus").textContent="Relay: ready";
     document.getElementById("remoteAudioNote").textContent =
       IS_QUEST
-        ? "Quest detected: if spoken voice is silent, the app will auto-fallback to beeps. Ensure Quest media volume is up."
+        ? "Quest detected: if spoken voice is silent, the app will auto-fallback to beeps after a few tries. Ensure Quest media volume is up."
         : "Phone/PC: spoken voice should work after you press JOIN (unlocks audio).";
   }
 
@@ -945,14 +990,6 @@ document.getElementById("vol").addEventListener("input",(e)=>document.getElement
 document.getElementById("spd").addEventListener("input",(e)=>document.getElementById("spdV").textContent=(+e.target.value).toFixed(1)+"x");
 document.getElementById("rep").addEventListener("input",(e)=>document.getElementById("repV").textContent=(+e.target.value).toFixed(1)+"s");
 
-document.getElementById("beepMode").addEventListener("change", ()=>{
-  beepMode=document.getElementById("beepMode").checked;
-  speechSynthesis.cancel(); speechActivePrio=0;
-  hostTtsBroken = false;
-  stopRep(); startRep();
-  updateVoiceNotes();
-});
-
 function toggleMute(){
   muted=!muted;
   document.getElementById("muteBtn").textContent=muted?"OFF":"ON";
@@ -980,6 +1017,22 @@ document.getElementById("filterName").addEventListener("input",(e)=>{
   filterNameNorm = normName(e.target.value || "");
 });
 
+/* remote target filter */
+document.getElementById("rFilterOn").addEventListener("change",(e)=>{
+  rFilterOn=e.target.checked;
+  // re-evaluate current state
+  if(rFilterOn && rLastName){
+    const want = normName(document.getElementById("rFilterName").value||"");
+    const seen = normName(rLastName);
+    if(want && seen && !seen.includes(want)){
+      setRemoteOff("Ignoring \""+rLastName+"\" (want "+document.getElementById("rFilterName").value+")");
+    }
+  }
+});
+document.getElementById("rFilterName").addEventListener("input",(e)=>{
+  rFilterNameNorm = normName(e.target.value || "");
+});
+
 /* remote sliders */
 document.getElementById("rSkipY").addEventListener("change", ()=>{
   rSkipYellow=document.getElementById("rSkipY").checked;
@@ -1005,14 +1058,6 @@ document.getElementById("rYelV").textContent=rYEL_MAX;
 document.getElementById("rVol").addEventListener("input",(e)=>document.getElementById("rVolV").textContent=Math.round(+e.target.value*100)+"%");
 document.getElementById("rSpd").addEventListener("input",(e)=>document.getElementById("rSpdV").textContent=(+e.target.value).toFixed(1)+"x");
 document.getElementById("rRep").addEventListener("input",(e)=>document.getElementById("rRepV").textContent=(+e.target.value).toFixed(1)+"s");
-
-document.getElementById("rBeepMode").addEventListener("change", ()=>{
-  rBeepMode=document.getElementById("rBeepMode").checked;
-  speechSynthesis.cancel(); rSpeechActivePrio=0;
-  remoteTtsBroken = false;
-  rStopRep(); rStartRep();
-  updateVoiceNotes();
-});
 
 function rToggleMute(){
   rMuted=!rMuted;
@@ -1119,7 +1164,6 @@ function captureRegion(reg, maxW=360, maxH=90, forDir=false){
   ctx.drawImage(vid, px, py, pw, ph, 0,0,w,h);
   const img=ctx.getImageData(0,0,w,h);
 
-  // simple binarize
   let sum=0;
   for(let i=0;i<img.data.length;i+=4){
     const g=0.299*img.data[i]+0.587*img.data[i+1]+0.114*img.data[i+2];
@@ -1133,7 +1177,6 @@ function captureRegion(reg, maxW=360, maxH=90, forDir=false){
   }
   ctx.putImageData(img,0,0);
 
-  // preview for distance
   if(!forDir){
     rawCvs.width=Math.min(pw,200); rawCvs.height=Math.min(ph,70);
     rawCtx.imageSmoothingEnabled=false;
@@ -1147,28 +1190,21 @@ function captureRegion(reg, maxW=360, maxH=90, forDir=false){
   return cv;
 }
 
-function normName(s){
-  return (s||"").toLowerCase().replace(/[^a-z0-9]/g,"");
-}
-
 function parseNameAndDistance(raw){
   const t=(raw||"").trim();
   if(!t) return { raw:t, name:"", num:null, special:null };
 
   if (t.includes("?")) return { raw:t, name:"", num:null, special:"BALL LOOSE" };
 
-  // name (...) / name [...]
   let m = t.match(/^\s*([A-Za-z0-9._-]{2,24})\s*[\(\[]\s*(\d{2,4})\s*[\)\]]/);
   if(m) return { raw:t, name:m[1], num:parseInt(m[2],10), special:null };
 
-  // any bracket number
   m = t.match(/([A-Za-z0-9._-]{2,24})?.*[\(\[]\s*(\d{2,4})\s*[\)\]]/);
   if(m){
     const nm = m[1] || "";
     return { raw:t, name:nm, num:parseInt(m[2],10), special:null };
   }
 
-  // fallback digits
   m = t.match(/\d{2,4}/);
   if(m){
     const nm = (t.split(/\s+/)[0]||"");
@@ -1225,10 +1261,21 @@ function setHostOff(reason){
   broadcastState("OFF","",getActiveDir(),"");
 }
 
+function setRemoteOff(reason){
+  rCurState="OFF";
+  rStopRep();
+  const hero=document.getElementById("rHero");
+  hero.className="hero blue";
+  document.getElementById("rState").textContent="WAITING";
+  document.getElementById("rDist").textContent="—";
+  document.getElementById("rDir").textContent="";
+  document.getElementById("rNameLine").textContent=reason ? ("FILTER: "+reason) : "";
+  document.getElementById("rTime").textContent="Updated: "+new Date().toLocaleTimeString();
+}
+
 async function ocrLoop(){
   if(!running || !tWorker) return;
 
-  // distance OCR
   if(distRegion && !ocrBusy){
     ocrBusy=true;
     try{
@@ -1307,7 +1354,6 @@ async function ocrLoop(){
         if(!manualDirOverride && found!==detectedDir){
           detectedDir=found;
           updateDirUI();
-          // no speech interrupt; just refresh repeating audio
           startRep();
         }
       }
@@ -1321,7 +1367,7 @@ async function ocrLoop(){
 }
 
 /* =========================================================
-   Network send (throttle + seq + include player name)
+   Network send
    ========================================================= */
 function normDistForNet(d){
   if(typeof d==="number" && isFinite(d)) return Math.round(d/5)*5;
@@ -1354,7 +1400,7 @@ function heartbeatTick(){
 }
 
 /* =========================================================
-   Remote receive + local thresholds
+   Remote receive + local thresholds + remote target filter
    ========================================================= */
 function rGetStateRaw(n){
   if(n<=rRED_MAX) return "RED";
@@ -1398,6 +1444,19 @@ function onRelayMessage(payload){
 
     rLastDist=dist;
     rLastDir=dir;
+    rLastName=name;
+
+    // Remote target filter check
+    const rWant = normName(document.getElementById("rFilterName").value||"");
+    const rHasFilter = document.getElementById("rFilterOn").checked && rWant.length>0;
+
+    if(rHasFilter && rawState!=="OFF"){
+      const seenNorm = normName(name);
+      if(!seenNorm || !seenNorm.includes(rWant)){
+        setRemoteOff(`Ignoring "${name || 'unknown'}" (want ${document.getElementById("rFilterName").value})`);
+        return;
+      }
+    }
 
     let effective=rawState;
     const n=(typeof dist==="number") ? dist : parseInt(dist,10);
@@ -1432,11 +1491,11 @@ function recalcRemoteFromLast(){
   const n=(typeof rLastDist==="number")?rLastDist:parseInt(rLastDist,10);
   if(!isFinite(n)) return;
   const st=rGetStateHyst(n);
-  renderRemote(st, rLastDist, rLastDir, document.getElementById("rNameLine").textContent.replace(/^PLAYER:\s*/,""));
+  renderRemote(st, rLastDist, rLastDir, rLastName);
 }
 
 /* =========================================================
-   Host/Remote alerts (voice or beep fallback)
+   Host/Remote alerts (voice with beep fallback, NO directional beeping)
    ========================================================= */
 function prioForState(s){
   if(s==="GOAL") return 6;
@@ -1476,19 +1535,12 @@ function alertOnStateHost(state, dir){
   const fallback = () => {
     if(state==="RED"||state==="YELLOW"||state==="GREEN"){
       const ms=beepIntervalForDistance(lastNum, state, base, RED_MAX, YEL_MAX, skipYellow);
-      playBeep(dir, vol, state==="RED", document.getElementById("voiceLine"), ms);
+      playBeep(vol, state==="RED", document.getElementById("voiceLine"), ms);
     } else if(state==="BALL LOOSE"){
-      playBeep("", vol, true, document.getElementById("voiceLine"), 500);
+      playBeep(vol, true, document.getElementById("voiceLine"), 500);
     }
     updateVoiceNotes();
   };
-
-  // If user enabled beep mode: beep only
-  if(document.getElementById("beepMode").checked){
-    fallback();
-    startRep();
-    return;
-  }
 
   // If we already know TTS is broken: beep immediately
   if(hostTtsBroken){
@@ -1510,17 +1562,12 @@ function alertOnStateRemote(state, dir){
   const fallback = () => {
     if(state==="RED"||state==="YELLOW"||state==="GREEN"){
       const ms=beepIntervalForDistance(isFinite(n)?n:null, state, base, rRED_MAX, rYEL_MAX, rSkipYellow);
-      playBeep(dir, vol, state==="RED", document.getElementById("rVoiceLine"), ms);
+      playBeep(vol, state==="RED", document.getElementById("rVoiceLine"), ms);
     } else if(state==="BALL LOOSE"){
-      playBeep("", vol, true, document.getElementById("rVoiceLine"), 500);
+      playBeep(vol, true, document.getElementById("rVoiceLine"), 500);
     }
     updateVoiceNotes();
   };
-
-  if(document.getElementById("rBeepMode").checked){
-    fallback();
-    return;
-  }
 
   if(remoteTtsBroken){
     fallback();
@@ -1543,12 +1590,10 @@ function startRep(){
     const base=+document.getElementById("rep").value;
     const vol=+document.getElementById("vol").value;
 
-    const doBeep = document.getElementById("beepMode").checked || hostTtsBroken;
-
-    if(doBeep){
+    if(hostTtsBroken){
       if(curState==="RED"||curState==="YELLOW"||curState==="GREEN"){
         const ms=beepIntervalForDistance(lastNum, curState, base, RED_MAX, YEL_MAX, skipYellow);
-        playBeep(dir, vol, curState==="RED", document.getElementById("voiceLine"), ms);
+        playBeep(vol, curState==="RED", document.getElementById("voiceLine"), ms);
         repTimer=setTimeout(tick, ms);
         return;
       }
@@ -1560,7 +1605,7 @@ function startRep(){
     const phrase = hostPhraseForState(curState, dir);
     const fallback = () => {
       const ms=beepIntervalForDistance(lastNum, curState, base, RED_MAX, YEL_MAX, skipYellow);
-      playBeep(dir, vol, curState==="RED", document.getElementById("voiceLine"), ms);
+      playBeep(vol, curState==="RED", document.getElementById("voiceLine"), ms);
     };
     speakWithFallbackHost(phrase, curState==="RED"||curState==="BALL LOOSE", prioForState(curState), fallback);
     repTimer=setTimeout(tick, Math.round(base*1000));
@@ -1581,12 +1626,10 @@ function rStartRep(){
     const vol=+document.getElementById("rVol").value;
     const n=(typeof rLastDist==="number") ? rLastDist : parseInt(rLastDist,10);
 
-    const doBeep = document.getElementById("rBeepMode").checked || remoteTtsBroken;
-
-    if(doBeep){
+    if(remoteTtsBroken){
       if(rCurState==="RED"||rCurState==="YELLOW"||rCurState==="GREEN"){
         const ms=beepIntervalForDistance(isFinite(n)?n:null, rCurState, base, rRED_MAX, rYEL_MAX, rSkipYellow);
-        playBeep(rLastDir, vol, rCurState==="RED", document.getElementById("rVoiceLine"), ms);
+        playBeep(vol, rCurState==="RED", document.getElementById("rVoiceLine"), ms);
         rRepTimer=setTimeout(tick, ms);
         return;
       }
@@ -1597,7 +1640,7 @@ function rStartRep(){
     const phrase = remotePhraseForState(rCurState, rLastDir);
     const fallback = () => {
       const ms=beepIntervalForDistance(isFinite(n)?n:null, rCurState, base, rRED_MAX, rYEL_MAX, rSkipYellow);
-      playBeep(rLastDir, vol, rCurState==="RED", document.getElementById("rVoiceLine"), ms);
+      playBeep(vol, rCurState==="RED", document.getElementById("rVoiceLine"), ms);
     };
     speakWithFallbackRemote(phrase, rCurState==="RED"||rCurState==="BALL LOOSE", prioForState(rCurState), fallback);
     rRepTimer=setTimeout(tick, Math.round(base*1000));
@@ -1611,24 +1654,24 @@ function rStopRep(){ if(rRepTimer){ clearTimeout(rRepTimer); rRepTimer=null; } }
 function testVoice(){
   unlockAudio();
   hostTtsBroken=false;
+  hostTtsRetries=0;
   speechSynthesis.cancel();
-  const dir="left";
-  const phrase="Red left. Yellow. Green.";
-  const fallback=()=>playBeep(dir, +document.getElementById("vol").value, true, document.getElementById("voiceLine"), 450);
+  const phrase="Red. Yellow. Green.";
+  const fallback=()=>playBeep(+document.getElementById("vol").value, true, document.getElementById("voiceLine"), 450);
   speakWithFallbackHost(phrase, false, 99, fallback);
 }
 function rTestVoice(){
   unlockAudio();
   remoteTtsBroken=false;
+  remoteTtsRetries=0;
   speechSynthesis.cancel();
-  const dir="right";
-  const phrase="Red right. Yellow. Green.";
-  const fallback=()=>playBeep(dir, +document.getElementById("rVol").value, true, document.getElementById("rVoiceLine"), 450);
+  const phrase="Red. Yellow. Green.";
+  const fallback=()=>playBeep(+document.getElementById("rVol").value, true, document.getElementById("rVoiceLine"), 450);
   speakWithFallbackRemote(phrase, false, 99, fallback);
 }
 
 /* =========================================================
-   Voices list load (for voice selection)
+   Voices list load
    ========================================================= */
 function loadVoices(){
   voices = speechSynthesis.getVoices();
@@ -1671,27 +1714,34 @@ setTimeout(()=>{
   updateVoiceNotes();
 }, 600);
 
+// Quest: retry voice loading multiple times
+if(IS_QUEST){
+  [1500, 3000, 5000].forEach(delay=>{
+    setTimeout(()=>{
+      loadVoices();
+      loadRVoices();
+      updateVoiceNotes();
+    }, delay);
+  });
+}
+
 function updateVoiceNotes(){
   const hostNote=document.getElementById("ttsNote");
   const remoteNote=document.getElementById("rTtsNote");
 
   if(hostNote){
-    if(document.getElementById("beepMode").checked){
-      hostNote.textContent="Beep Mode ON (voice disabled for colors).";
-    } else if(hostTtsBroken){
-      hostNote.textContent="TTS seems unavailable here → using beeps automatically.";
+    if(hostTtsBroken){
+      hostNote.textContent="⚠ TTS unavailable on this device → using beeps automatically. Tap TEST to retry voice.";
     } else {
-      hostNote.textContent=voices.length ? "" : "Voice list not ready yet (normal). Voice should still work; if it stays silent, auto beep fallback will kick in.";
+      hostNote.textContent=voices.length ? "" : "Voice list loading… Voice should still work; if silent, auto beep fallback kicks in.";
     }
   }
 
   if(remoteNote){
-    if(document.getElementById("rBeepMode").checked){
-      remoteNote.textContent="Beep Mode ON (voice disabled for colors).";
-    } else if(remoteTtsBroken){
-      remoteNote.textContent="TTS seems unavailable here → using beeps automatically.";
+    if(remoteTtsBroken){
+      remoteNote.textContent="⚠ TTS unavailable on this device → using beeps automatically. Tap TEST to retry voice.";
     } else {
-      remoteNote.textContent=rVoices.length ? "" : (IS_QUEST ? "Quest often has no usable TTS voices. If voice is silent, auto beep fallback will kick in." : "");
+      remoteNote.textContent=rVoices.length ? "" : (IS_QUEST ? "Quest often has limited TTS. If voice is silent, beep fallback auto-activates after a few tries." : "");
     }
   }
 }
@@ -1700,16 +1750,11 @@ function updateVoiceNotes(){
    Keep relay pills updated
    ========================================================= */
 setInterval(()=>{
-  document.getElementById("relayPill").textContent = mqttConnected ? "connected" : "…";
-  document.getElementById("remoteRelayPill").textContent = mqttConnected ? "connected" : "…";
+  const el1=document.getElementById("relayPill");
+  const el2=document.getElementById("remoteRelayPill");
+  if(el1) el1.textContent = mqttConnected ? "connected" : "…";
+  if(el2) el2.textContent = mqttConnected ? "connected" : "…";
 }, 1500);
-
-/* =========================================================
-   Target filter normalization
-   ========================================================= */
-function normName(s){
-  return (s||"").toLowerCase().replace(/[^a-z0-9]/g,"");
-}
 
 /* =========================================================
    Start state defaults
@@ -1720,18 +1765,6 @@ document.getElementById("redV").textContent=RED_MAX;
 document.getElementById("yelV").textContent=YEL_MAX;
 document.getElementById("rRedV").textContent=rRED_MAX;
 document.getElementById("rYelV").textContent=rYEL_MAX;
-
-/* =========================================================
-   Fix: if you have the wrong player in box, do NOT stick red
-   ========================================================= */
-function setHostOff(reason){
-  curState="OFF";
-  lastNum=null;
-  lastSpokenState="OFF";
-  stopRep();
-  setHero("OFF","",getActiveDir(), reason ? ("FILTER: "+reason) : "");
-  broadcastState("OFF","",getActiveDir(),"");
-}
 </script>
 </body>
 </html>
