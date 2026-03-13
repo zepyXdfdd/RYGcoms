@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Screen Clipper Rooms</title>
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0f;
+            color: #e0e0e0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 24px;
+        }
+        .container {
+            width: 100%;
+            max-width: 900px;
+        }
+        h1 {
+            font-size: 2.2rem;
+            text-align: center;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 28px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        .card {
+            background: #13131a;
+            border: 1px solid #1e1e2e;
+            border-radius: 16px;
+            padding: 22px;
+        }
+        .card-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        input[type="text"], select {
+            background: #1a1a2a;
+            border: 1px solid #2a2a4a;
+            color: #ddd;
+            border-radius: 10px;
+            padding: 10px 12px;
+            min-width: 180px;
+            outline: none;
+        }
+        input[type="text"]:focus, select:focus {
+            border-color: #6366f1;
+        }
+        button {
+            background: #6366f1;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 14px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        button:hover { filter: brightness(1.08); }
+        button.secondary {
+            background: #1a1a2a;
+            border: 1px solid #2a2a4a;
+            color: #ddd;
+        }
+        button.danger {
+            background: #ef4444;
+        }
+        .status {
+            padding: 12px;
+            border-radius: 10px;
+            background: #1a1a2a;
+            color: #bbb;
+            margin-bottom: 16px;
+        }
+        .status.ok {
+            background: rgba(34,197,94,0.1);
+            color: #4ade80;
+            border: 1px solid rgba(34,197,94,0.25);
+        }
+        .status.warn {
+            background: rgba(245,158,11,0.1);
+            color: #fbbf24;
+            border: 1px solid rgba(245,158,11,0.25);
+        }
+        .status.err {
+            background: rgba(239,68,68,0.1);
+            color: #f87171;
+            border: 1px solid rgba(239,68,68,0.25);
+        }
+        .big-btn {
+            width: 170px;
+            height: 170px;
+            border-radius: 50%;
+            display: block;
+            margin: 18px auto;
+            font-size: 1.1rem;
+            font-weight: 800;
+            background: radial-gradient(circle at 40% 40%, #2a2a4a, #13131a);
+            border: 3px solid #6366f1;
+            position: relative;
+        }
+        .big-btn.recording {
+            border-color: #ef4444;
+            box-shadow: 0 0 30px rgba(239,68,68,0.25);
+        }
+        .big-btn.clipping {
+            border-color: #22c55e;
+            box-shadow: 0 0 30px rgba(34,197,94,0.35);
+        }
+        .duration-control {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            margin-top: 12px;
+        }
+        .duration-control input[type="range"] {
+            flex: 1;
+        }
+        .muted { color: #777; font-size: 0.9rem; }
+        .list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 280px;
+            overflow: auto;
+        }
+        .item {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+            background: #1a1a2a;
+            border-radius: 10px;
+            padding: 10px 12px;
+        }
+        .item .meta {
+            color: #777;
+            font-size: 0.8rem;
+            margin-top: 2px;
+        }
+        .pill {
+            display: inline-block;
+            background: #1a1a2a;
+            border: 1px solid #2a2a4a;
+            color: #cfcfff;
+            border-radius: 999px;
+            padding: 4px 10px;
+            font-size: 0.8rem;
+        }
+        .split {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 760px) {
+            .split { grid-template-columns: 1fr; }
+        }
+        .hidden { display: none !important; }
+        .timer {
+            text-align: center;
+            font-size: 1.3rem;
+            color: #f87171;
+            font-weight: 800;
+            margin-top: 8px;
+        }
+        .buffer {
+            margin-top: 10px;
+        }
+        .bar {
+            height: 6px;
+            background: #1e1e2e;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+        .bar > div {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #6366f1, #a78bfa);
+        }
+        .small {
+            font-size: 0.82rem;
+            color: #888;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .room-code {
+            font-size: 1rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            color: #a78bfa;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>⚡ Screen Clipper Rooms</h1>
+    <p class="subtitle">Host records the screen. Other devices join the room and can trigger clips remotely.</p>
+
+    <div class="status" id="statusBar">Choose Host or Join Room.</div>
+
+    <div class="split">
+        <div class="card">
+            <div class="card-title">🏠 Session Mode</div>
+            <div class="row">
+                <button id="hostModeBtn">Start as Host</button>
+                <button class="secondary" id="joinModeBtn">Join as Remote</button>
+            </div>
+
+            <div id="hostSetup" class="hidden">
+                <div class="row">
+                    <input type="text" id="hostRoomInput" placeholder="Room code (e.g. my-room)" />
+                    <button id="createHostBtn">Create / Open Room</button>
+                </div>
+                <div class="muted">Share this room code with other devices.</div>
+            </div>
+
+            <div id="joinSetup" class="hidden">
+                <div class="row">
+                    <input type="text" id="joinRoomInput" placeholder="Enter host room code" />
+                    <input type="text" id="remoteNameInput" placeholder="Your name" />
+                    <button id="joinRoomBtn">Join Room</button>
+                </div>
+                <div class="muted">You will be able to trigger clips on the host device.</div>
+            </div>
+
+            <div style="margin-top:14px;">
+                <div class="muted">Current role</div>
+                <div class="pill" id="rolePill">Not connected</div>
+            </div>
+
+            <div style="margin-top:14px;">
+                <div class="muted">Room</div>
+                <div class="room-code" id="roomCodeLabel">—</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">👥 Connected Devices</div>
+            <div id="peersList" class="list">
+                <div class="muted">No devices connected.</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid" style="margin-top:20px;">
+        <div class="card" id="hostPanel">
+            <div class="card-title">🎥 Host Recorder</div>
+
+            <div class="row">
+                <span class="pill">Format: WebM/MP4 depends on browser support</span>
+                <span class="pill">Recommended: 1080p 60 FPS</span>
+            </div>
+
+            <button class="big-btn" id="clipBtn">
+                <div id="clipBtnIcon">⏺</div>
+                <div id="clipBtnLabel">START</div>
+            </button>
+
+            <div class="timer hidden" id="recTimer">00:00</div>
+
+            <div class="buffer hidden" id="bufferWrap">
+                <div class="small">
+                    <span>Buffer</span>
+                    <span id="bufferLabel">0s / 60s</span>
+                </div>
+                <div class="bar"><div id="bufferFill"></div></div>
+            </div>
+
+            <div class="duration-control">
+                <label for="durationSlider">Clip Duration</label>
+                <input type="range" id="durationSlider" min="5" max="300" value="60" />
+                <div id="durationValue">60s</div>
+            </div>
+
+            <div class="row" style="margin-top:12px;">
+                <button class="secondary" data-duration="15">15s</button>
+                <button class="secondary" data-duration="30">30s</button>
+                <button class="secondary" data-duration="60">1m</button>
+                <button class="secondary" data-duration="120">2m</button>
+                <button class="secondary" data-duration="300">5m</button>
+            </div>
+
+            <div class="muted" style="margin-top:10px;">
+                Host captures the screen and stores clips locally. Remotes can request a clip using the same duration.
+            </div>
+        </div>
+
+        <div class="card" id="remotePanel">
+            <div class="card-title">🎛 Remote Clip Control</div>
+            <div class="muted">When connected to a host, you can trigger a clip on the host device.</div>
+
+            <button class="big-btn" id="remoteClipBtn">
+                <div>✂️</div>
+                <div>CLIP</div>
+            </button>
+
+            <div class="duration-control">
+                <label for="remoteDurationSlider">Clip Duration</label>
+                <input type="range" id="remoteDurationSlider" min="5" max="300" value="60" />
+                <div id="remoteDurationValue">60s</div>
+            </div>
+
+            <div class="row" style="margin-top:12px;">
+                <button class="secondary remote-preset" data-duration="15">15s</button>
+                <button class="secondary remote-preset" data-duration="30">30s</button>
+                <button class="secondary remote-preset" data-duration="60">1m</button>
+                <button class="secondary remote-preset" data-duration="120">2m</button>
+                <button class="secondary remote-preset" data-duration="300">5m</button>
+            </div>
+
+            <div class="row" style="margin-top:14px;">
+                <button class="secondary" id="requestStartBtn">Request Host Start</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">📁 Saved Clips</div>
+            <div id="clipsList" class="list">
+                <div class="muted">No clips yet.</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ========= App State =========
+    let peer = null;
+    let role = null; // 'host' | 'remote'
+    let roomCode = '';
+    let hostConnections = new Map(); // host side: peerId -> conn
+    let remoteConn = null;           // remote side single conn to host
+
+    // Recorder state
+    let mediaRecorder = null;
+    let recordedChunks = [];
+    let isRecording = false;
+    let clipDuration = 60;
+    let recordingStartTime = 0;
+    let timerInterval = null;
+    let bufferInterval = null;
+    let savedClips = [];
+    let clipCounter = 0;
+    let stream = null;
+
+    // ========= DOM =========
+    const statusBar = document.getElementById('statusBar');
+    const rolePill = document.getElementById('rolePill');
+    const roomCodeLabel = document.getElementById('roomCodeLabel');
+    const peersList = document.getElementById('peersList');
+
+    const hostModeBtn = document.getElementById('hostModeBtn');
+    const joinModeBtn = document.getElementById('joinModeBtn');
+    const hostSetup = document.getElementById('hostSetup');
+    const joinSetup = document.getElementById('joinSetup');
+    const createHostBtn = document.getElementById('createHostBtn');
+    const joinRoomBtn = document.getElementById('joinRoomBtn');
+    const hostRoomInput = document.getElementById('hostRoomInput');
+    const joinRoomInput = document.getElementById('joinRoomInput');
+    const remoteNameInput = document.getElementById('remoteNameInput');
+
+    const hostPanel = document.getElementById('hostPanel');
+    const remotePanel = document.getElementById('remotePanel');
+
+    const clipBtn = document.getElementById('clipBtn');
+    const clipBtnIcon = document.getElementById('clipBtnIcon');
+    const clipBtnLabel = document.getElementById('clipBtnLabel');
+    const recTimer = document.getElementById('recTimer');
+    const bufferWrap = document.getElementById('bufferWrap');
+    const bufferLabel = document.getElementById('bufferLabel');
+    const bufferFill = document.getElementById('bufferFill');
+    const durationSlider = document.getElementById('durationSlider');
+    const durationValue = document.getElementById('durationValue');
+
+    const remoteClipBtn = document.getElementById('remoteClipBtn');
+    const remoteDurationSlider = document.getElementById('remoteDurationSlider');
+    const remoteDurationValue = document.getElementById('remoteDurationValue');
+    const requestStartBtn = document.getElementById('requestStartBtn');
+
+    const clipsList = document.getElementById('clipsList');
+
+    // ========= Helpers =========
+    function setStatus(type, text) {
+        statusBar.className = 'status';
+        if (type) statusBar.classList.add(type);
+        statusBar.textContent = text;
+    }
+
+    function formatDuration(val) {
+        val = parseInt(val, 10);
+        if (val >= 60) {
+            const m = Math.floor(val / 60);
+            const s = val % 60;
+            return s ? `${m}m ${s}s` : `${m}m`;
+        }
+        return `${val}s`;
+    }
+
+    function formatBytes(bytes) {
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+
+    function randomRoomCode() {
+        return 'room-' + Math.random().toString(36).slice(2, 8);
+    }
+
+    function renderPeers() {
+        const entries = [];
+
+        if (role === 'host') {
+            for (const [peerId, conn] of hostConnections.entries()) {
+                entries.push({
+                    id: peerId,
+                    name: conn.__remoteName || 'Remote device',
+                    state: conn.open ? 'Connected' : 'Connecting'
+                });
+            }
+        } else if (role === 'remote' && remoteConn) {
+            entries.push({
+                id: remoteConn.peer,
+                name: 'Host',
+                state: remoteConn.open ? 'Connected' : 'Connecting'
+            });
+        }
+
+        if (entries.length === 0) {
+            peersList.innerHTML = '<div class="muted">No devices connected.</div>';
+            return;
+        }
+
+        peersList.innerHTML = entries.map(e => `
+            <div class="item">
+                <div>
+                    <div>${e.name}</div>
+                    <div class="meta">${e.id}</div>
+                </div>
+                <div class="pill">${e.state}</div>
+            </div>
+        `).join('');
+    }
+
+    function updatePanels() {
+        hostPanel.style.display = role === 'host' ? 'block' : 'none';
+        remotePanel.style.display = role === 'remote' ? 'block' : 'none';
+        rolePill.textContent = role ? role.toUpperCase() : 'Not connected';
+        roomCodeLabel.textContent = roomCode || '—';
+    }
+
+    // ========= Room / PeerJS =========
+    function createPeer(id = undefined) {
+        return new Peer(id);
+    }
+
+    hostModeBtn.addEventListener('click', () => {
+        role = 'host';
+        hostSetup.classList.remove('hidden');
+        joinSetup.classList.add('hidden');
+        updatePanels();
+        setStatus('', 'Enter a room code and create the host room.');
+    });
+
+    joinModeBtn.addEventListener('click', () => {
+        role = 'remote';
+        joinSetup.classList.remove('hidden');
+        hostSetup.classList.add('hidden');
+        updatePanels();
+        setStatus('', 'Enter the host room code and join.');
+    });
+
+    createHostBtn.addEventListener('click', () => {
+        const code = (hostRoomInput.value || '').trim() || randomRoomCode();
+        startHost(code);
+    });
+
+    joinRoomBtn.addEventListener('click', () => {
+        const code = (joinRoomInput.value || '').trim();
+        if (!code) return setStatus('err', 'Enter a room code.');
+        startRemote(code, (remoteNameInput.value || '').trim() || 'Remote');
+    });
+
+    function startHost(code) {
+        cleanupPeerOnly();
+
+        role = 'host';
+        roomCode = code;
+        updatePanels();
+        setStatus('', 'Opening host room...');
+
+        peer = createPeer('host-' + code);
+
+        peer.on('open', id => {
+            setStatus('ok', `Host room open. Share this room code: ${roomCode}`);
+            renderPeers();
+        });
+
+        peer.on('connection', conn => {
+            setupHostConnection(conn);
+        });
+
+        peer.on('error', err => {
+            console.error(err);
+            setStatus('err', 'Host peer error: ' + err.type);
+        });
+    }
+
+    function startRemote(code, name) {
+        cleanupPeerOnly();
+
+        role = 'remote';
+        roomCode = code;
+        updatePanels();
+        setStatus('', 'Joining host room...');
+
+        peer = createPeer();
+
+        peer.on('open', id => {
+            remoteConn = peer.connect('host-' + code, {
+                reliable: true,
+                metadata: { name }
+            });
+
+            remoteConn.on('open', () => {
+                setStatus('ok', `Joined room ${code}. Connected to host.`);
+                renderPeers();
+                remoteConn.send({
+                    type: 'hello',
+                    name
+                });
+            });
+
+            remoteConn.on('data', data => {
+                handleRemoteIncoming(data);
+            });
+
+            remoteConn.on('close', () => {
+                setStatus('warn', 'Disconnected from host.');
+                renderPeers();
+            });
+
+            remoteConn.on('error', err => {
+                console.error(err);
+                setStatus('err', 'Remote connection error.');
+            });
+        });
+
+        peer.on('error', err => {
+            console.error(err);
+            setStatus('err', 'Peer error: ' + err.type);
+        });
+    }
+
+    function setupHostConnection(conn) {
+        conn.__remoteName = conn.metadata?.name || 'Remote';
+        hostConnections.set(conn.peer, conn);
+        renderPeers();
+        broadcastHostState();
+
+        conn.on('open', () => {
+            renderPeers();
+            broadcastHostState();
+        });
+
+        conn.on('data', data => {
+            handleHostIncoming(conn, data);
+        });
+
+        conn.on('close', () => {
+            hostConnections.delete(conn.peer);
+            renderPeers();
+            broadcastHostState();
+        });
+
+        conn.on('error', err => {
+            console.error(err);
+            hostConnections.delete(conn.peer);
+            renderPeers();
+        });
+    }
+
+    function handleHostIncoming(conn, data) {
+        if (!data || typeof data !== 'object') return;
+
+        if (data.type === 'hello') {
+            conn.__remoteName = data.name || conn.__remoteName || 'Remote';
+            renderPeers();
+            conn.send({
+                type: 'host-state',
+                isRecording,
+                clipDuration,
+                roomCode
+            });
+            return;
+        }
+
+        if (data.type === 'request-clip') {
+            if (typeof data.duration === 'number') {
+                clipDuration = Math.max(5, Math.min(300, data.duration));
+                durationSlider.value = clipDuration;
+                durationValue.textContent = formatDuration(clipDuration);
+            }
+
+            if (!isRecording) {
+                conn.send({ type: 'toast', level: 'err', message: 'Host is not recording.' });
+                return;
+            }
+
+            saveClip(conn.__remoteName || 'Remote');
+            return;
+        }
+
+        if (data.type === 'request-start') {
+            setStatus('warn', `${conn.__remoteName || 'Remote'} requested recording start.`);
+            if (!isRecording) {
+                startRecording();
+            }
+            return;
+        }
+
+        if (data.type === 'set-duration') {
+            if (typeof data.duration === 'number') {
+                clipDuration = Math.max(5, Math.min(300, data.duration));
+                durationSlider.value = clipDuration;
+                durationValue.textContent = formatDuration(clipDuration);
+                broadcastHostState();
+            }
+        }
+    }
+
+    function handleRemoteIncoming(data) {
+        if (!data || typeof data !== 'object') return;
+
+        if (data.type === 'host-state') {
+            if (typeof data.clipDuration === 'number') {
+                remoteDurationSlider.value = data.clipDuration;
+                remoteDurationValue.textContent = formatDuration(data.clipDuration);
+            }
+            if (data.isRecording) {
+                setStatus('ok', `Connected to host. Host is recording.`);
+            } else {
+                setStatus('warn', `Connected to host. Host is not recording yet.`);
+            }
+            return;
+        }
+
+        if (data.type === 'toast') {
+            setStatus(data.level || '', data.message || 'Message from host');
+            return;
+        }
+    }
+
+    function broadcastHostState() {
+        if (role !== 'host') return;
+        for (const conn of hostConnections.values()) {
+            if (conn.open) {
+                conn.send({
+                    type: 'host-state',
+                    isRecording,
+                    clipDuration,
+                    roomCode
+                });
+            }
+        }
+    }
+
+    function cleanupPeerOnly() {
+        if (remoteConn) {
+            try { remoteConn.close(); } catch {}
+            remoteConn = null;
+        }
+
+        if (peer) {
+            try { peer.destroy(); } catch {}
+            peer = null;
+        }
+
+        hostConnections.clear();
+        renderPeers();
+    }
+
+    // ========= Recorder =========
+    clipBtn.addEventListener('click', async () => {
+        if (role !== 'host') return;
+        if (!isRecording) await startRecording();
+        else saveClip('Host');
+    });
+
+    clipBtn.addEventListener('dblclick', (e) => {
+        if (role !== 'host') return;
+        if (isRecording) stopRecording();
+    });
+
+    async function startRecording() {
+        try {
+            stream = await navigator.mediaDevices.getDisplayMedia({
+                video: {
+                    width: { ideal: 1920 },
+                    height: { ideal: 1080 },
+                    frameRate: { ideal: 60, max: 60 }
+                },
+                audio: {
+                    echoCancellation: false,
+                    noiseSuppression: false,
+                    autoGainControl: false
+                }
+            });
+
+            stream.getVideoTracks()[0].addEventListener('ended', () => {
+                stopRecording();
+            });
+
+            const preferredTypes = [
+                'video/mp4;codecs="avc1.42E01E,mp4a.40.2"',
+                'video/webm;codecs=vp9',
+                'video/webm;codecs=vp8',
+                'video/webm'
+            ];
+
+            const options = {
+                videoBitsPerSecond: 12000000
+            };
+
+            for (const t of preferredTypes) {
+                if (window.MediaRecorder && MediaRecorder.isTypeSupported(t)) {
+                    options.mimeType = t;
+                    break;
+                }
+            }
+
+            mediaRecorder = new MediaRecorder(stream, options);
+            recordedChunks = [];
+
+            mediaRecorder.ondataavailable = (e) => {
+                if (e.data && e.data.size > 0) {
+                    recordedChunks.push({
+                        data: e.data,
+                        timestamp: Date.now()
+                    });
+                    pruneBuffer();
+                }
+            };
+
+            mediaRecorder.onerror = (e) => {
+                console.error(e);
+                setStatus('err', 'Recording error.');
+                stopRecording();
+            };
+
+            mediaRecorder.start(1000);
+
+            isRecording = true;
+            recordingStartTime = Date.now();
+            updateRecordingUI();
+            broadcastHostState();
+            setStatus('ok', 'Host recording started.');
+            timerInterval = setInterval(updateTimer, 500);
+            bufferInterval = setInterval(updateBufferBar, 500);
+        } catch (err) {
+            console.error(err);
+            if (err.name === 'NotAllowedError') {
+                setStatus('err', 'Screen share permission denied.');
+            } else {
+                setStatus('err', 'Could not start recording: ' + err.message);
+            }
+        }
+    }
+
+    function stopRecording() {
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            try { mediaRecorder.stop(); } catch {}
+        }
+        if (stream) {
+            stream.getTracks().forEach(t => t.stop());
+            stream = null;
+        }
+        isRecording = false;
+        recordedChunks = [];
+        clearInterval(timerInterval);
+        clearInterval(bufferInterval);
+        updateRecordingUI();
+        broadcastHostState();
+        setStatus('', 'Recording stopped.');
+    }
+
+    function pruneBuffer() {
+        const cutoff = Date.now() - (clipDuration * 1000) - 2000;
+        while (recordedChunks.length && recordedChunks[0].timestamp < cutoff) {
+            recordedChunks.shift();
+        }
+    }
+
+    function saveClip(triggeredBy = 'Host') {
+        if (!isRecording || recordedChunks.length === 0) {
+            setStatus('err', 'No data to clip yet.');
+            return;
+        }
+
+        const cutoff = Date.now() - (clipDuration * 1000);
+        const clipChunks = recordedChunks
+            .filter(c => c.timestamp >= cutoff)
+            .map(c => c.data);
+
+        if (!clipChunks.length) {
+            setStatus('err', 'No data in selected time range.');
+            return;
+        }
+
+        const mimeType = mediaRecorder?.mimeType || 'video/webm';
+        const blob = new Blob(clipChunks, { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
+
+        clipCounter++;
+        const now = new Date();
+        const filename = `Clip_${clipCounter}_${now.toLocaleTimeString('en-US', { hour12: false }).replace(/:/g, '-')}`;
+        const actualDuration = Math.min(
+            clipDuration,
+            Math.floor((Date.now() - recordingStartTime) / 1000)
+        );
+
+        savedClips.unshift({
+            id: clipCounter,
+            name: filename,
+            url,
+            ext,
+            duration: actualDuration,
+            size: blob.size,
+            time: now.toLocaleString(),
+            by: triggeredBy
+        });
+
+        renderClips();
+
+        clipBtn.classList.add('clipping');
+        setTimeout(() => clipBtn.classList.remove('clipping'), 700);
+
+        setStatus('ok', `Clip saved by ${triggeredBy} — ${actualDuration}s, ${formatBytes(blob.size)}`);
+
+        for (const conn of hostConnections.values()) {
+            if (conn.open) {
+                conn.send({
+                    type: 'toast',
+                    level: 'ok',
+                    message: `Host saved a ${actualDuration}s clip${triggeredBy ? ` (${triggeredBy})` : ''}.`
+                });
+            }
+        }
+    }
+
+    function renderClips() {
+        if (!savedClips.length) {
+            clipsList.innerHTML = '<div class="muted">No clips yet.</div>';
+            return;
+        }
+
+        clipsList.innerHTML = savedClips.map(clip => `
+            <div class="item">
+                <div>
+                    <div>${clip.name}.${clip.ext}</div>
+                    <div class="meta">${clip.time} · ${clip.duration}s · ${formatBytes(clip.size)} · by ${clip.by}</div>
+                </div>
+                <div class="row" style="margin:0;">
+                    <button class="secondary" onclick="playClip(${clip.id})">Play</button>
+                    <button onclick="downloadClip(${clip.id})">Save</button>
+                    <button class="danger" onclick="deleteClip(${clip.id})">Delete</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    window.playClip = function(id) {
+        const clip = savedClips.find(c => c.id === id);
+        if (!clip) return;
+        const win = window.open('', '_blank');
+        win.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>${clip.name}</title>
+                <style>
+                    body{margin:0;background:#000;display:flex;align-items:center;justify-content:center;height:100vh}
+                    video{max-width:100%;max-height:100%}
+                </style>
+            </head>
+            <body>
+                <video controls autoplay playsinline src="${clip.url}"></video>
+            </body>
+            </html>
+        `);
+    };
+
+    window.downloadClip = function(id) {
+        const clip = savedClips.find(c => c.id === id);
+        if (!clip) return;
+        const a = document.createElement('a');
+        a.href = clip.url;
+        a.download = `${clip.name}.${clip.ext}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    };
+
+    window.deleteClip = function(id) {
+        const idx = savedClips.findIndex(c => c.id === id);
+        if (idx < 0) return;
+        URL.revokeObjectURL(savedClips[idx].url);
+        savedClips.splice(idx, 1);
+        renderClips();
+    };
+
+    function updateRecordingUI() {
+        if (isRecording) {
+            clipBtn.classList.add('recording');
+            clipBtnIcon.textContent = '✂️';
+            clipBtnLabel.textContent = 'CLIP IT';
+            recTimer.classList.remove('hidden');
+            bufferWrap.classList.remove('hidden');
+        } else {
+            clipBtn.classList.remove('recording');
+            clipBtnIcon.textContent = '⏺';
+            clipBtnLabel.textContent = 'START';
+            recTimer.classList.add('hidden');
+            bufferWrap.classList.add('hidden');
+        }
+    }
+
+    function updateTimer() {
+        if (!isRecording) return;
+        const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
+        const mins = String(Math.floor(elapsed / 60)).padStart(2, '0');
+        const secs = String(elapsed % 60).padStart(2, '0');
+        recTimer.textContent = `${mins}:${secs}`;
+    }
+
+    function updateBufferBar() {
+        if (!isRecording) return;
+        const elapsed = (Date.now() - recordingStartTime) / 1000;
+        const fill = Math.min(elapsed, clipDuration);
+        const pct = (fill / clipDuration) * 100;
+        bufferFill.style.width = `${pct}%`;
+        bufferLabel.textContent = `${Math.floor(fill)}s / ${clipDuration}s`;
+    }
+
+    // ========= Controls =========
+    durationSlider.addEventListener('input', () => {
+        clipDuration = parseInt(durationSlider.value, 10);
+        durationValue.textContent = formatDuration(clipDuration);
+        broadcastHostState();
+    });
+
+    document.querySelectorAll('[data-duration]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const v = parseInt(btn.dataset.duration, 10);
+            clipDuration = v;
+            durationSlider.value = v;
+            durationValue.textContent = formatDuration(v);
+            broadcastHostState();
+        });
+    });
+
+    remoteDurationSlider.addEventListener('input', () => {
+        const v = parseInt(remoteDurationSlider.value, 10);
+        remoteDurationValue.textContent = formatDuration(v);
+        if (remoteConn && remoteConn.open) {
+            remoteConn.send({ type: 'set-duration', duration: v });
+        }
+    });
+
+    document.querySelectorAll('.remote-preset').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const v = parseInt(btn.dataset.duration, 10);
+            remoteDurationSlider.value = v;
+            remoteDurationValue.textContent = formatDuration(v);
+            if (remoteConn && remoteConn.open) {
+                remoteConn.send({ type: 'set-duration', duration: v });
+            }
+        });
+    });
+
+    remoteClipBtn.addEventListener('click', () => {
+        if (role !== 'remote' || !remoteConn || !remoteConn.open) {
+            return setStatus('err', 'Not connected to a host.');
+        }
+        const v = parseInt(remoteDurationSlider.value, 10);
+        remoteConn.send({
+            type: 'request-clip',
+            duration: v
+        });
+        setStatus('', `Clip request sent to host (${formatDuration(v)}).`);
+    });
+
+    requestStartBtn.addEventListener('click', () => {
+        if (role !== 'remote' || !remoteConn || !remoteConn.open) {
+            return setStatus('err', 'Not connected to a host.');
+        }
+        remoteConn.send({ type: 'request-start' });
+        setStatus('', 'Requested host to start recording.');
+    });
+
+    // ========= Keyboard =========
+    document.addEventListener('keydown', (e) => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+
+        if ((e.key === 'c' || e.key === 'C')) {
+            if (role === 'host' && isRecording) saveClip('Host');
+            if (role === 'remote' && remoteConn?.open) {
+                const v = parseInt(remoteDurationSlider.value, 10);
+                remoteConn.send({ type: 'request-clip', duration: v });
+            }
+        }
+
+        if (e.key === ' ') {
+            e.preventDefault();
+            if (role === 'host') {
+                if (isRecording) stopRecording();
+                else startRecording();
+            }
+        }
+    });
+
+    // ========= Init =========
+    updatePanels();
+    durationValue.textContent = formatDuration(durationSlider.value);
+    remoteDurationValue.textContent = formatDuration(remoteDurationSlider.value);
+
+    window.addEventListener('beforeunload', () => {
+        if (isRecording) stopRecording();
+        savedClips.forEach(c => URL.revokeObjectURL(c.url));
+        cleanupPeerOnly();
+    });
+</script>
+</body>
+</html>
